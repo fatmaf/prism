@@ -30,8 +30,11 @@
 package automata;
 
 import java.io.PrintStream;
+import java.lang.Math;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Deque;
 import java.util.List;
 
 import jltl2ba.APElement;
@@ -42,6 +45,8 @@ import prism.PrismNotSupportedException;
 import prism.PrismPrintStreamLog;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceRabin.RabinPair;
+import acceptance.AcceptanceReach;
 
 /**
  * Class to store a deterministic automata of some acceptance type Acceptance.
@@ -57,8 +62,14 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	private int start;
 	/** Edges of DRA */
 	private List<List<Edge>> edges;
+	/** Inverted edges of DRA */
+	private List<List<Edge>> invertedEdges;
 	/** The acceptance condition (as BitSets) */
 	private Acceptance acceptance;
+	/** The distances of each state to an accepting state*/
+	private List<Double> distsToAcc; 
+	/** The sink states */
+	private BitSet sinkStates;
 
 	/** Local class to represent DRA edge */
 	class Edge
@@ -90,8 +101,10 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 		this.size = size;
 		this.start = -1;
 		edges = new ArrayList<List<Edge>>(size);
+		invertedEdges = new ArrayList<List<Edge>>(size);
 		for (int i = 0; i < size; i++) {
 			edges.add(new ArrayList<Edge>());
+			invertedEdges.add(new ArrayList<Edge>());
 		}
 	}
 
@@ -155,6 +168,7 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	public void addEdge(int src, Symbol label, int dest)
 	{
 		edges.get(src).add(new Edge(label, dest));
+		invertedEdges.get(dest).add(new Edge(label,src));
 	}
 
 	// Accessors
@@ -184,6 +198,18 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	}
 
 	/**
+	 * Get the number of edges from state src to state dest
+	 */
+	public int getNumEdges(int src, int dest)
+	{
+		int result=0;
+		for  (Edge e : invertedEdges.get(dest))
+			if (e.dest == src)
+				result++;
+		return result;
+	}
+
+	/**
 	 * Get the destination of edge j from state i
 	 */
 	public int getEdgeDest(int i, int j)
@@ -209,6 +235,14 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 			if (e.label.equals(lab))
 				return e.dest;
 		return -1;
+	}
+
+	/**
+	 * Get the distances of each state to an accepting state
+	 */
+	public List<Double> getDistsToAcc()
+	{
+		return distsToAcc;
 	}
 
 	/**
@@ -444,4 +478,250 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 		}
 		// We are fine with an empty apList or an apList that lacks some of the expected Li.
 	}
+	/*
+	 *  Calculate the distance to a target state 
+	 */
+	public List<Double> calculateDistsToState(int target) {
+		List<Double> dists = new ArrayList<Double>(size);
+		Deque<Integer> queue = new ArrayDeque<Integer>();
+
+		//max dist = DA size * atomic props for da 
+		
+		for(int i = 0; i < size; i++) {
+			if(i == target) {
+				dists.add(0.0);
+				queue.add(i);
+			}
+			else {
+				dists.add(new Double(size*apList.size()));
+			}
+		}
+		
+		//Calculate distances
+		int currentState;
+		int numEdges;
+		Double newDist;
+		Double minDist=Double.MAX_VALUE;
+		//basically iteratively refine the distance of all states to this state 
+		
+		while(!queue.isEmpty()) {
+			currentState=queue.poll();
+			//find the minimum distance to this state from all states 
+			for (int i = 0; i < size; i++) {
+				//get the number of edges 
+				numEdges = getNumEdges(i,currentState);
+				
+				if (numEdges > 0) {
+					//our heuristic in my head of course 
+					double a =(double)Math.pow(2, apList.size())/(double)numEdges;
+					newDist=dists.get(currentState) + Math.log(a)/Math.log(2);
+					if (newDist < dists.get(i)) {
+					
+						queue.add(i);
+						dists.set(i,newDist);
+						minDist=Math.min(minDist, newDist);
+					}
+				}
+			}
+		}
+		
+		
+		//Make distance from initial state 1
+		double normalisedDist, maxDist = 0.0;
+		double initDist = dists.get(getStartState());
+		for(int i = 0; i < size; i++) {
+			if (dists.get(i) == size*apList.size()) {
+				//if we will have to go through all possible 
+				//state combinations then this is a sink state ?
+				sinkStates.set(i);
+			} else {
+				normalisedDist = dists.get(i)/initDist;
+				dists.set(i, normalisedDist);
+				if (normalisedDist > maxDist) {
+					maxDist = normalisedDist;
+				}
+			}
+		}
+		
+		for(int i = 0; i < size; i++) {
+			if (sinkStates.get(i)) {
+				dists.set(i, maxDist);
+			}
+		}
+
+		return dists;
+	}
+	/**
+	 * Sets the list of distances (weighed by number of transitions) to an accepting state (if the acceptance type is AcceptanceReach)
+	 */
+	public List<Double> setDistancesToAcc()
+	{		
+		
+		BitSet acc;
+		//Check if its a DFA
+		if (acceptance instanceof AcceptanceReach) {
+			acc = ((AcceptanceReach)acceptance).getGoalStates();
+		} else if (acceptance instanceof AcceptanceRabin) {
+				acc = getRabinAccStates();
+			} else {
+				return null;
+		}
+		
+//		//initialise distances list
+//		distsToAcc = new ArrayList<Double>(size);
+//
+//		int i, j;
+//		Deque<Integer> queue = new ArrayDeque<Integer>();
+//		for(i = 0; i < size; i++) {
+//			if(acc.get(i)) {
+//				distsToAcc.add(0.0);
+//				queue.add(i);
+//			}
+//			else {
+//				distsToAcc.add(new Double(size));
+//			}
+//		}
+//		
+//		//Calculate distances
+//		int currentState;
+//		int numEdges;
+//		Double newDist;
+//		Double minDist=Double.MAX_VALUE;
+//		while(!queue.isEmpty()) {
+//			currentState=queue.poll();
+//			for (i = 0; i < size; i++) {
+//				numEdges = getNumEdges(i,currentState);
+//				if (numEdges > 0) {
+//					newDist=distsToAcc.get(currentState)+1.0/numEdges;
+//					if (newDist < distsToAcc.get(i)) {
+//						queue.add(i);
+//						distsToAcc.set(i,newDist);
+//						minDist=Math.min(minDist, newDist);
+//					}
+//				}
+//			}
+//		}
+//
+//		BitSet reachableStatesI, reachableStatesJ;
+//		for (i=0; i < size; i++) {
+//			reachableStatesI=getReachableStates(i);
+//			for (j=0; j < size; j++) {
+//				reachableStatesJ=getReachableStates(j);
+//				if (reachableStatesI.get(j) && reachableStatesJ.get(i)) {
+//					distsToAcc.set(i, Math.max(distsToAcc.get(i), distsToAcc.get(j)));
+//				}
+//			}
+//		}
+		//initialise distances list
+		sinkStates = new BitSet(size);
+		distsToAcc = new ArrayList<Double>(size);
+		int i, j;
+		Deque<Integer> queue = new ArrayDeque<Integer>();
+		for(i = 0; i < size; i++) {
+			if(acc.get(i)) {
+				distsToAcc.add(0.0);
+				queue.add(i);
+			}
+			else {
+				distsToAcc.add(new Double(size*apList.size()));
+			}
+		}
+		
+		//Calculate distances
+		int currentState;
+		int numEdges;
+		Double newDist;
+		Double minDist=Double.MAX_VALUE;
+		while(!queue.isEmpty()) {
+			currentState=queue.poll();
+			for (i = 0; i < size; i++) {
+				numEdges = getNumEdges(i,currentState);
+				if (numEdges > 0) {
+					double a =(double)Math.pow(2, apList.size())/(double)numEdges;
+					newDist=distsToAcc.get(currentState) + Math.log(a)/Math.log(2);
+					if (newDist < distsToAcc.get(i)) {
+						queue.add(i);
+						distsToAcc.set(i,newDist);
+						minDist=Math.min(minDist, newDist);
+					}
+				}
+			}
+		}
+		
+		/*
+		BitSet reachableStates;
+		for (i=0; i < size; i++) {
+			reachableStates=getReachableStates(i);
+			for (j=0; j < size; j++) {
+				if (reachableStates.get(j)) {
+					distsToAcc.set(i, Math.max(distsToAcc.get(i), distsToAcc.get(j)));
+				}
+			}
+		}*/
+		
+		//Make distance from initial state 1
+		double initDist = distsToAcc.get(getStartState());
+		for(i = 0; i < size; i++) {
+			if (distsToAcc.get(i) == size*apList.size()) {
+				sinkStates.set(i);
+			}
+			distsToAcc.set(i, distsToAcc.get(i)/initDist);
+		}
+		return distsToAcc;
+	}
+	
+	public BitSet getRabinAccStates()
+	{	
+		BitSet acc = new BitSet();
+		AcceptanceRabin acceptance = (AcceptanceRabin)getAcceptance();
+		for (RabinPair pair : acceptance ) {
+			acc.or(pair.getK());
+		}
+//		System.out.println("GET ACC");
+		return acc;
+	}
+	
+	public BitSet getAccStates()
+	{
+		BitSet daAcc = new BitSet(size);
+		if (getAcceptance() instanceof AcceptanceReach) {
+			daAcc = ((AcceptanceReach)getAcceptance()).getGoalStates();
+		} else
+			daAcc = getRabinAccStates();
+		return daAcc;
+	}
+
+	/**
+	 * Returns true iff state dest is reachable from state dest
+	 */
+
+	public BitSet getReachableStates(int src)
+	{
+		BitSet reachableStates= new BitSet(size);
+		Deque<Integer> queue = new ArrayDeque<Integer>();
+		int i, edgeTarget, currentState;
+		reachableStates.set(src, true);
+		queue.add(src);
+
+		while(!queue.isEmpty()) {
+			currentState=queue.poll();
+			for (i=0; i < getNumEdges(currentState); i++) {
+				edgeTarget=getEdgeDest(currentState, i);
+				if (!reachableStates.get(edgeTarget)) {
+					reachableStates.set(edgeTarget, true);
+					queue.add(edgeTarget);
+				}
+			}
+		}
+		return reachableStates;
+	}
+	
+	public BitSet getSinkStates() {
+		return sinkStates;
+	}
+	public boolean isSinkState(int src)
+	{
+		return sinkStates.get(src);
+	}
+
 }
