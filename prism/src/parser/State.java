@@ -219,7 +219,13 @@ public class State implements Comparable<State>
 					return c;
 				else
 					continue;
-			} else {
+			} else if (o1 instanceof State && o1 instanceof State) {
+				c = ((State) o1).compareTo(((State) o2));
+				if (c != 0)
+					return c;
+				else
+					continue;
+			}else {
 				throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
 			}
 		}
