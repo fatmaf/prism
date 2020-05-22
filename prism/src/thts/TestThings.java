@@ -54,10 +54,10 @@ public class TestThings {
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 
-		String dir = currentDir + "/prism-api/tests/wkspace/tro_examples/";// "/home/fatma/Data/PhD/code/prism_ws/prism-svn/prism/tests/wkspace/simpleTests/";
+		String dir = currentDir + "/tests/wkspace/tro_examples/";// "/home/fatma/Data/PhD/code/prism_ws/prism-svn/prism/tests/wkspace/simpleTests/";
 		// System.getProperty("user.dir");
 
-		testsLocation = currentDir + "/prism-api/tests/wkspace/tro_examples/";
+		testsLocation = currentDir + "/tests/wkspace/tro_examples/";
 
 		resultsLocation = testsLocation + "/results/";
 		String example = "tro_example_new_small";
