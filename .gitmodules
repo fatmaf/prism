@@ -1,0 +1,3 @@
+[submodule "prism-api"]
+	path = prism-api
+	url = git@github.com:fatmaf/prism-api.git
