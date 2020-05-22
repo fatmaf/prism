@@ -1,5 +1,0 @@
-[submodule "prism-api"]
-	path = prism-api
-	url = https://github.com/fatmaf/prism-api.git
-	branch = master
-	update = rebase
