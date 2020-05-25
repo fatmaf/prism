@@ -1,4 +1,4 @@
-package thts;
+package thtsNew;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -36,9 +36,20 @@ public class NestedProductMDP extends Product<MDP> {
 	Vector<Vector<BitSet>> daStateToProductStateMap = null;
 
 	int safetyDAInd = -1; 
-	BitSet acc = null; 
-	BitSet avoid = null; 
+	public BitSet acc = null; 
+	public BitSet avoid = null; 
 	
+	public boolean isInitialState(int s)
+	{
+		//break this state and check if its an initial state in the original model 
+		int modelstate = getModelState(s);
+		return originalModel.isInitialState(modelstate);
+	}
+	
+	public State getState(int s)
+	{
+		return productModel.getStatesList().get(s);
+	}
 	public NestedProductMDP(MDP originalModel) {
 		super(originalModel);
 		// TODO Auto-generated constructor stub
@@ -311,7 +322,7 @@ public class NestedProductMDP extends Product<MDP> {
 	}
 
 	public int getModelState(int productState) {
-		return 0;
+		return productStateToOriginalModelStateMap.get(productState);
 	}
 
 	public State getNestedAutomatonState(int productState) {
@@ -320,7 +331,7 @@ public class NestedProductMDP extends Product<MDP> {
 	}
 
 	public int getAutomatonState(int productState, int automatonIndex) {
-		return 0; // this returns a particular automatons state
+		return productStateToDAStateMap.get(automatonIndex).get(productState); // this returns a particular automatons state
 	}
 
 	public int getAutomatonIndex(Expression expr) {

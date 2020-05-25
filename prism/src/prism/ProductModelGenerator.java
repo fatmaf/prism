@@ -44,21 +44,20 @@ import parser.type.Type;
 import parser.type.TypeInt;
 import simulator.ModulesFileModelGenerator;
 
-public class ProductModelGenerator implements ModelGenerator,RewardGenerator
-{
+public class ProductModelGenerator implements ModelGenerator, RewardGenerator {
 	protected ModulesFileModelGenerator modelGen = null;
 
 	/** The DA used to build the product */
 	protected DA<BitSet, ? extends AcceptanceOmega> da = null;
 	/** The expressions for the labels (APs) in the DA */
 	protected List<Expression> labelExprs = null;
-	
+
 	/** Variable name for DA state */
 	protected String daVar;
 	/** Number of APs in the DA */
 	protected int numAPs;
 	/** Number of variables (num model vars + 1) */
-	protected int numVars; 
+	protected int numVars;
 	/** Variable names */
 	protected List<String> varNames;
 	/** Variable types */
@@ -67,23 +66,23 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 	protected String accLabel;
 	/** Label names */
 	protected List<String> labelNames;
-	
+
 	/** BitSet */
 	protected BitSet bsLabels;
-	
+
 	/** State to be explored in product */
 	protected State exploreState;
 	/** The model part of exploreState */
 	protected State exploreModelState;
 	/** The DA part of exploreState */
 	protected int exploreDaState;
-	
+
 	// Constructor(s)
-	
-	public ProductModelGenerator(ModulesFileModelGenerator modelGen,  DA<BitSet, ? extends AcceptanceOmega> da, List<Expression> labelExprs)
-	{
+
+	public ProductModelGenerator(ModulesFileModelGenerator modelGen, DA<BitSet, ? extends AcceptanceOmega> da,
+			List<Expression> labelExprs) {
 		this.modelGen = modelGen;
-		
+
 		this.da = da;
 		this.labelExprs = labelExprs;
 		// Create a (new, unique) name for the variable that will represent DA states
@@ -109,27 +108,24 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 		bsLabels = new BitSet(numAPs);
 	}
 
-	
 	// Accessors
-	
-	public String getDAVarName()
-	{
+
+	public String getDAVarName() {
 		return daVar;
 	}
-	//fatma added this 
-	//cuz I couldnt figure out how to get the label expressions otherwise 
-	//and I need them 
-	public int getNumLabelExprs()
-	{
-		return this.labelExprs.size(); 
+
+	// fatma added this
+	// cuz I couldnt figure out how to get the label expressions otherwise
+	// and I need them
+	public int getNumLabelExprs() {
+		return this.labelExprs.size();
 	}
-	
+
 	/**
-	 * Assuming the product is build with a reach acceptance,
-	 * is the state currently being explored a goal state?
+	 * Assuming the product is build with a reach acceptance, is the state currently
+	 * being explored a goal state?
 	 */
-	public boolean isReachAcceptanceGoalState()
-	{
+	public boolean isReachAcceptanceGoalState() {
 		AcceptanceOmega acc = da.getAcceptance();
 		if (!(acc instanceof AcceptanceReach)) {
 			return false;
@@ -137,9 +133,8 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 		AcceptanceReach accReach = (AcceptanceReach) acc;
 		return accReach.getGoalStates().get(exploreDaState);
 	}
-	
-	public boolean isReachAcceptanceGoalState(State state)
-	{
+
+	public boolean isReachAcceptanceGoalState(State state) {
 		AcceptanceOmega acc = da.getAcceptance();
 		if (!(acc instanceof AcceptanceReach)) {
 			return false;
@@ -147,84 +142,71 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 		AcceptanceReach accReach = (AcceptanceReach) acc;
 		return accReach.getGoalStates().get(((Integer) state.varValues[numVars - 1]).intValue());
 	}
-	
+
 	// Methods to implement ModelGenerator
-	
+
 	@Override
-	public ModelType getModelType()
-	{
+	public ModelType getModelType() {
 		return modelGen.getModelType();
 	}
 
 	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException
-	{
+	public void setSomeUndefinedConstants(Values someValues) throws PrismException {
 		modelGen.setSomeUndefinedConstants(someValues);
 	}
 
 	@Override
-	public Values getConstantValues()
-	{
+	public Values getConstantValues() {
 		return modelGen.getConstantValues();
 	}
 
 	@Override
-	public boolean containsUnboundedVariables()
-	{
+	public boolean containsUnboundedVariables() {
 		return modelGen.containsUnboundedVariables();
 	}
 
 	@Override
-	public int getNumVars()
-	{
+	public int getNumVars() {
 		return modelGen.getNumVars() + 1;
 	}
 
 	@Override
-	public List<String> getVarNames()
-	{
+	public List<String> getVarNames() {
 		return varNames;
 	}
 
 	@Override
-	public List<Type> getVarTypes()
-	{
+	public List<Type> getVarTypes() {
 		return varTypes;
 	}
 
 	@Override
-	public int getVarIndex(String name)
-	{
+	public int getVarIndex(String name) {
 		return varNames.indexOf(name);
 	}
 
 	@Override
-	public String getVarName(int i)
-	{
+	public String getVarName(int i) {
 		return varNames.get(i);
 	}
 
 	@Override
-	public int getNumLabels()
-	{
+	public int getNumLabels() {
 		return labelNames.size();
 	}
 
 	@Override
-	public List<String> getLabelNames()
-	{
+	public List<String> getLabelNames() {
 		return labelNames;
 	}
 
 	@Override
-	public int getLabelIndex(String name)
-	{
+	public int getLabelIndex(String name) {
 		return getLabelNames().indexOf(name);
 	}
 
 	@Override
-	public String getLabelName(int i) throws PrismException
-	{
+	public String getLabelName(int i) throws PrismException {
 		try {
 			return getLabelNames().get(i);
 		} catch (IndexOutOfBoundsException e) {
@@ -233,42 +215,36 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 	}
 
 	@Override
-	public int getNumRewardStructs()
-	{
+	public int getNumRewardStructs() {
 		return modelGen.getNumRewardStructs();
 	}
 
 	@Override
-	public List<String> getRewardStructNames()
-	{
+	public List<String> getRewardStructNames() {
 		return modelGen.getRewardStructNames();
 	}
 
 	@Override
-	public int getRewardStructIndex(String name)
-	{
+	public int getRewardStructIndex(String name) {
 		return modelGen.getRewardStructIndex(name);
 	}
 
-@Override
-	public RewardStruct getRewardStruct(int i) throws PrismException
-	{
+	@Override
+	public RewardStruct getRewardStruct(int i) throws PrismException {
 		return modelGen.getRewardStruct(i);
 	}
 
 	@Override
-	public boolean rewardStructHasTransitionRewards(int i)
-	{
+	public boolean rewardStructHasTransitionRewards(int i) {
 		return modelGen.rewardStructHasTransitionRewards(i);
 	}
-	
 
-	public VarList createVarList() throws PrismException
-	{
+	public VarList createVarList() throws PrismException {
 		VarList varListModel = modelGen.createVarList();
 		VarList varList = (VarList) varListModel.clone();
 		// NB: if DA only has one state, we add an extra dummy state
-		Declaration decl = new Declaration(daVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(da.size() - 1, 1))));
+		Declaration decl = new Declaration(daVar,
+				new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(da.size() - 1, 1))));
 		try {
 			varList.addVar(decl, 1, null);
 		} catch (PrismLangException e) {
@@ -277,16 +253,14 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 		}
 		return varList;
 	}
-	
+
 	@Override
-	public boolean hasSingleInitialState() throws PrismException
-	{
+	public boolean hasSingleInitialState() throws PrismException {
 		return modelGen.hasSingleInitialState();
 	}
 
 	@Override
-	public List<State> getInitialStates() throws PrismException
-	{
+	public List<State> getInitialStates() throws PrismException {
 		List<State> initStates = new ArrayList<>();
 		for (State sInit : modelGen.getInitialStates()) {
 			initStates.add(new State(sInit, new State(1).setValue(0, getDASuccessor(da.getStartState(), sInit))));
@@ -295,45 +269,37 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 	}
 
 	@Override
-	public State getInitialState() throws PrismException
-	{
+	public State getInitialState() throws PrismException {
 		State sInit = modelGen.getInitialState();
 		return new State(sInit, new State(1).setValue(0, getDASuccessor(da.getStartState(), sInit)));
 	}
 
 	@Override
-	public void exploreState(State exploreState) throws PrismException
-	{
+	public void exploreState(State exploreState) throws PrismException {
 		this.exploreState = exploreState;
 		exploreModelState = exploreState.substate(0, numVars - 1);
 		modelGen.exploreState(exploreModelState);
 		exploreDaState = ((Integer) exploreState.varValues[numVars - 1]).intValue();
 	}
 
-
-	public State getExploreState()
-	{
+	public State getExploreState() {
 		return exploreState;
 	}
 
 	@Override
-	public int getNumChoices() throws PrismException
-	{
+	public int getNumChoices() throws PrismException {
 		return modelGen.getNumChoices();
 	}
 
 	@Override
-	public int getNumTransitions() throws PrismException
-	{
+	public int getNumTransitions() throws PrismException {
 		return modelGen.getNumTransitions();
 	}
 
 	@Override
-	public int getNumTransitions(int i) throws PrismException
-	{
+	public int getNumTransitions(int i) throws PrismException {
 		return modelGen.getNumTransitions(i);
 	}
-
 
 //	public Object getTransitionAction(int i) throws PrismException
 //	{
@@ -341,53 +307,47 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 //	}
 
 	@Override
-	public Object getTransitionAction(int i, int offset) throws PrismException
-	{
+	public Object getTransitionAction(int i, int offset) throws PrismException {
 		return modelGen.getTransitionAction(i, offset);
 	}
 
 	@Override
-	public Object getChoiceAction(int i) throws PrismException
-	{
+	public Object getChoiceAction(int i) throws PrismException {
 		return modelGen.getChoiceAction(i);
 	}
 
 	@Override
-	public double getTransitionProbability(int i, int offset) throws PrismException
-	{
+	public double getTransitionProbability(int i, int offset) throws PrismException {
 		return modelGen.getTransitionProbability(i, offset);
 	}
 
 	@Override
-	public State computeTransitionTarget(int i, int offset) throws PrismException
-	{
+	public State computeTransitionTarget(int i, int offset) throws PrismException {
 		State sTarget = modelGen.computeTransitionTarget(i, offset);
 		return new State(sTarget, new State(1).setValue(0, getDASuccessor(exploreDaState, sTarget)));
 	}
 
 	@Override
-	public boolean isLabelTrue(String label) throws PrismException
-	{	System.out.println("ACC");
+	public boolean isLabelTrue(String label) throws PrismException {
+		System.out.println("ACC");
 		if (accLabel.equalsIgnoreCase(label)) {
-			return isReachAcceptanceGoalState(); //TODO non acceptance
+			return isReachAcceptanceGoalState(); // TODO non acceptance
 		} else {
-			return modelGen.isLabelTrue(label); 
+			return modelGen.isLabelTrue(label);
 		}
 	}
 
 	@Override
-	public boolean isLabelTrue(int i) throws PrismException
-	{
+	public boolean isLabelTrue(int i) throws PrismException {
 		if (i == modelGen.getNumLabels()) {
-			return isReachAcceptanceGoalState(); //TODO non acceptance
+			return isReachAcceptanceGoalState(); // TODO non acceptance
 		} else {
-			return modelGen.isLabelTrue(i); 
+			return modelGen.isLabelTrue(i);
 		}
 	}
 
 	@Override
-	public double getStateReward(int r, State state) throws PrismException
-	{
+	public double getStateReward(int r, State state) throws PrismException {
 		if (isReachAcceptanceGoalState(state)) {
 			return 0.0;
 		} else {
@@ -396,8 +356,7 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 	}
 
 	@Override
-	public double getStateActionReward(int r, State state, Object action) throws PrismException
-	{
+	public double getStateActionReward(int r, State state, Object action) throws PrismException {
 		if (isReachAcceptanceGoalState(state)) {
 			return 0.0;
 		} else {
@@ -407,20 +366,27 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 
 	// Utility methods
 	/*
-	 * Added to check if an expression is true for a state 
-	 * islabel true didnt work here 
-	 * fatma
+	 * Added to check if an expression is true for a state islabel true didnt work
+	 * here fatma
 	 */
-	public boolean isExprTrue(int exprNum) throws PrismLangException
-	{
-		Expression expr = this.labelExprs.get(exprNum); 
-		return expr.evaluateBoolean(this.exploreState);
+	public boolean isExprTrue(int exprNum, State state) throws PrismLangException {
+		Expression expr = this.labelExprs.get(exprNum);
+		return expr.evaluateBoolean(state);
 	}
-	/**
-	 * Find the successor of state {@code q} in the DA, taking the edge whose labelling matches the state {@code s}.
+
+	/*
+	 * Added to check if an expression is true for a state islabel true didnt work
+	 * here fatma
 	 */
-	protected int getDASuccessor(int q, State s) throws PrismException
-	{
+	public boolean isExprTrue(int exprNum) throws PrismLangException {
+		return isExprTrue(exprNum, this.exploreState);
+	}
+
+	/**
+	 * Find the successor of state {@code q} in the DA, taking the edge whose
+	 * labelling matches the state {@code s}.
+	 */
+	protected int getDASuccessor(int q, State s) throws PrismException {
 		// Create BitSet representing APs (labels) satisfied by state s
 		for (int k = 0; k < numAPs; k++) {
 			bsLabels.set(k, labelExprs.get(Integer.parseInt(da.getAPList().get(k).substring(1))).evaluateBoolean(s));
@@ -428,21 +394,32 @@ public class ProductModelGenerator implements ModelGenerator,RewardGenerator
 		// Find/return successor
 		return da.getEdgeDestByLabel(q, bsLabels);
 	}
-	
+
 	public double getProgressionRew(State source, State target) {
-		int daSource = (int)source.varValues[numVars - 1];
-		int daTarget = (int)target.varValues[numVars - 1];
-		double prog = 100*(da.getDistsToAcc().get(daSource) - da.getDistsToAcc().get(daTarget));
-		//if (prog < 0.0) 	System.out.println(prog);
-		//return Math.max(prog, 0);
+		int daSource = (int) source.varValues[numVars - 1];
+		int daTarget = (int) target.varValues[numVars - 1];
+		double prog = 100 * (da.getDistsToAcc().get(daSource) - da.getDistsToAcc().get(daTarget));
+		// if (prog < 0.0) System.out.println(prog);
+		// return Math.max(prog, 0);
 		return prog;
 	}
-	
+
 	public double getDaDistanceCost(State state) {
-		int daVal = (int)state.varValues[numVars - 1];
+		int daVal = (int) state.varValues[numVars - 1];
 		double res = da.getDistsToAcc().get(daVal);
 		return res;
 	}
-	
-	
+
+	public BitSet getStateLabels(State state) throws PrismLangException {
+		BitSet trueLabels = new BitSet();
+//		prodModelGen.exploreState(s);
+		for (int i = 0; i < getNumLabelExprs(); i++) {
+			if (isExprTrue(i,state)) {
+				trueLabels.set(i);
+			}
+		}
+		return trueLabels;
+
+	}
+
 }

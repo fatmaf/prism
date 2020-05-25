@@ -46,6 +46,9 @@ import prism.ProductModelGenerator;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
 import strat.MDStrategy;
+import thtsNew.MDPValIter;
+import thtsNew.NestedProductMDP;
+import thtsNew.NestedProductModelGenerator;
 
 public class SingleAgentLoader {
 	Prism prism;
@@ -60,7 +63,7 @@ public class SingleAgentLoader {
 	VarList solutionVarList;
 	String resLoc;
 	String agentLabel;
-	public ProductModelGenerator prodModelGen;
+	public NestedProductModelGenerator prodModelGen;
 	String latestSolutionInvoked;
 	HashMap<Objectives, HashMap<State, Double>> partialSatSolution;
 	// HashMap<Objectives, Integer> rewStructNameIndex;
@@ -472,13 +475,18 @@ public class SingleAgentLoader {
 
 		DA<BitSet, ? extends AcceptanceOmega> da = ltlMC.constructExpressionDAForLTLFormula(expr.getExpression(),
 				labelExprs, allowedAcceptance);
+		ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das = new ArrayList<>();
+		
 		da.setDistancesToAcc();
 		daAccStates = da.getAccStates();
+		das.add(da);
+		ArrayList<List<Expression>> labelExprsList = new ArrayList<>();
+		labelExprsList.add(labelExprs);
 		PrismLog out = new PrismFileLog(resLoc + "da.dot");
 		// printing the da
 		da.print(out, "dot");
 		out.close();
-		prodModelGen = new ProductModelGenerator(prismModelGen, da, labelExprs);
+		prodModelGen = new NestedProductModelGenerator(prismModelGen, das, labelExprsList,-1);
 		prism.loadModelGenerator(prismModelGen); //should be loading the prod model gen no?
 		return da;
 
@@ -748,16 +756,20 @@ public class SingleAgentLoader {
 		throw new PrismException("Problem with creating the robot state from joint state");
 	}
 
-	BitSet getStateLabels(State s) throws PrismException {
-		BitSet trueLabels = new BitSet();
-		prodModelGen.exploreState(s);
-		for (int i = 0; i < prodModelGen.getNumLabelExprs(); i++) {
-			if (prodModelGen.isExprTrue(i)) {
-				trueLabels.set(i);
-			}
-		}
-		return trueLabels;
+	BitSet getStateLabels(State s) throws PrismLangException
+	{
+		return prodModelGen.getStateLabels(s);
 	}
+//	BitSet getStateLabels(State s) throws PrismException {
+//		BitSet trueLabels = new BitSet();
+//		prodModelGen.exploreState(s);
+//		for (int i = 0; i < prodModelGen.getNumLabelExprs(); i++) {
+//			if (prodModelGen.isExprTrue(i)) {
+//				trueLabels.set(i);
+//			}
+//		}
+//		return trueLabels;
+//	}
 
 	HashMap<Object, Integer> getActionsForState(State s) throws PrismException {
 		HashMap<Object, Integer> actionIndices = null;

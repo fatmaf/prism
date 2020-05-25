@@ -1,12 +1,14 @@
-package thts;
+package thtsNew;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceType;
@@ -31,6 +33,7 @@ import prism.PrismLog;
 import prism.ProductModelGenerator;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
+import thts.Objectives;
 
 //just test whatever I want here 
 public class TestThings {
@@ -45,10 +48,40 @@ public class TestThings {
 		}
 	}
 
-	public void run() throws FileNotFoundException, PrismException {
-		npprodmodgen();
+	public void run() throws Exception {
+//		npprodmodgen();
+		testMaxTaskNVISingleAgentSolver();
 	}
 
+	public void testMaxTaskNVISingleAgentSolver() throws Exception
+	{
+		System.out.println(System.getProperty("user.dir"));
+		String currentDir = System.getProperty("user.dir");
+		String dir = currentDir + "/tests/wkspace/tro_examples/";// "/home/fatma/Data/PhD/code/prism_ws/prism-svn/prism/tests/wkspace/simpleTests/";
+
+		testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+
+		resultsLocation = testsLocation + "/results/";
+		String example = "tro_example_new_small";
+
+		
+		
+		PrismLog mainLog = new PrismFileLog("stdout");
+		Prism prism = new Prism(mainLog);
+		prism.initialise();
+		prism.setEngine(Prism.EXPLICIT);
+		
+		SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism,mainLog,resultsLocation); 
+		//so now we can read in the model 
+		
+		String filename = testsLocation+example+"0.prism";
+		String alternatepropfn = testsLocation+example+".prop";
+		sas.loadModel(filename);
+		sas.loadProperties(alternatepropfn);
+		HashMap<Objectives, HashMap<State, Double>> solution = sas.getSolution();
+		//so now we can take this and use it as a heuristic!! 
+		
+	}
 	public void npprodmodgen() throws PrismException, FileNotFoundException {
 		AcceptanceType[] allowedAcceptance = { AcceptanceType.RABIN, AcceptanceType.REACH };
 		System.out.println(System.getProperty("user.dir"));
@@ -130,14 +163,14 @@ public class TestThings {
 				rewExpr = (ExpressionReward) exprHere;
 			else {
 				Expression daExpr = ((ExpressionQuant) exprHere).getExpression();
-				 isSafeExpr = !Expression.isCoSafeLTLSyntactic(daExpr, true);
+				isSafeExpr = !Expression.isCoSafeLTLSyntactic(daExpr, true);
 				if (isSafeExpr)
 					safetyExpr = daExpr;
 				else
 					otherExpressions.add(exprHere);
 			}
 			if (!isSafeExpr)
-			processedExprs.add(((ExpressionQuant) exprHere).getExpression());
+				processedExprs.add(((ExpressionQuant) exprHere).getExpression());
 		}
 
 		otherExpressions.add(((ExpressionQuant) rewExpr).getExpression());
@@ -153,6 +186,7 @@ public class TestThings {
 			List<Expression> labelExprs = new ArrayList<Expression>();
 
 			Expression expr = (Expression) processedExprs.get(i);
+			expr = (Expression) expr.expandPropRefsAndLabels(altPropertiesFile, modulesFile.getLabelList());
 			da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs, allowedAcceptance);
 			da.setDistancesToAcc();
 			BitSet daAccStates = da.getAccStates();
@@ -163,8 +197,9 @@ public class TestThings {
 			labelExprsList.add(labelExprs);
 			das.add(da);
 		}
-		//lastly the safety expr 
-		Expression expr = Expression.Not(safetyExpr); 
+		// lastly the safety expr
+		Expression expr = Expression.Not(safetyExpr);
+		expr = (Expression) expr.expandPropRefsAndLabels(altPropertiesFile, modulesFile.getLabelList());
 		List<Expression> labelExprs = new ArrayList<Expression>();
 		da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs, allowedAcceptance);
 		da.setDistancesToAcc();
@@ -175,31 +210,53 @@ public class TestThings {
 		out.close();
 		labelExprsList.add(labelExprs);
 		das.add(da);
-		
-		NestedProductModelGenerator nppgen = new NestedProductModelGenerator(prismModelGen, das, labelExprsList);
-		//so we get the initial state 
-		//but possibly lets do this the right way 
-		//so we want no not the safety da 
+
+		NestedProductModelGenerator nppgen = new NestedProductModelGenerator(prismModelGen, das, labelExprsList,das.size()-1);
+		// so we get the initial state
+		// but possibly lets do this the right way
+		// so we want no not the safety da
 		List<State> initStates = nppgen.getInitialStates();
 		Queue<State> q = new LinkedList<State>();
+		Queue<State> visited = new LinkedList<State>();
 		q.addAll(initStates);
-		while(!q.isEmpty())
-		{
-			State s = q.poll(); 
-			System.out.println(s);
-			//lets get its children ? 
-			nppgen.exploreState(s);
-			int choices = nppgen.getNumChoices();
-			for(int c = 0; c<choices; c++)
-			{
-				Object action = nppgen.getChoiceAction(c);
-				System.out.println(action);
-				int transitions = nppgen.getNumTransitions(c);
-				for(int t = 0; t<transitions; t++)
-				{
-					double prob = nppgen.getTransitionProbability(c, t); 
-					State ns = nppgen.computeTransitionTarget(c, t);
-					System.out.println(prob);
+		int numrewards = nppgen.getNumRewardStructs(); 
+		while (!q.isEmpty()) {
+			State s = q.remove();
+			if (!visited.contains(s)) {
+				visited.add(s);
+				System.out.println("Visiting: "+s);
+				// lets get its children ?
+				nppgen.exploreState(s);
+				int choices = nppgen.getNumChoices();
+				for (int c = 0; c < choices; c++) {
+					String choiceString = "";
+					Object action = nppgen.getChoiceAction(c);
+					choiceString+="Choice "+c+" - "+action.toString();
+//					System.out.println(action);
+					int transitions = nppgen.getNumTransitions(c);
+					for (int t = 0; t < transitions; t++) {
+						double prob = nppgen.getTransitionProbability(c, t);
+						State ns = nppgen.computeTransitionTarget(c, t);
+						choiceString+=" "+ns.toString() + ":" + prob+" ";
+//						System.out.println(ns.toString() + ":" + prob);
+						//so what are the labels satisfied by each state ? 
+						//do we know ? 
+						//we should know 
+						//also which state is an accepting state ?
+						//do we know ? 
+						//we should know 
+
+						
+						q.add(ns);
+					}
+					for(int r = 0; r<numrewards; r++)
+					{
+						double rew = nppgen.getStateActionReward(r, action);
+						if(rew != nppgen.getStateActionReward(r, s, action))
+							choiceString+=" rews not equal?? ";
+						choiceString+=" r"+r+": "+rew;
+					}
+					System.out.println(choiceString);
 				}
 			}
 		}

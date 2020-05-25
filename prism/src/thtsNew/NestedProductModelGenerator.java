@@ -1,4 +1,4 @@
-package thts;
+package thtsNew;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -58,12 +58,16 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 	protected int numModelVars;
 	protected int numDAs;
 
+	protected int safetyDAIndex;
+
 	public NestedProductModelGenerator(ModulesFileModelGenerator modelGen,
-			ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das, ArrayList<List<Expression>> labelExprs) {
+			ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das, ArrayList<List<Expression>> labelExprs,
+			int safetyDAIndex) {
 
 		this.modelGen = modelGen;
 		this.das = das;
 		this.labelExprs = labelExprs;
+		this.safetyDAIndex = safetyDAIndex;
 
 		// so we have a list of das
 		// each has a number and an index
@@ -125,24 +129,46 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 	 * Assuming the product is build with a reach acceptance, is the state currently
 	 * being explored a goal state?
 	 */
-	public boolean isReachAcceptanceGoalState(int numda) {
-		DA<BitSet, ? extends AcceptanceOmega> da = das.get(numda);
-		AcceptanceOmega acc = da.getAcceptance();
-		if (!(acc instanceof AcceptanceReach)) {
-			return false;
+	public boolean isReachAcceptanceGoalState() {
+		// an accepting state is when every da is in an accepting state
+		boolean toret = true;
+
+		for (int i = 0; i < das.size(); i++) {
+			DA<BitSet, ? extends AcceptanceOmega> da = das.get(i);
+			AcceptanceOmega acc = da.getAcceptance();
+			if (!(acc instanceof AcceptanceReach)) {
+				toret = false;
+				break; // kya?
+			}
+			AcceptanceReach accReach = (AcceptanceReach) acc;
+			boolean isacc = accReach.getGoalStates().get(exploreDaState.get(i));
+			toret = toret & isacc;
+			if (!toret)
+				break;
+//		return accReach.getGoalStates().get(exploreDaState.get(numda));
 		}
-		AcceptanceReach accReach = (AcceptanceReach) acc;
-		return accReach.getGoalStates().get(exploreDaState.get(numda));
+		return toret;
 	}
 
-	public boolean isReachAcceptanceGoalState(State state, int numda) {
-		DA<BitSet, ? extends AcceptanceOmega> da = das.get(numda);
-		AcceptanceOmega acc = da.getAcceptance();
-		if (!(acc instanceof AcceptanceReach)) {
-			return false;
+	public boolean isReachAcceptanceGoalState(State state) {
+
+		boolean toret = true;
+
+		for (int i = 0; i < das.size(); i++) {
+
+			DA<BitSet, ? extends AcceptanceOmega> da = das.get(i);
+			AcceptanceOmega acc = da.getAcceptance();
+			if (!(acc instanceof AcceptanceReach)) {
+				toret = false;
+				break;
+			}
+			AcceptanceReach accReach = (AcceptanceReach) acc;
+			boolean isacc = accReach.getGoalStates().get(getDAState(i, state));
+			toret = isacc & toret;
+			if (!toret)
+				break;
 		}
-		AcceptanceReach accReach = (AcceptanceReach) acc;
-		return accReach.getGoalStates().get(((Integer) state.varValues[numModelVars + numda]).intValue());
+		return toret;
 	}
 
 	// Methods to implement ModelGenerator
@@ -172,7 +198,7 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 
 	@Override
 	public VarList createVarList() throws PrismException {
-		// TODO Auto-generated method stub
+
 		VarList varListModel = modelGen.createVarList();
 		VarList varList = (VarList) varListModel.clone();
 		// NB: if DA only has one state, we add an extra dummy state
@@ -240,16 +266,38 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 		return createCombinedDAState(sInit, true);
 	}
 
+	protected State getModelState(State state) {
+		return state.substate(0, numModelVars);
+	}
+
+	protected int getDAState(int danum, State state) {
+		return ((Integer) state.varValues[numModelVars + danum]).intValue();
+
+	}
+
+	@Override
+	public double getStateActionReward(int r, State state, Object action) throws PrismException {
+		State modelState = getModelState(state);
+		return modelGen.getStateActionReward(r, modelState, action);
+	}
+
+	@Override
+	public double getStateReward(int r, State state) throws PrismException {
+		State modelState = getModelState(state);
+		return modelGen.getStateReward(r, modelState);
+	}
+
 	@Override
 	public void exploreState(State exploreState) throws PrismException {
 		// TODO Auto-generated method stub
 		this.exploreState = exploreState;
-		exploreModelState = exploreState.substate(0, numModelVars);
+		exploreModelState = getModelState(exploreState);// exploreState.substate(0, numModelVars);
 		modelGen.exploreState(exploreModelState);
 		if (exploreDaState == null)
 			exploreDaState = new ArrayList<Integer>();
 		for (int d = 0; d < das.size(); d++) {
-			int daState = ((Integer) exploreState.varValues[numModelVars + d]).intValue();
+			int daState = getDAState(d, exploreState);// ((Integer) exploreState.varValues[numModelVars +
+														// d]).intValue();
 
 			if (exploreDaState.size() <= d)
 				exploreDaState.add(daState);
@@ -264,6 +312,11 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 	public int getNumChoices() throws PrismException {
 		// TODO Auto-generated method stub
 		return modelGen.getNumChoices();
+	}
+
+	// get the reward for the current state
+	public double getStateActionReward(int r, Object action) throws PrismException {
+		return modelGen.getStateActionReward(r, exploreModelState, action);
 	}
 
 	@Override
@@ -292,12 +345,13 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 		// TODO Auto-generated method stub
 		return modelGen.getTransitionAction(i, offset);
 	}
+
 	// TODO FIX THIS FUNCTION!!!
 	@Override
 	public boolean isLabelTrue(String label) throws PrismException {
 		System.out.println("ACC");
 		if (accLabel.equalsIgnoreCase(label)) {
-			return isReachAcceptanceGoalState(0); // TODO non acceptance
+			return isReachAcceptanceGoalState(); // TODO non acceptance
 		} else {
 			return modelGen.isLabelTrue(label);
 		}
@@ -307,30 +361,53 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 	@Override
 	public boolean isLabelTrue(int i) throws PrismException {
 		if (i == modelGen.getNumLabels()) {
-			return isReachAcceptanceGoalState(0); // TODO non acceptance
+			return isReachAcceptanceGoalState(); // TODO non acceptance
 		} else {
 			return modelGen.isLabelTrue(i);
 		}
 	}
 
-	// TODO FIX THIS FUNCTION!!!
-	public double getProgressionRew(State source, State target) {
-
-		DA<BitSet, ? extends AcceptanceOmega> da = das.get(0);
-		int daSource = (int) source.varValues[numModelVars];
-		int daTarget = (int) target.varValues[numModelVars];
+	protected double getProgressionRew(State source,State target, int numda)
+	{
+		DA<BitSet, ? extends AcceptanceOmega> da = das.get(numda);
+		int daSource = this.getDAState(numda, source);
+		int daTarget = this.getDAState(numda, target);
+		
 		double prog = 100 * (da.getDistsToAcc().get(daSource) - da.getDistsToAcc().get(daTarget));
 		// if (prog < 0.0) System.out.println(prog);
 		// return Math.max(prog, 0);
 		return prog;
 	}
+	public double getProgressionRew(State source, State target) {
 
-	// TODO FIX THIS FUNCTION!!!
-	public double getDaDistanceCost(State state) {
+		double prog = 0; 
+		for(int i =0; i<das.size();i++)
+		{
+			prog+=getProgressionRew(source,target,i);
+		}
+		prog=prog/das.size(); 
+		
+		return prog;
+	}
+
+	protected double getDaDistanceCost(State state, int numda)
+	{
 		DA<BitSet, ? extends AcceptanceOmega> da = das.get(0);
 		int daVal = (int) state.varValues[numModelVars];
 		double res = da.getDistsToAcc().get(daVal);
 		return res;
+	}
+
+	public double getDaDistanceCost(State state) {
+	
+		double res = 0; 
+		for(int i =0; i<das.size(); i++)
+		{
+			res += getDaDistanceCost(state,i);
+		}
+		res = res/das.size(); 
+		return res; 
+		
 	}
 	/*
 	 * Added to check if an expression is true for a state islabel true didnt work
@@ -338,8 +415,12 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 	 */
 	// TODO FIX THIS FUNCTION!!!
 
-	public boolean isExprTrue(int exprNum) throws PrismLangException {
-		Expression expr = this.labelExprs.get(0).get(exprNum);
+	public boolean isExprTrue(int exprNum,int danum) throws PrismLangException {
+		//so technically an expression should belong to just one da 
+		//but if it doesn't we've got to make sure we have the right one 
+		//this is just a number though so ? 
+		//lets say we go through all the das to check 
+		Expression expr = this.labelExprs.get(danum).get(exprNum);
 		return expr.evaluateBoolean(this.exploreState);
 	}
 
@@ -400,6 +481,17 @@ public class NestedProductModelGenerator implements ModelGenerator, RewardGenera
 	@Override
 	public boolean rewardStructHasTransitionRewards(int i) {
 		return modelGen.rewardStructHasTransitionRewards(i);
+	}
+
+	public State getExploreState() {
+		// TODO Auto-generated method stub
+		return this.exploreState;
+	}
+
+	public BitSet getStateLabels(State s) {
+		// TODO Auto-generated method stub
+		System.out.println("Not Implemented!!! Fix this later");
+		return new BitSet();
 	}
 
 }

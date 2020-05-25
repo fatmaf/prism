@@ -1,4 +1,4 @@
-package thts;
+package thtsNew;
 import java.util.ArrayList;
 import java.util.BitSet;
 
@@ -426,14 +426,10 @@ public class MDPValIter {
 //			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
 //			out.close();
 
-		// Return results
-		// res.solnProb = solnProb;
-		// res.solnProg = null;
-		// res.solnCost = solnCost;
-	
-		solnReward.add(solnProb.clone());
+
+		solnReward.add(0,solnProb.clone());
 		res.solns = solnReward;
-		// res.solns.add(solnProb);
+
 		res.numIters = iters;
 		res.timeTaken = timerGlobal / 1000.0;
 		return res;

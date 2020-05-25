@@ -22,13 +22,14 @@ import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.ProductModelGenerator;
+import thtsNew.NestedProductModelGenerator;
 
 public class MultiAgentProductModelGenerator
 {
 	int MAXTRIALLEN = 10000;
 	int MAXROLLOUTS = 10000;
 
-	ArrayList<ProductModelGenerator> prodModGens;
+	ArrayList<NestedProductModelGenerator> prodModGens;
 	ArrayList<SingleAgentLoader> singleAgentLoaders;
 	MDPCreator mdpCreator;
 	int numAgents;
@@ -63,7 +64,7 @@ public class MultiAgentProductModelGenerator
 			numAgents = sals.size();
 			if (printMessages)
 				message += "Single Agent Loaders Added";
-			prodModGens = new ArrayList<ProductModelGenerator>();
+			prodModGens = new ArrayList<NestedProductModelGenerator>();
 			for (int i = 0; i < singleAgentLoaders.size(); i++) {
 				prodModGens.add(singleAgentLoaders.get(i).prodModelGen);
 				hasSharedStates = hasSharedStates | singleAgentLoaders.get(i).hasSharedStates();
