@@ -177,7 +177,33 @@ public class TestThings {
 				// lets get its children ?
 				mapmg.exploreState(s);
 				mapmg.printExploreState();
-//				int choices = mapmg.getNumChoices();
+				int choices = mapmg.getNumChoices();
+				System.out.println("Choices: "+choices);
+				for (int c = 0; c < choices; c++) {
+					String choiceString = "";
+					Object action = mapmg.getChoiceAction(c);
+					choiceString += "Choice " + c + " - " + action.toString();
+//					System.out.println(choiceString);
+					int numtransitions = mapmg.getNumTransitions(c);
+
+					for (int t = 0; t < numtransitions; t++) {
+						double prob = mapmg.getTransitionProbability(c, t);
+						State ns = mapmg.computeTransitionTarget(c, t);
+						choiceString += " " + ns.toString() + ":" + prob + " ";
+//						System.out.println(ns.toString() + ":" + prob);
+						// so what are the labels satisfied by each state ?
+						// do we know ?
+						// we should know
+						// also which state is an accepting state ?
+						// do we know ?
+						// we should know
+
+						q.add(ns);
+					}
+					System.out.println(choiceString);
+
+				}
+			
 			}
 		}
 //		int numrewards = mapmg.getNumRewardStructs();

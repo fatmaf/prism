@@ -1,9 +1,11 @@
 package thtsNew;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import acceptance.AcceptanceOmega;
 import automata.DA;
@@ -52,7 +54,21 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 	protected ArrayList<State> exploreModelState;
 	/** The DA part of exploreState */
 	protected ArrayList<Integer> exploreDaState;
+	/** The choice string combinations **/ 
+	protected ArrayList<ArrayList<Integer>> exploreStateChoiceCombs; 
+	/** The transitions list for this choice **/ 
 
+	protected ArrayList<ArrayList<Entry<State,Double>>> exploreStateChoiceTransitionCombs; 
+	
+
+	//to think about 
+	//do we want to save things in memory to stop us from computing them ?
+	//how is it in the previous stuff 
+	//we'll just generate it again 
+	//its fine 
+	
+	
+	
 	protected ArrayList<Integer> numModelVars;
 	protected int numDAs;
 	protected int numModels;
@@ -324,7 +340,7 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		return toret;
 	}
 
-	public State createCombinedRobotState(ArrayList<State> robotStates) {
+	public State createCombinedRobotState(ArrayList<State> robotStates,ArrayList<State> prevStates) {
 		// so now this is the tricky part
 		// this is actually going to be fun
 
@@ -348,7 +364,7 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 			}
 //			combinedRobotState.setValue(r, robotStates.get(r));
 		}
-		State combinedsharedstate = this.createSharedState(robotStates, null);
+		State combinedsharedstate = this.createSharedState(robotStates, prevStates);
 		State toret = new State(combinedRobotState, combinedsharedstate);
 		return toret;
 	}
@@ -368,8 +384,8 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		return combinedDAState;
 	}
 
-	private State createCombinedRobotDAState(ArrayList<State> robotStates, boolean daInitStates) throws PrismException {
-		State combinedRobotState = createCombinedRobotState(robotStates);
+	private State createCombinedRobotDAState(ArrayList<State> robotStates, ArrayList<State> previousStates,boolean daInitStates) throws PrismException {
+		State combinedRobotState = createCombinedRobotState(robotStates,previousStates);
 		State combinedDAState = createCombinedDAState(robotStates, daInitStates);
 		return new State(combinedRobotState, combinedDAState);
 	}
@@ -396,7 +412,7 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		for (ArrayList<State> sInit : robotinitstatecombs) {
 			// automaton init states
 
-			initStates.add(createCombinedRobotDAState(sInit, true));
+			initStates.add(createCombinedRobotDAState(sInit, null,true));
 		}
 		return initStates;
 	}
@@ -416,7 +432,7 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 				robotStates.add(sInit);
 
 			}
-			toret = createCombinedRobotDAState(robotStates, true);
+			toret = createCombinedRobotDAState(robotStates, null,true);
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -509,6 +525,8 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 				exploreDaState.set(d, daState);
 
 		}
+		exploreStateChoiceCombs = null; 
+		exploreStateChoiceTransitionCombs = null;
 
 	}
 
@@ -524,14 +542,89 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		//so its a combination of all the choices 
 		//so just like x choices 
 		//so we just make an array of all the choices for each robot 
+		if(exploreStateChoiceCombs == null) {
+		 //go through all the model gens and get the choices 
+		ArrayList<Integer> numchoices = new ArrayList<>();
+		for(int r = 0; r<modelGens.size(); r++)
+		{
+			numchoices.add(modelGens.get(r).getNumChoices());
+		}
+		HelperClass<Integer> hc = new HelperClass<>(); 
+		//but surely this is not enough 
+		//we need to kind of save our choice indices 
+		//we could do this on the fly 
+		//or perhaps we could do this now 
+		//lets do it when we're asked to explore a choice 
 		
-		 
+		return hc.getNumCombsFromSizes(numchoices);
+		}
+		else
+			return exploreStateChoiceCombs.size();
 	}
-
+	
+	public void generateChoiceCombs() throws PrismException
+	{
+		ArrayList<List<Integer>> allChoiceActionStrings = new ArrayList<>();
+		for(int r = 0; r<modelGens.size(); r++)
+		{
+			ModulesFileModelGenerator modelGen = modelGens.get(r);
+			int numchoice = modelGen.getNumChoices();
+			ArrayList<Integer> choiceActionStrings = new ArrayList<>();
+			for(int c = 0; c<numchoice; c++)
+			{
+//				String cas = modelGen.getChoiceActionString(c);
+				choiceActionStrings.add(c);
+			}
+			allChoiceActionStrings.add(choiceActionStrings);	
+		}
+		//so now we've got to save these cuz this is important 
+		//well the combinations 
+		HelperClass<Integer> hc = new HelperClass<>(); 
+		ArrayList<ArrayList<Integer>> combs = hc.generateCombinations(allChoiceActionStrings);
+		exploreStateChoiceCombs = combs; 
+	}
+	@Override
+	public  Object getChoiceAction(int i) throws PrismException
+	{
+		if(exploreStateChoiceCombs == null) {
+			generateChoiceCombs();
+		}
+		return (Object) createJointAction(exploreStateChoiceCombs.get(i));
+		//but there is more 
+		//we need to get all the actions 
+	}
+	String createJointAction(ArrayList<Integer> robotChoices) throws PrismException
+	{
+		String toret = ""; 
+		String sep = ","; 
+		for(int r = 0; r<robotChoices.size(); r++)
+		{
+			ModulesFileModelGenerator modelGen = modelGens.get(r);
+			String cas = modelGen.getChoiceActionString(robotChoices.get(r));
+			toret +=cas+sep; 
+		}
+		return toret; 
+	}
 	@Override
 	public int getNumTransitions(int i) throws PrismException {
-		// TODO Auto-generated method stub
-		return 0;
+		if(exploreStateChoiceCombs == null) {
+			generateChoiceCombs();
+		}
+		exploreStateChoiceTransitionCombs = null;
+		//get the number of transitions here 
+		ArrayList<Integer> robotTrans = exploreStateChoiceCombs.get(i);
+		//so this is all the robot choices 
+		//now we've got to create combinations 
+		ArrayList<Integer> transNums = new ArrayList<>(); 
+		
+		for(int r = 0; r<modelGens.size(); r++)
+		{
+			int numTrans = modelGens.get(r).getNumTransitions(robotTrans.get(r));
+			transNums.add(numTrans);
+		}
+		HelperClass<Integer> hc = new HelperClass<>(); 
+		
+		return hc.getNumCombsFromSizes(transNums);
 	}
 
 	@Override
@@ -540,16 +633,65 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		return null;
 	}
 
+	private void computeCurrentChoiceTransitionCombinations(ArrayList<Integer> robotChoices) throws PrismException
+	{
+	//so we've got the choice and the states 
+		ArrayList<List<Entry<State,Double>>> allTransitionOptions = new ArrayList<>();
+		for(int r = 0; r<modelGens.size(); r++)
+		{
+			ModulesFileModelGenerator modelGen = modelGens.get(r);
+			int currChoice = robotChoices.get(r); 
+			int numTransitions =modelGen.getNumTransitions(currChoice); 
+			ArrayList<Entry<State,Double>> choiceTransitionTargets = new ArrayList<>();
+			for(int t = 0; t<numTransitions; t++)
+			{
+				State target = modelGen.computeTransitionTarget(currChoice, t);
+				double prob = modelGen.getTransitionProbability(currChoice, t); 
+				choiceTransitionTargets.add(new AbstractMap.SimpleEntry<State,Double>(target,prob));
+			}
+			
+
+			allTransitionOptions.add(choiceTransitionTargets);	
+		}
+		HelperClass<Entry<State,Double>> hc = new HelperClass<>(); 
+		ArrayList<ArrayList<Entry<State, Double>>> combs = hc.generateCombinations(allTransitionOptions); 
+		exploreStateChoiceTransitionCombs = combs; 
+
+		
+	}
 	@Override
 	public double getTransitionProbability(int i, int offset) throws PrismException {
 		// TODO Auto-generated method stub
-		return 0;
+		if(exploreStateChoiceTransitionCombs == null)
+		{
+			computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(i));
+		}
+		//the offset 
+		ArrayList<Entry<State, Double>> stateCombs = exploreStateChoiceTransitionCombs.get(offset);
+		//probability = just those states together 
+		double prob = 1; 
+		for (Entry<State,Double> e : stateCombs)
+		{
+			prob *=e.getValue(); 
+		}
+		return prob;
 	}
 
 	@Override
 	public State computeTransitionTarget(int i, int offset) throws PrismException {
 		// TODO Auto-generated method stub
-		return null;
+		if(exploreStateChoiceTransitionCombs == null)
+		{
+			computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(i));
+		}
+		ArrayList<Entry<State, Double>> stateCombs = exploreStateChoiceTransitionCombs.get(offset);
+		ArrayList<State> robotStates = new ArrayList<>(); 
+		for (Entry<State,Double> e : stateCombs)
+		{
+			robotStates.add(e.getKey());
+		}
+		State toret = createCombinedRobotDAState(robotStates,exploreModelState, false);
+		return toret; 
 	}
 
 }
