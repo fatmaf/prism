@@ -2,6 +2,7 @@ package thtsNew;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
 
 import acceptance.AcceptanceOmega;
@@ -57,11 +58,19 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 	protected int numModels;
 
 	protected int safetyDAIndex;
+	protected ArrayList<String> sharedVarsList;
+	protected int numModelVarsAll;
+
+	// this is just for ease of use
+	// the string is basically the model number
+	// excludes shared vars
+	protected HashMap<Integer, ArrayList<Integer>> modelVarIndices;
+	protected HashMap<Integer, ArrayList<Integer>> sharedVarIndices;
 
 	public MultiAgentNestedProductModelGenerator(ArrayList<ModulesFileModelGenerator> modelGens,
 			ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das, ArrayList<List<Expression>> labelExprs,
-			int safetyDAIndex) {
-		initialise(modelGens, das, labelExprs, safetyDAIndex);
+			int safetyDAIndex, ArrayList<String> sharedvarslist) {
+		initialise(modelGens, das, labelExprs, safetyDAIndex, sharedvarslist);
 
 	}
 
@@ -70,12 +79,12 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 	// cuz I lazy!!! suraj ka darwaza khula!!
 	private void initialise(ArrayList<ModulesFileModelGenerator> modelGens,
 			ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das, ArrayList<List<Expression>> labelExprs,
-			int safetyDAIndex) {
+			int safetyDAIndex, ArrayList<String> sharedvarslist) {
 		this.modelGens = modelGens;
 		this.das = das;
 		this.labelExprs = labelExprs;
 		this.safetyDAIndex = safetyDAIndex;
-
+		this.sharedVarsList = sharedvarslist;
 		daVars = new ArrayList<String>();
 		numAPs = new ArrayList<Integer>();
 		varNames = new ArrayList<>();
@@ -87,24 +96,87 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		numModels = modelGens.size();
 		labelNames = new ArrayList<>();
 
+		modelVarIndices = new HashMap<>();
+		sharedVarIndices = new HashMap<>();
 		// find the beginning of the da variable
 		// just incase we've been passed a model with a da
 		int daStartNumber = 0;
 		String expectedDAVar = "_da" + daStartNumber;
 		ModulesFileModelGenerator modelGen;
 
+		ArrayList<Type> sharedVarTypes = null;
+		if (this.sharedVarsList != null)
+			sharedVarTypes = new ArrayList<>(this.sharedVarsList.size());
 		for (int mdnum = 0; mdnum < modelGens.size(); mdnum++) {
 			modelGen = modelGens.get(mdnum);
-			varNames.addAll(modelGen.getVarNames());
-			varTypes.addAll(modelGen.getVarTypes());
-			numModelVars.add(modelGen.getNumVars());
+			int modelVarsExpSS = 0;
+			ArrayList<Integer> modelVarIndicesHere = new ArrayList<>();
+			// so we need to process the shared variables stuff here
+			try {
+				for (int vnum = 0; vnum < modelGen.getNumVars(); vnum++) {
+					boolean issharedvar = false;
+					// TODO: we might have to change or append to these names
+					// given that they're similar
+					// if they weren't it'd be fine
+					// but we can do this later
+					String varname = modelGen.getVarName(vnum);
+					Type varType;
+
+					varType = modelGen.getVarType(vnum);
+
+					if (this.sharedVarsList != null) {
+						if (this.sharedVarsList.contains(varname)) {
+							// skip it
+							issharedvar = true;
+
+							// get the index
+							int sharedVarInd = sharedVarsList.indexOf(varname);
+							if (sharedVarInd != -1) {
+								while (sharedVarTypes.size() <= sharedVarInd) {
+									sharedVarTypes.add(null);
+								}
+								if (sharedVarTypes.get(sharedVarInd) == null) {
+									sharedVarTypes.set(sharedVarInd, varType);
+								}
+								if (!sharedVarIndices.containsKey(sharedVarInd)) {
+									sharedVarIndices.put(sharedVarInd, new ArrayList<>());
+								}
+								while (sharedVarIndices.get(sharedVarInd).size() <= mdnum)
+									sharedVarIndices.get(sharedVarInd).add(null);
+								sharedVarIndices.get(sharedVarInd).set(mdnum, vnum);
+
+							}
+						}
+					}
+					if (!issharedvar) {
+						modelVarsExpSS++;
+						varNames.add(varname);
+						varTypes.add(varType);
+						modelVarIndicesHere.add(vnum);
+					}
+//			varNames.addAll(modelGen.getVarNames());
+//			varTypes.addAll(modelGen.getVarTypes());
+//			numModelVars.add(modelGen.getNumVars());
+					modelVarIndices.put(mdnum, modelVarIndicesHere);
+				}
+			} catch (PrismException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			numModelVars.add(modelVarsExpSS);
 			labelNames.addAll(modelGen.getLabelNames());
 			while (modelGen.getVarIndex(expectedDAVar) != -1) {
 				daStartNumber = daStartNumber + 1;
 				expectedDAVar = "_da" + daStartNumber;
 			}
-		}
 
+		}
+		if (this.sharedVarsList != null) {
+			// now lets add the shared states
+			varNames.addAll(this.sharedVarsList);
+			varTypes.addAll(sharedVarTypes);
+		}
+		numModelVarsAll = varNames.size();
 		bsLabels = new ArrayList<BitSet>();
 		// so our davars are the same size as numdas
 		for (int d = 0; d < das.size(); d++) {
@@ -184,14 +256,101 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 
 	}
 
+	public State createSharedState(ArrayList<State> currentrobotStates, ArrayList<State> previousrobotStates) {
+		// if previousrobotStates is null then we only care about these states
+		// they should all be the same then
+		// if they're not its an issue
+		State toret = new State(sharedVarsList.size());
+		if (previousrobotStates == null) {
+			for (int ss = 0; ss < sharedVarsList.size(); ss++) {
+
+				ArrayList<Integer> sharedvarrobotinds = sharedVarIndices.get(ss);
+				int ssval = ((Integer) currentrobotStates.get(0).varValues[sharedvarrobotinds.get(0)]).intValue();
+				for (int r = 1; r < sharedvarrobotinds.size(); r++) {
+					int rind = sharedvarrobotinds.get(r);
+					int valhere = ((Integer) currentrobotStates.get(r).varValues[rind]).intValue();
+					if (valhere != ssval) {
+						// error
+						System.out.println("Error");
+						ssval = valhere;
+					}
+				}
+				toret.setValue(ss, ssval);
+			}
+		} else {
+			for (int ss = 0; ss < sharedVarsList.size(); ss++) {
+
+				ArrayList<Integer> sharedvarrobotinds = sharedVarIndices.get(ss);
+				int ssval = ((Integer) currentrobotStates.get(0).varValues[sharedvarrobotinds.get(0)]).intValue();
+				int psval = ((Integer) previousrobotStates.get(0).varValues[sharedvarrobotinds.get(0)]).intValue();
+				boolean updated = false;
+				if (psval != ssval) {
+					updated = true;
+				}
+				for (int r = 1; r < sharedvarrobotinds.size(); r++) {
+					int rind = sharedvarrobotinds.get(r);
+					int cvalhere = ((Integer) currentrobotStates.get(r).varValues[rind]).intValue();
+					int pvalhere = ((Integer) previousrobotStates.get(r).varValues[rind]).intValue();
+					if (pvalhere != cvalhere) {
+						if (cvalhere != ssval) {
+							// if they're not the same
+							// then we should probably take the new value
+							// unless there's been an update already
+							// if there is an update then we'll just take the bigger value
+							// which is a bit silly but hey
+							if (!updated) {
+								ssval = cvalhere;
+								updated = true;
+							} else {
+								// so we're taking the bigger value which is a bit silly and should not happen
+								// perhaps we need a rule that rules out combinations where that happens
+								// well that will need to happen later
+								// TODO: rule out combinations where similar things happen forexample the same
+								// door is open/closed
+								if (cvalhere > ssval)
+									ssval = cvalhere;
+							}
+						}
+					}
+//					if (cvalhere != ssval) {
+//						// error
+//						System.out.println("Error");
+//						ssval = valhere;
+//					}
+				}
+				toret.setValue(ss, ssval);
+			}
+		}
+		return toret;
+	}
+
 	public State createCombinedRobotState(ArrayList<State> robotStates) {
-		State combinedRobotState = new State(modelGens.size());
+		// so now this is the tricky part
+		// this is actually going to be fun
+
+		State combinedRobotState = new State(numModelVarsAll - this.sharedVarsList.size());
+
 		for (int r = 0; r < modelGens.size(); r++) {
 			// assuming no shared states
 			// TODO: Fix this for shared states man
-			combinedRobotState.setValue(r, robotStates.get(r));
+			State rs = robotStates.get(r);
+			// we only care about state indices which are not shared state indices
+			// for shared state ones we've got to do other things
+			// so its useful to store the indices for things we care about
+
+			ArrayList<Integer> indicesToCareAbout = modelVarIndices.get(r);
+			int offset = 0;
+			if (r > 0)
+				offset += this.numModelVars.get(r - 1);
+			for (int i = 0; i < indicesToCareAbout.size(); i++) {
+				int rsInd = indicesToCareAbout.get(i);
+				combinedRobotState.setValue(offset + i, rs.varValues[rsInd]);
+			}
+//			combinedRobotState.setValue(r, robotStates.get(r));
 		}
-		return combinedRobotState;
+		State combinedsharedstate = this.createSharedState(robotStates, null);
+		State toret = new State(combinedRobotState, combinedsharedstate);
+		return toret;
 	}
 
 	public State createCombinedDAState(ArrayList<State> robotStates, boolean daInitStates) throws PrismException {
@@ -223,62 +382,18 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 			ModulesFileModelGenerator modelGen = modelGens.get(r);
 			allrobotstates.add(modelGen.getInitialStates());
 		}
-		return generateCombinations(allrobotstates);
+		HelperClass<State> hc = new HelperClass<>();
+		return hc.generateCombinations(allrobotstates);
 	}
 
-	private ArrayList<ArrayList<State>> generateCombinations(ArrayList<List<State>> robotStates) {
-		// so lets get the number of states for each robot
-		int[] numStates = new int[robotStates.size()];
-		int[] currStateNum = new int[robotStates.size()];
-		int numcombs = 1;
-		int lastrobotnum = robotStates.size() - 1;
-		for (int r = 0; r < robotStates.size(); r++) {
-			List<State> rs = robotStates.get(r);
-			numStates[r] = rs.size();
 
-			currStateNum[r] = 0;
-			numcombs *= rs.size();
-		}
-		ArrayList<ArrayList<State>> combs = new ArrayList<>();
-		boolean docomb = true;
-		while (docomb) {
-			// so now we just loop over things
-			// its a lot of while loops
-			ArrayList<State> currcomb = new ArrayList<>();
-			for (int r = 0; r < robotStates.size(); r++) {
-				State rs = robotStates.get(r).get(currStateNum[r]);
-				currcomb.add(rs);
-			}
-			combs.add(currcomb);
 
-			boolean doInc = true;
-			for (int lr = lastrobotnum; lr >= 0; lr--) {
-				if (currStateNum[lr] + 1 == numStates[lr]) {
-					currStateNum[lr] = 0;
-				} else {
-					currStateNum[lr]++;
-					doInc = false;
-				}
-				if (!doInc) {
-					break;
-				}
-			}
-			int indsum = 0;
-			for (int r = 0; r < numStates.length; r++) {
-				indsum += currStateNum[r];
-			}
-			if (indsum == 0)
-				docomb = false;
-		}
-
-		return combs;
-	}
 
 	@Override
 	public List<State> getInitialStates() throws PrismException {
 		List<State> initStates = new ArrayList<>();
 		ArrayList<ArrayList<State>> robotinitstatecombs = this.getInitialRobotStatesCombinations();
-		for ( ArrayList<State> sInit : robotinitstatecombs) {
+		for (ArrayList<State> sInit : robotinitstatecombs) {
 			// automaton init states
 
 			initStates.add(createCombinedRobotDAState(sInit, true));
@@ -309,30 +424,108 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		return toret;
 	}
 
+	public ArrayList<State> getModelStates(State exploreState) {
+		ArrayList<State> toret = new ArrayList<>();
+		int offset = 0;
+		for (int r = 0; r < numModelVars.size(); r++) {
+			int numVars = modelGens.get(r).getNumVars();
+			State modelState = new State(numVars);
+			int robotStateVars = numModelVars.get(r);
+
+			ArrayList<Integer> modelVarInds = modelVarIndices.get(r);
+			for (int i = 0; i < robotStateVars; i++) {
+				// get all the robot state indices
+				int robotInd = modelVarInds.get(i);
+				modelState.setValue(robotInd, exploreState.varValues[offset + i]);
+
+			}
+
+			offset += robotStateVars;
+			while (toret.size() <= r)
+				toret.add(null);
+			toret.set(r, modelState);
+
+		}
+
+		for (int i = 0; i < sharedVarsList.size(); i++) {
+			ArrayList<Integer> sharedVarsInds = sharedVarIndices.get(i);
+			for (int r = 0; r < numModelVars.size(); r++) {
+
+				if (sharedVarsInds.size() > r) {
+					if (sharedVarsInds.get(r) != null) {
+						toret.get(r).setValue(sharedVarsInds.get(r), exploreState.varValues[offset + i]);
+					}
+				}
+			}
+		}
+		return toret;
+
+	}
+
+	public void printExploreState() {
+		if (exploreState != null)
+			System.out.println("State " + exploreState.toString());
+		if (exploreModelState != null) {
+			System.out.println("Robot States: ");
+			for (State s : exploreModelState) {
+				System.out.println(s.toString());
+			}
+		}
+		if(exploreDaState != null)
+		{
+			System.out.println("DA States: ");
+			for (int s : exploreDaState) {
+				System.out.println(s);
+			}
+		}
+
+	}
+
 	@Override
 	public void exploreState(State exploreState) throws PrismException {
+		// so the explore state is simply like all the robot states
+		// and all the da states
 		this.exploreState = exploreState;
-		exploreModelState = getModelState(exploreState);// exploreState.substate(0, numModelVars);
-		modelGen.exploreState(exploreModelState);
+		// first we have to create robot states
+		// then we've got to create the da states
+		// o this is easy
+		// we just use the stuff we had earlier
+		// no big deal!! yay
+		exploreModelState = getModelStates(exploreState);
+
+		for (int r = 0; r < numModelVars.size(); r++) {
+			modelGens.get(r).exploreState(exploreModelState.get(r));
+		}
+
 		if (exploreDaState == null)
 			exploreDaState = new ArrayList<Integer>();
 		for (int d = 0; d < das.size(); d++) {
 			int daState = getDAState(d, exploreState);// ((Integer) exploreState.varValues[numModelVars +
-														// d]).intValue();
-
+//														// d]).intValue();
+//
 			if (exploreDaState.size() <= d)
 				exploreDaState.add(daState);
 			else
 				exploreDaState.set(d, daState);
-			// exploreDaState = exploreState.substate(numVars -das.size(),numVars);
+
 		}
+
+	}
+
+	protected int getDAState(int danum, State state) {
+		return ((Integer) state.varValues[numModelVarsAll + danum]).intValue();
 
 	}
 
 	@Override
 	public int getNumChoices() throws PrismException {
 		// TODO Auto-generated method stub
-		return 0;
+	//	return modelGen.getNumChoices();
+		//so its a combination of all the choices 
+		//so just like x choices 
+		//so we just make an array of all the choices for each robot 
+		
+		 
 	}
 
 	@Override

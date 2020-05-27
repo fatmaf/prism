@@ -2,6 +2,7 @@ package thtsNew;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -154,7 +155,11 @@ public class TestThings {
 			das.add(da);
 			mainLog.println("Created DA for "+expr.toString());
 		}
-		MultiAgentNestedProductModelGenerator mapmg = new MultiAgentNestedProductModelGenerator(mfmodgens,das,labelExprsList,safetydaind);
+		ArrayList<String> sharedStateVars = new ArrayList<String>(); 
+		sharedStateVars.add("door0");
+		MultiAgentNestedProductModelGenerator mapmg = 
+				new MultiAgentNestedProductModelGenerator(
+						mfmodgens,das,labelExprsList,safetydaind,sharedStateVars);
 		
 		//so now we've got the model generator 
 		//now to fill things up 
@@ -169,6 +174,10 @@ public class TestThings {
 			if (!visited.contains(s)) {
 				visited.add(s);
 				System.out.println("Visiting: " + s);
+				// lets get its children ?
+				mapmg.exploreState(s);
+				mapmg.printExploreState();
+//				int choices = mapmg.getNumChoices();
 			}
 		}
 //		int numrewards = mapmg.getNumRewardStructs();
