@@ -157,6 +157,7 @@ public class TestThings {
 		}
 		ArrayList<String> sharedStateVars = new ArrayList<String>(); 
 		sharedStateVars.add("door0");
+		sharedStateVars = null;
 		MultiAgentNestedProductModelGenerator mapmg = 
 				new MultiAgentNestedProductModelGenerator(
 						mfmodgens,das,labelExprsList,safetydaind,sharedStateVars);
@@ -168,7 +169,7 @@ public class TestThings {
 		Queue<State> q = new LinkedList<State>();
 		Queue<State> visited = new LinkedList<State>();
 		q.addAll(initStates);
-
+		int numrewards = mapmg.getNumRewardStructs();
 		while (!q.isEmpty()) {
 			State s = q.remove();
 			if (!visited.contains(s)) {
@@ -199,6 +200,12 @@ public class TestThings {
 						// we should know
 
 						q.add(ns);
+					}
+					for (int r = 0; r < numrewards; r++) {
+						double rew = mapmg.getStateActionReward(r, action);
+						if (rew != mapmg.getStateActionReward(r, s, action))
+							choiceString += " rews not equal?? ";
+						choiceString += " r" + r + ": " + rew;
 					}
 					System.out.println(choiceString);
 

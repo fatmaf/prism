@@ -5,6 +5,9 @@ import java.util.List;
 
 
 public class HelperClass<T> {
+	public enum RewardCalculation {
+		SUM, MAX, MIN
+	}
 	public int getNumCombsFromSizes(ArrayList<Integer> numElements)
 	{
 		int numcombs = 1; 
