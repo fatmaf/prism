@@ -99,25 +99,32 @@ public class MDPValIter {
 			strat[i] = target.get(i) ? -2 : -1;
 		}
 
-		// Precomputation
-		timerProb0 = System.currentTimeMillis();
-		if (mc.getPrecomp() && mc.getProb0()) {
-			no = mc.prob0(mdp, remain, target, min, strat);
-		} else {
-			no = new BitSet();
-			if (remain != null) {
-				no = (BitSet) remain.clone();
-				no.flip(0, n);
-			}
+		//skipping precomputation
+//		 Precomputation
+//		timerProb0 = System.currentTimeMillis();
+//		if (mc.getPrecomp() && mc.getProb0()) {
+//			no = mc.prob0(mdp, remain, target, min, strat);
+//		} else {
+//			no = new BitSet();
+//			if (remain != null) {
+//				no = (BitSet) remain.clone();
+//				no.flip(0, n);
+//			}
+//		}
+		no = new BitSet();
+		if (remain != null) {
+			no = (BitSet) remain.clone();
+			no.flip(0, n);
 		}
-		timerProb0 = System.currentTimeMillis() - timerProb0;
-		timerProb1 = System.currentTimeMillis();
-		if (mc.getPrecomp() && mc.getProb1()) {
-			yes = mc.prob1(mdp, remain, target, min, strat);
-		} else {
-			yes = (BitSet) target.clone();
-		}
-		timerProb1 = System.currentTimeMillis() - timerProb1;
+//		timerProb0 = System.currentTimeMillis() - timerProb0;
+//		timerProb1 = System.currentTimeMillis();
+//		if (mc.getPrecomp() && mc.getProb1()) {
+//			yes = mc.prob1(mdp, remain, target, min, strat);
+//		} else {
+//			yes = (BitSet) target.clone();
+//		}
+		yes = (BitSet) target.clone();
+//		timerProb1 = System.currentTimeMillis() - timerProb1;
 
 		// Print results of precomputation
 		numYes = yes.cardinality();

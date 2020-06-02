@@ -370,8 +370,8 @@ public class TempTHTS {
 		//from the initial state 
 		//TODO: check results from nvi 
 		//TODO: check state mapping for heuristic function 
-		this.testMAPMG(mapmg);
-		this.testMultiAgentH(mapmg, heuristicFunction);
+//		this.testMAPMG(mapmg);
+		testMultiAgentH(mapmg, heuristicFunction);
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.TaskCompletion);
 		tieBreakingOrder.add(Objectives.Cost);

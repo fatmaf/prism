@@ -169,7 +169,12 @@ public class SingleAgentSolverMaxExpTask {
 		NestedProductMDP npMDP = new NestedProductMDP(mdp);
 
 		// so do the nested product stuff for all the other expressions
-		for (Expression exprHere : exprOthers) {
+//		so doing this inreverse order so it matches what we would have for mapmg
+//		for(int exprnum = exprOthers.size()-1; exprnum>=0; exprnum--)
+//		for (Expression exprHere : exprOthers)
+		for(int exprnum = 0; exprnum<exprOthers.size(); exprnum++)
+		{
+			Expression exprHere = exprOthers.get(exprnum);
 			npMDP.constructProductModel(exprHere, ltlMC, pmc, allowedAcceptance, resLoc);
 		}
 		// now do it for the reward ones

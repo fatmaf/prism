@@ -26,6 +26,7 @@ public class MultiAgentHeuristic implements Heuristic {
 	@Override
 	public HashMap<Objectives, Bounds> getStateBounds(ArrayList<Objectives> objs, State s) throws PrismException {
 		HashMap<Objectives, Bounds> toret = new HashMap<>();
+		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
 
 		boolean isAcc = mapmg.isAccState(s);
 		boolean isAvoid = mapmg.isAvoidState(s);
@@ -66,7 +67,7 @@ public class MultiAgentHeuristic implements Heuristic {
 			}
 			return toret;
 		}
-		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
+//		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
 
 		// get the corresponding state from the objectives
 		// for probability the single agent solution is a lower bound
