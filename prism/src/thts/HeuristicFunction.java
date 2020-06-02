@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import parser.State;
 import prism.PrismException;
+import thts.Objectives;
 
 public interface HeuristicFunction
 {
@@ -12,9 +13,9 @@ public interface HeuristicFunction
 	
 	public void calculateBounds(State s) throws PrismException; 
 //	public void calculateBounds(State s, Object a,ArrayList<DecisionNode> dn) throws PrismException;
-	public Bounds getProbabilityBounds(); 
-	public Bounds getProgressionBounds(); 
-	public ArrayList<Bounds> getRewardBounds();
+	public Bounds getBounds(Objectives obj); 
+	public Bounds getRewardBounds(int r);
+	public ArrayList<Bounds> getAllRewardBounds();
 	public void calculateBounds(State s, Object a, ArrayList<DecisionNode> dns, THTSNode parent) throws PrismException; 
 	
 }

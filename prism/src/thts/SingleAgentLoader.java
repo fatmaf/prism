@@ -273,7 +273,7 @@ public class SingleAgentLoader {
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
 
 		vi.computeNestedValIterArray(mdpmc, npMDP.getProductModel(), target, remain, rews, null, minrews, null, 1, null,
-				this.mainLog);
+				this.mainLog,resLoc,null);
 
 //		RewardStruct costStruct = (rewExpr).getRewardStructByIndexObject(modulesFile, modulesFile.getConstantValues());
 

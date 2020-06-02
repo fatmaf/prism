@@ -251,10 +251,10 @@ public class TrialBHeuristicSearch {
 	
 		heuristicFunction.calculateBounds(dn.getState(), act, dns, cn);
 
-		Bounds prob = heuristicFunction.getProbabilityBounds();
-		Bounds prog = heuristicFunction.getProgressionBounds();
+		Bounds prob = heuristicFunction.getBounds(Objectives.Probability);
+		Bounds prog = heuristicFunction.getBounds(Objectives.Progression);
 
-		ArrayList<Bounds> costs = heuristicFunction.getRewardBounds();
+		ArrayList<Bounds> costs = heuristicFunction.getAllRewardBounds();
 		// if the parent node is 0 then this cn has no costs
 		if (dn.isDeadend || dn.isGoal) {
 			for (int i = 0; i < costs.size(); i++) {
@@ -580,10 +580,10 @@ public class TrialBHeuristicSearch {
 
 		heuristicFunction.calculateBounds(s);
 
-		Bounds prob = heuristicFunction.getProbabilityBounds();
-		Bounds prog = heuristicFunction.getProgressionBounds();
+		Bounds prob = heuristicFunction.getBounds(Objectives.Probability);
+		Bounds prog = heuristicFunction.getBounds(Objectives.Progression);
 
-		ArrayList<Bounds> costs = heuristicFunction.getRewardBounds();
+		ArrayList<Bounds> costs = heuristicFunction.getAllRewardBounds();
 
 		boolean deadend = maProdModGen.isDeadend(s);
 		boolean goal = maProdModGen.isGoal(s);

@@ -61,6 +61,10 @@ public class Bounds{
 	{
 		return subractLower(m.getLower());
 	}
+	public Bounds subtract(Bounds m)
+	{
+		return new Bounds(subtractUpper(m),subtractLower(m));
+	}
 	@Override
 	public String toString()
 	{

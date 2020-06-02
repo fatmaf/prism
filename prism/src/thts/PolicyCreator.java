@@ -196,7 +196,7 @@ public class PolicyCreator
 		}
 		return mdpCreator.mdp;
 	}
-	private MDPSimple createPolicy(int initialState, MDPSimple mdp, Strategy strat)
+	public MDPSimple createPolicy(int initialState, MDPSimple mdp, Strategy strat)
 	{
 		Stack<Integer> toVisit = new Stack<Integer>();
 		BitSet visited = new BitSet();
@@ -270,7 +270,7 @@ public class PolicyCreator
 		return mdpCreator.mdp;
 	}
 
-	void savePolicy(String saveLocation, String name)
+	public void savePolicy(String saveLocation, String name)
 	{
 		mdpCreator.saveMDP(saveLocation, name);
 		System.out.println(name+" saved to "+ saveLocation);

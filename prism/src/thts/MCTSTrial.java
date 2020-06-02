@@ -28,31 +28,28 @@ public class MCTSTrial implements HeuristicFunction
 	}
 
 	@Override
-	public Bounds getProbabilityBounds()
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Bounds getProgressionBounds()
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ArrayList<Bounds> getRewardBounds()
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void calculateBounds(State s, Object a, ArrayList<DecisionNode> dn,THTSNode parent) throws PrismException
 	{
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public Bounds getBounds(Objectives obj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Bounds getRewardBounds(int r) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ArrayList<Bounds> getAllRewardBounds() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

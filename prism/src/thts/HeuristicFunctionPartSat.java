@@ -83,20 +83,49 @@ public class HeuristicFunctionPartSat implements HeuristicFunction {
 				"Calculating bounds:" + s + "," + a.toString() + " p " + prob + " pr " + prog + " c " + costs.get(0));
 	}
 
-	@Override
 	public Bounds getProbabilityBounds() {
 		// TODO Auto-generated method stub
 		return prob;
 	}
 
-	@Override
 	public Bounds getProgressionBounds() {
 		// TODO Auto-generated method stub
 		return prog;
 	}
 
-	@Override
 	public ArrayList<Bounds> getRewardBounds() {
+		// TODO Auto-generated method stub
+		return costs;
+	}
+
+	@Override
+	public Bounds getBounds(Objectives obj) {
+		Bounds toret=null; 
+		switch (obj)
+		{
+		case Probability:
+			toret= getProbabilityBounds(); 
+			break; 
+		case Progression:
+			toret= getProgressionBounds(); 
+			break; 
+		case Cost:
+			toret= getRewardBounds().get(0); 
+			break;
+			default:
+				break;
+		}
+		return toret;
+	}
+
+	@Override
+	public Bounds getRewardBounds(int r) {
+		// TODO Auto-generated method stub
+		return costs.get(r);
+	}
+
+	@Override
+	public ArrayList<Bounds> getAllRewardBounds() {
 		// TODO Auto-generated method stub
 		return costs;
 	}
