@@ -3,11 +3,14 @@ package thtsNew;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
@@ -34,6 +37,7 @@ import prism.PrismLog;
 import prism.ProductModelGenerator;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
+import thts.MDPCreator;
 import thts.Objectives;
 
 //just test whatever I want here 
@@ -79,16 +83,16 @@ public class TestThings {
 			filenames.add(testsLocation + example + i + ".prism");
 
 		AcceptanceType[] allowedAcceptance = { AcceptanceType.RABIN, AcceptanceType.REACH };
-		
+
 		// step 1
 		// create the modulesfilemodelgenerators
 		ArrayList<ModulesFileModelGenerator> mfmodgens = new ArrayList<>();
-		ModulesFile modulesFile = null; //just here so we can use the last modules file for our properties 
-		
+		ModulesFile modulesFile = null; // just here so we can use the last modules file for our properties
+
 		for (String modelFileName : filenames) {
-			mainLog.println("Loading model gen for "+modelFileName);
-			modulesFile = prism.parseModelFile(new File(modelFileName)); //because the models are uniform 
-			//we might have to find a way to change this later 
+			mainLog.println("Loading model gen for " + modelFileName);
+			modulesFile = prism.parseModelFile(new File(modelFileName)); // because the models are uniform
+			// we might have to find a way to change this later
 			ModulesFileModelGenerator modGen = new ModulesFileModelGenerator(modulesFile, prism);
 			mfmodgens.add(modGen);
 		}
@@ -96,56 +100,55 @@ public class TestThings {
 		// load all the exprs and remember to check them
 		PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propertiesFileName));
 		List<Expression> processedExprs = new ArrayList<Expression>();
-		int safetydaind  = -1;
+		int safetydaind = -1;
 		Expression safetyexpr = null;
 		for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
 			mainLog.println(propertiesFile.getProperty(i));
 			// so reward + safety
 			boolean isSafeExpr = false;
 			Expression exprHere = propertiesFile.getProperty(i);
-	
-				Expression daExpr = ((ExpressionQuant) exprHere).getExpression();
-				isSafeExpr = !Expression.isCoSafeLTLSyntactic(daExpr, true);
-				if (isSafeExpr)
-				{	
-					if(safetyexpr != null)
-					{
-						//two safety exprs? lets and this stuff 
-						//TODO: could this cause problems ? //like if one was min and max since we're ignoring those
-						safetyexpr = Expression.And(safetyexpr, daExpr);
-					}
-					else 
-						safetyexpr = daExpr; 
-				
-				}
+
+			Expression daExpr = ((ExpressionQuant) exprHere).getExpression();
+			isSafeExpr = !Expression.isCoSafeLTLSyntactic(daExpr, true);
+			if (isSafeExpr) {
+				if (safetyexpr != null) {
+					// two safety exprs? lets and this stuff
+					// TODO: could this cause problems ? //like if one was min and max since we're
+					// ignoring those
+					safetyexpr = Expression.And(safetyexpr, daExpr);
+				} else
+					safetyexpr = daExpr;
+
+			}
 
 			if (!isSafeExpr)
 				processedExprs.add(daExpr);
 		}
-		//we've got the safety stuff left 
-		//we need to not it 
-		Expression notsafetyexpr = Expression.Not(safetyexpr); 
+		// we've got the safety stuff left
+		// we need to not it
+		Expression notsafetyexpr = Expression.Not(safetyexpr);
 		safetydaind = processedExprs.size();
 		processedExprs.add(safetyexpr);
-		
+
 		// hmmmm so this is important I guess
 		// and we have a single safety da okay
 		// oooo reward structures we don't have to care about
 		// right o -lets do this
 		// for the honor of greyskull
-		
+
 		LTLModelChecker ltlMC = new LTLModelChecker(prism);
-		
+
 		ArrayList<List<Expression>> labelExprsList = new ArrayList<List<Expression>>();
 		ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das = new ArrayList<DA<BitSet, ? extends AcceptanceOmega>>();
 		for (int i = 0; i < processedExprs.size(); i++) {
 			List<Expression> labelExprs = new ArrayList<Expression>();
 
 			Expression expr = (Expression) processedExprs.get(i);
-			//this will need to be changed if you've got different variables accross models 
-			//then its better to do the v=5 stuff in the prop files and just ignore labels 
+			// this will need to be changed if you've got different variables accross models
+			// then its better to do the v=5 stuff in the prop files and just ignore labels
 			expr = (Expression) expr.expandPropRefsAndLabels(propertiesFile, modulesFile.getLabelList());
-			DA<BitSet, ? extends AcceptanceOmega> da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs, allowedAcceptance);
+			DA<BitSet, ? extends AcceptanceOmega> da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs,
+					allowedAcceptance);
 			da.setDistancesToAcc();
 			PrismLog out = new PrismFileLog(resultsLocation + "da_" + i + ".dot");
 			// printing the da
@@ -153,44 +156,53 @@ public class TestThings {
 			out.close();
 			labelExprsList.add(labelExprs);
 			das.add(da);
-			mainLog.println("Created DA for "+expr.toString());
+			mainLog.println("Created DA for " + expr.toString());
 		}
-		ArrayList<String> sharedStateVars = new ArrayList<String>(); 
+		ArrayList<String> sharedStateVars = new ArrayList<String>();
 		sharedStateVars.add("door0");
-		sharedStateVars = null;
-		MultiAgentNestedProductModelGenerator mapmg = 
-				new MultiAgentNestedProductModelGenerator(
-						mfmodgens,das,labelExprsList,safetydaind,sharedStateVars);
-		
-		//so now we've got the model generator 
-		//now to fill things up 
-		//woohoo 
+//		sharedStateVars = null;
+		MultiAgentNestedProductModelGenerator mapmg = new MultiAgentNestedProductModelGenerator(mfmodgens, das,
+				labelExprsList, safetydaind, sharedStateVars);
+
+		// so now we've got the model generator
+		// now to fill things up
+		// woohoo
 		List<State> initStates = mapmg.getInitialStates();
 		Queue<State> q = new LinkedList<State>();
 		Queue<State> visited = new LinkedList<State>();
 		q.addAll(initStates);
 		int numrewards = mapmg.getNumRewardStructs();
+		ArrayList<State> accStates = new ArrayList<State>();
+		ArrayList<State> avoidStates = new ArrayList<State>();
+		MDPCreator mc = new MDPCreator();
 		while (!q.isEmpty()) {
 			State s = q.remove();
 			if (!visited.contains(s)) {
 				visited.add(s);
+				if (mapmg.isAccState(s))
+					accStates.add(s);
+				if (mapmg.isAvoidState(s))
+					avoidStates.add(s);
 				System.out.println("Visiting: " + s);
 				// lets get its children ?
 				mapmg.exploreState(s);
 				mapmg.printExploreState();
 				int choices = mapmg.getNumChoices();
-				System.out.println("Choices: "+choices);
+				System.out.println("Choices: " + choices);
 				for (int c = 0; c < choices; c++) {
 					String choiceString = "";
 					Object action = mapmg.getChoiceAction(c);
 					choiceString += "Choice " + c + " - " + action.toString();
 //					System.out.println(choiceString);
 					int numtransitions = mapmg.getNumTransitions(c);
-
+					ArrayList<Entry<State, Double>> children = new ArrayList<>();
 					for (int t = 0; t < numtransitions; t++) {
 						double prob = mapmg.getTransitionProbability(c, t);
 						State ns = mapmg.computeTransitionTarget(c, t);
 						choiceString += " " + ns.toString() + ":" + prob + " ";
+						Entry<State, Double> child = new AbstractMap.SimpleEntry<State, Double>(ns, prob);
+//					
+						children.add(child);
 //						System.out.println(ns.toString() + ":" + prob);
 						// so what are the labels satisfied by each state ?
 						// do we know ?
@@ -207,12 +219,24 @@ public class TestThings {
 							choiceString += " rews not equal?? ";
 						choiceString += " r" + r + ": " + rew;
 					}
+					double taskrew = mapmg.getStateActionTaskReward(c);
+					choiceString += " r" + " task rew " + ": " + taskrew;
+					mc.addAction(s, action, children);
+				
 					System.out.println(choiceString);
 
 				}
-			
+
 			}
 		}
+		System.out.println("Acc States");
+		for (State s : accStates)
+			System.out.println(s.toString());
+		System.out.println("Avoid States");
+		for (State s : avoidStates)
+			System.out.println(s.toString());
+
+		mc.saveMDP(resultsLocation, "jointmdp");
 //		int numrewards = mapmg.getNumRewardStructs();
 	}
 

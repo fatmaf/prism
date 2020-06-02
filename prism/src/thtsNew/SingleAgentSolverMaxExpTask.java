@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import acceptance.AcceptanceType;
+import explicit.DTMCFromMDPMemorylessAdversary;
 import explicit.LTLModelChecker;
 import explicit.MDP;
 import explicit.MDPModelChecker;
@@ -26,6 +27,7 @@ import prism.PrismLog;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
+import thts.PolicyCreator;
 import thtsNew.MDPValIter.ModelCheckerMultipleResult;
 
 public class SingleAgentSolverMaxExpTask {
@@ -38,6 +40,7 @@ public class SingleAgentSolverMaxExpTask {
 	Expression exprSafety;
 	List<Expression> exprOthers;
 	String resLoc;
+	String name = null;
 
 	// pretty much does nothing but get the nvi solution for the single agent
 	// yeah
@@ -51,6 +54,14 @@ public class SingleAgentSolverMaxExpTask {
 
 	public SingleAgentSolverMaxExpTask(Prism prism, PrismLog log, String resLoc) {
 		initialise(prism, log, resLoc);
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return this.name;
 	}
 
 	private void initialise(Prism prism, PrismLog log, String resLoc) {
@@ -93,6 +104,8 @@ public class SingleAgentSolverMaxExpTask {
 
 	public void loadProperties(String propertiesFileName) throws Exception {
 		// loads the properties
+		exprRews = null;
+		exprSafety = null;
 		propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propertiesFileName));
 
 		exprOthers = new ArrayList<>();
@@ -112,7 +125,8 @@ public class SingleAgentSolverMaxExpTask {
 
 				exprRews.add(exprRew);
 
-			} else {
+			} 
+			
 				Expression daExpr = ((ExpressionQuant) exprHere).getExpression();
 				boolean isSafeExpr = !Expression.isCoSafeLTLSyntactic(daExpr, true);
 				if (isSafeExpr) {
@@ -128,7 +142,7 @@ public class SingleAgentSolverMaxExpTask {
 					exprOthers.add(exprHere);
 				}
 			}
-		}
+		
 
 	}
 
@@ -158,14 +172,17 @@ public class SingleAgentSolverMaxExpTask {
 		for (Expression exprHere : exprOthers) {
 			npMDP.constructProductModel(exprHere, ltlMC, pmc, allowedAcceptance, resLoc);
 		}
-		// now do it for the safety one //remember we've anded all the safety ones
-		npMDP.constructProductModel(exprSafety, ltlMC, pmc, allowedAcceptance, resLoc, true);
-
 		// now do it for the reward ones
 
-		for (ExpressionReward rewExpr : exprRews) {
-			npMDP.constructProductModel(rewExpr, ltlMC, pmc, allowedAcceptance, resLoc);
-		}
+//		for (ExpressionReward rewExpr : exprRews) {
+//			npMDP.constructProductModel(rewExpr, ltlMC, pmc, allowedAcceptance, resLoc);
+//		}
+
+		// now do it for the safety one //remember we've anded all the safety ones
+		// we've got to not the safetyexpression
+//		Expression notSafety = Expression.Not(exprSafety);
+		npMDP.constructProductModel(exprSafety, ltlMC, pmc, allowedAcceptance, resLoc, true);
+
 		ArrayList<MDPRewardsSimple> rewardsList = new ArrayList<>();
 		ArrayList<Boolean> minRewards = new ArrayList<>();
 		// now we're going to create our reward models
@@ -191,10 +208,19 @@ public class SingleAgentSolverMaxExpTask {
 		// we're so so close to doing nvi!!!
 		// haye haye!!!
 		// but furst v must get de target and remain
+		if (name != null) {
+			PrismLog out = new PrismFileLog(resLoc + "jointmdpstates" + name + ".sta");
+			for (int i = 0; i < npMDP.getProductModel().getStatesList().size(); i++) {
+				out.println(i + ":" + npMDP.getProductModel().getStatesList().get(i));
+			}
+			out.close();
+
+			npMDP.getProductModel().exportToPrismExplicitTra(resLoc + "jointmdpstates" + name + ".tra");
+		}
 		mainLog.println("Getting acc states and states to avoid - iss k paasbaan tum ho");
 		npMDP.createTargetStates();
 		BitSet remain = npMDP.getRemainStates();
-		BitSet target = (BitSet) npMDP.acc.clone();
+		BitSet target = npMDP.getTargetStates();
 		// now we're ready for WAR ? what is it good for absolutely nothing
 
 		MDPValIter vi = new MDPValIter();
@@ -203,7 +229,7 @@ public class SingleAgentSolverMaxExpTask {
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
 		mainLog.println("Finally doing nvi on this!!! meine tumhari ghagar se kabhi paani piya tha");
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, npMDP.getProductModel(), target, remain,
-				rewardsList, null, minRewards, null, 1, null, this.mainLog);
+				rewardsList, null, minRewards, null, 1, null, this.mainLog, resLoc,name);
 		// now this is possibly the MOST important bit
 		// we've got to go over all the states and save them
 		// cuz who the man ?
@@ -213,6 +239,12 @@ public class SingleAgentSolverMaxExpTask {
 		// the last one is the probability
 		// now this is really important to remember so don't mess it up
 		// the order is prob,maxtask,other rewards
+		// lets just draw the result to check what happens
+		if (name != null) {
+			PolicyCreator pc = new PolicyCreator();
+			pc.createPolicyAllStates(npMDP.getProductModel(), result.strat);
+			pc.savePolicy(resLoc, "nvipol" + name);
+		}
 		ArrayList<Objectives> objs = new ArrayList<Objectives>();
 		objs.add(Objectives.Probability);
 		objs.add(Objectives.TaskCompletion);
@@ -226,10 +258,9 @@ public class SingleAgentSolverMaxExpTask {
 				State state = npMDP.getState(s);
 				double val = currsoln[s];
 				currsolnmap.put(state, val);
-				if(npMDP.isInitialState(s))
-				{
-					//print the values 
-					System.out.println(currobj.toString()+ " value in initial state "+state.toString()+" "+val);
+				if (npMDP.isInitialState(s)) {
+					// print the values
+					System.out.println(currobj.toString() + " value in initial state " + state.toString() + " " + val);
 				}
 			}
 			solution.put(currobj, currsolnmap);

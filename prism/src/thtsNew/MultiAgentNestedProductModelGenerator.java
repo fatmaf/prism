@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 
 import acceptance.AcceptanceOmega;
@@ -19,6 +20,7 @@ import parser.ast.Expression;
 import parser.ast.RewardStruct;
 import parser.type.Type;
 import parser.type.TypeInt;
+import prism.DefaultModelGenerator;
 import prism.ModelGenerator;
 import prism.ModelType;
 import prism.PrismException;
@@ -26,7 +28,7 @@ import prism.PrismLangException;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
 
-public class MultiAgentNestedProductModelGenerator implements ModelGenerator, RewardGenerator {
+public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator {// ModelGenerator, RewardGenerator {
 
 	// a list of models
 	// a list of das
@@ -320,12 +322,18 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 
 		BitSet bsLabels = null;
 		// so technically we've got to or the bit sets
+
 		for (int r = 0; r < robotStates.size(); r++) {
 			BitSet currentRobotLabels = getDABitSet(danum, robotStates.get(r));
 			if (bsLabels == null)
 				bsLabels = (BitSet) currentRobotLabels.clone();
-			else
-				bsLabels.or(currentRobotLabels);
+			else {
+				if (danum == this.safetyDAIndex) // this may be a bit of a hardcoding thing // but or doesnt make sense
+					bsLabels.and(currentRobotLabels); // we're anding because all robots have to have the same labels!!!
+				else
+					bsLabels.or(currentRobotLabels);
+
+			}
 		}
 		// Find/return successor
 		DA<BitSet, ? extends AcceptanceOmega> da = das.get(danum);
@@ -449,17 +457,57 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		return toret;
 	}
 
+	public BitSet getDAAccsForState(State state) {
+		// the bitset value for the corresponding da is true
+		BitSet daAccs = new BitSet(das.size());
+		for (int d = 0; d < das.size(); d++) {
+			int daState = getDAState(d, state);
+			if (das.get(d).getAccStates().get(daState))
+				daAccs.set(d);
+		}
+		return daAccs;
+	}
+
+	public boolean isAvoidState(State state) {
+		BitSet daAccs = getDAAccsForState(state);
+		return !daAccs.get(safetyDAIndex);
+	}
+
+	public boolean isAccState(State state) {
+		boolean acc = true;
+		BitSet daAccs = getDAAccsForState(state);
+		if (!daAccs.get(safetyDAIndex))
+			acc = false;
+		if (acc) {
+			for (int d = 0; d < das.size(); d++) {
+				if (d != safetyDAIndex) {
+					acc = acc & daAccs.get(d);
+				}
+				if (!acc)
+					break;
+			}
+		}
+		return acc;
+	}
+
+	public State getCombinedDAState(State exploreState) {
+		return exploreState.substate(numModelVarsAll, numModelVarsAll + numDAs);
+	}
+
 	public State createCombinedDAState(ArrayList<State> robotStates, boolean daInitStates) throws PrismException {
 		// so now we need to this for each da and each robot state
 		State combinedDAState = new State(das.size());
+
 		for (int d = 0; d < das.size(); d++) {
+
 			int daStateHere;
 			if (daInitStates)
 				daStateHere = das.get(d).getStartState();
 			else
 				daStateHere = exploreDaState.get(d);
-			int daInitState = getDASuccessor(d, daStateHere, robotStates);
-			combinedDAState.setValue(d, daInitState);
+			int nextDAState = getDASuccessor(d, daStateHere, robotStates);
+
+			combinedDAState.setValue(d, nextDAState);
 		}
 		return combinedDAState;
 	}
@@ -516,6 +564,32 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 			e.printStackTrace();
 		}
 		return toret;
+	}
+
+	private State flipState(State s) {
+		State flipped = new State(s.varValues.length);
+		for (int i = 0; i < s.varValues.length; i++) {
+			flipped.setValue(i, s.varValues[s.varValues.length - (i + 1)]);
+		}
+		return flipped;
+	}
+
+	public ArrayList<State> getModelAndDAStates(State exploreState, boolean dabeforemodel) {
+		ArrayList<State> modelStates = getModelStates(exploreState);
+		State daState = getCombinedDAState(exploreState);
+		State flippedDaState = flipState(daState);
+		ArrayList<State> robotStates = new ArrayList<>();
+		for (int i = 0; i < modelStates.size(); i++) {
+			State modelState = modelStates.get(i);
+			State state;
+			if (dabeforemodel) {
+				state = new State(flippedDaState, modelState);
+			} else {
+				state = new State(modelState, daState);
+			}
+			robotStates.add(state);
+		}
+		return robotStates;
 	}
 
 	public ArrayList<State> getModelStates(State exploreState) {
@@ -577,35 +651,39 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 
 	@Override
 	public void exploreState(State exploreState) throws PrismException {
-		// so the explore state is simply like all the robot states
-		// and all the da states
-		this.exploreState = exploreState;
-		// first we have to create robot states
-		// then we've got to create the da states
-		// o this is easy
-		// we just use the stuff we had earlier
-		// no big deal!! yay
-		exploreModelState = getModelStates(exploreState);
+		boolean update = true;
+//		if(exploreState!=null)
+//			update = (exploreState.compareTo(exploreState) != 0);
+		if (update) {
+			// so the explore state is simply like all the robot states
+			// and all the da states
+			this.exploreState = exploreState;
+			// first we have to create robot states
+			// then we've got to create the da states
+			// o this is easy
+			// we just use the stuff we had earlier
+			// no big deal!! yay
+			exploreModelState = getModelStates(exploreState);
 
-		for (int r = 0; r < numModelVars.size(); r++) {
-			modelGens.get(r).exploreState(exploreModelState.get(r));
-		}
+			for (int r = 0; r < numModelVars.size(); r++) {
+				modelGens.get(r).exploreState(exploreModelState.get(r));
+			}
 
-		if (exploreDaState == null)
-			exploreDaState = new ArrayList<Integer>();
-		for (int d = 0; d < das.size(); d++) {
-			int daState = getDAState(d, exploreState);// ((Integer) exploreState.varValues[numModelVars +
+			if (exploreDaState == null)
+				exploreDaState = new ArrayList<Integer>();
+			for (int d = 0; d < das.size(); d++) {
+				int daState = getDAState(d, exploreState);// ((Integer) exploreState.varValues[numModelVars +
 //														// d]).intValue();
 //
-			if (exploreDaState.size() <= d)
-				exploreDaState.add(daState);
-			else
-				exploreDaState.set(d, daState);
+				if (exploreDaState.size() <= d)
+					exploreDaState.add(daState);
+				else
+					exploreDaState.set(d, daState);
 
+			}
+			exploreStateChoiceCombs = null;
+			exploreStateChoiceTransitionCombs = null;
 		}
-		exploreStateChoiceCombs = null;
-		exploreStateChoiceTransitionCombs = null;
-
 	}
 
 	protected int getDAState(int danum, State state) {
@@ -694,7 +772,14 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		return null;
 	}
 
-	private void computeCurrentChoiceTransitionCombinations(ArrayList<Integer> robotChoices) throws PrismException {
+	private ArrayList<ArrayList<Entry<State, Double>>> computeCurrentChoiceTransitionCombinations(
+			ArrayList<Integer> robotChoices) throws PrismException {
+
+		return computeCurrentChoiceTransitionCombinations(robotChoices, true);
+	}
+
+	private ArrayList<ArrayList<Entry<State, Double>>> computeCurrentChoiceTransitionCombinations(
+			ArrayList<Integer> robotChoices, boolean setToExploreState) throws PrismException {
 		// so we've got the choice and the states
 		ArrayList<List<Entry<State, Double>>> allTransitionOptions = new ArrayList<>();
 		for (int r = 0; r < modelGens.size(); r++) {
@@ -712,13 +797,56 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 		}
 		HelperClass<Entry<State, Double>> hc = new HelperClass<>();
 		ArrayList<ArrayList<Entry<State, Double>>> combs = hc.generateCombinations(allTransitionOptions);
-		exploreStateChoiceTransitionCombs = combs;
+		if (setToExploreState)
+			exploreStateChoiceTransitionCombs = combs;
+		return combs;
 
+	}
+
+	// for the current state and current choice okay
+	public double getStateActionTaskReward(int choice) throws PrismException {
+		ArrayList<ArrayList<Entry<State, Double>>> combs;
+		ArrayList<State> robotStates;
+		robotStates = exploreModelState;
+		if (exploreStateChoiceTransitionCombs == null) {
+			if (exploreStateChoiceCombs == null)
+				generateChoiceCombs();
+			combs = computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(choice));
+		} else
+			combs = exploreStateChoiceTransitionCombs;
+		BitSet parentStateAccs = getDAAccsForState(exploreState);
+		double taskrew = 0;
+		for (int t = 0; t < combs.size(); t++) {
+			Entry<State, Double> e = computeTransitionTargetAndProbability(choice, t);
+			State ns = e.getKey();
+			Double np = e.getValue();
+			BitSet stateAccs = getDAAccsForState(ns);
+			int numtasks = getTasksCompletedFromAccBitSets(parentStateAccs, stateAccs);
+			taskrew += (double) numtasks * np;
+
+		}
+		return taskrew;
+
+	}
+
+	public int getTasksCompletedFromAccBitSets(BitSet ps, BitSet s) {
+		int numtasks = 0;
+		for (int d = 0; d < numDAs; d++) {
+			if (d != safetyDAIndex) {
+				boolean isPacc = ps.get(d);
+				boolean isSacc = s.get(d);
+				if (isPacc != isSacc) {
+					if (isSacc)
+						numtasks++;
+				}
+			}
+
+		}
+		return numtasks;
 	}
 
 	@Override
 	public double getTransitionProbability(int i, int offset) throws PrismException {
-		// TODO Auto-generated method stub
 		if (exploreStateChoiceTransitionCombs == null) {
 			computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(i));
 		}
@@ -730,6 +858,25 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 			prob *= e.getValue();
 		}
 		return prob;
+	}
+
+	private Entry<State, Double> computeTransitionTargetAndProbability(int i, int offset) throws PrismException {
+		// TODO Auto-generated method stub
+		if (exploreStateChoiceTransitionCombs == null) {
+			computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(i));
+		}
+		// the offset
+		ArrayList<Entry<State, Double>> stateCombs = exploreStateChoiceTransitionCombs.get(offset);
+		// probability = just those states together
+		double prob = 1;
+		ArrayList<State> robotStates = new ArrayList<>();
+		for (Entry<State, Double> e : stateCombs) {
+			prob *= e.getValue();
+			robotStates.add(e.getKey());
+		}
+		State nextstate = createCombinedRobotDAState(robotStates, exploreModelState, false);
+		Entry<State, Double> toret = new AbstractMap.SimpleEntry<State, Double>(nextstate, prob);
+		return toret;
 	}
 
 	@Override
@@ -749,6 +896,7 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 
 	// get the reward for the current state
 	public double getStateActionReward(int r, Object action) throws PrismException {
+
 		return getStateActionReward(r, exploreState, action);
 	}
 
@@ -825,6 +973,7 @@ public class MultiAgentNestedProductModelGenerator implements ModelGenerator, Re
 
 	private double getStateActionReward(int ri, ArrayList<State> robotstates, ArrayList<String> robotactions,
 			HelperClass.RewardCalculation rewCalc) {
+
 		ArrayList<Double> allrews = new ArrayList<>();
 		double rew;
 		// get all the rewards

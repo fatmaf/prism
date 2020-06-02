@@ -16,6 +16,7 @@ import parser.ast.Expression;
 import parser.ast.RewardStruct;
 import parser.type.Type;
 import parser.type.TypeInt;
+import prism.DefaultModelGenerator;
 import prism.ModelGenerator;
 import prism.ModelType;
 import prism.PrismException;
@@ -23,7 +24,7 @@ import prism.PrismLangException;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
 
-public class NestedProductModelGenerator implements ModelGenerator, RewardGenerator {
+public class NestedProductModelGenerator extends DefaultModelGenerator{//implements ModelGenerator, RewardGenerator {
 
 	protected ModulesFileModelGenerator modelGen = null;
 	/** The list of DAs used to build the product */

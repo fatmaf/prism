@@ -18,6 +18,8 @@ import explicit.LTLModelChecker;
 import explicit.LTLModelChecker.LTLProduct;
 import explicit.rewards.MDPRewardsSimple;
 import parser.State;
+import parser.VarList;
+import parser.ast.Declaration;
 import parser.ast.Expression;
 import parser.ast.ExpressionQuant;
 import prism.PrismException;
@@ -35,32 +37,33 @@ public class NestedProductMDP extends Product<MDP> {
 	Vector<BitSet> originalModelStateToProductMap = null;
 	Vector<Vector<BitSet>> daStateToProductStateMap = null;
 
-	int safetyDAInd = -1; 
-	public BitSet acc = null; 
-	public BitSet avoid = null; 
-	
-	public boolean isInitialState(int s)
-	{
-		//break this state and check if its an initial state in the original model 
+	int safetyDAInd = -1;
+	public BitSet acc = null;
+	public BitSet avoid = null;
+
+//	public VarList updatedvarlist; 
+	public boolean isInitialState(int s) {
+		// break this state and check if its an initial state in the original model
 		int modelstate = getModelState(s);
 		return originalModel.isInitialState(modelstate);
 	}
-	
-	public State getState(int s)
-	{
+
+	public State getState(int s) {
 		return productModel.getStatesList().get(s);
 	}
+
 	public NestedProductMDP(MDP originalModel) {
 		super(originalModel);
 		// TODO Auto-generated constructor stub
 	}
+
 	public void constructProductModel(Expression exprHere, LTLModelChecker ltlMC, ProbModelChecker pmc,
 			AcceptanceType[] allowedAcceptance, String resLoc) throws PrismException {
-		constructProductModel(exprHere, ltlMC,  pmc,
-				allowedAcceptance, resLoc,false) ;
+		constructProductModel(exprHere, ltlMC, pmc, allowedAcceptance, resLoc, false);
 	}
+
 	public void constructProductModel(Expression exprHere, LTLModelChecker ltlMC, ProbModelChecker pmc,
-			AcceptanceType[] allowedAcceptance, String resLoc,boolean safetyDA) throws PrismException {
+			AcceptanceType[] allowedAcceptance, String resLoc, boolean safetyDA) throws PrismException {
 		MDP oldproduct = null;
 		if (getProductModel() == null)
 			oldproduct = getOriginalModel();
@@ -83,21 +86,33 @@ public class NestedProductMDP extends Product<MDP> {
 		Vector<BitSet> labelBS = new Vector<BitSet>();
 
 		DA<BitSet, ? extends AcceptanceOmega> daHere;
-		if (safetyDA)
-		{
-			safetyDAInd = daIndex; 
+		if (safetyDA) {
+			safetyDAInd = daIndex;
 			daExpr = Expression.Not(daExpr);
-			daHere = ltlMC.constructDAForLTLFormula(pmc, oldproduct, daExpr, labelBS,
-						allowedAcceptance);
-		}
-		else
-		{
-			daHere = ltlMC.constructDAForLTLFormula(pmc, oldproduct, daExpr, labelBS,
-					allowedAcceptance);
+			daHere = ltlMC.constructDAForLTLFormula(pmc, oldproduct, daExpr, labelBS, allowedAcceptance);
+		} else {
+			daHere = ltlMC.constructDAForLTLFormula(pmc, oldproduct, daExpr, labelBS, allowedAcceptance);
 		}
 		das.add(daHere);
-		
+
 		LTLProduct<MDP> product = ltlMC.constructProductModel(daHere, oldproduct, labelBS, null);
+		VarList pvarlist = product.getProductModel().getVarList();
+
+//		int davarlistindex = pvarlist.getIndex("_da");
+//		VarList newvarlist = new VarList(); 
+//		
+//		for(int vn = 0; vn<pvarlist.getNumVars(); vn++)
+//		{
+//			Declaration decl = pvarlist.getDeclaration(vn);
+//			if(vn == davarlistindex)
+//			{
+//				decl.setName("_da"+daIndex);
+//			}
+//			String name = pvarlist.getName(vn); 
+//			
+//			newvarlist.addVar(decl, 1, null);
+//		}
+//		this.updatedvarlist = newvarlist; 
 //		product.getAutomatonState(0);
 		// now we do all the mapping and stuff
 		if (originalModelStateToProductMap == null) {
@@ -150,6 +165,7 @@ public class NestedProductMDP extends Product<MDP> {
 		printDA(resLoc, exprHere, daHere);
 
 		this.productModel = product.getProductModel();
+
 		printProduct(resLoc);
 		// lets just print everything else too
 		PrismLog out = new PrismFileLog(resLoc + "_prodmiscs_" + (das.size() - 1) + ".txt");
@@ -159,17 +175,16 @@ public class NestedProductMDP extends Product<MDP> {
 	}
 
 	public void createTargetStates() {
-		//states that are accepting states for all the das except the safetyda ones 
+		// states that are accepting states for all the das except the safetyda ones
 		Vector<BitSet> daAccStates = new Vector<BitSet>();
 		int numstates = productModel.getNumStates();
-		Vector<BitSet> prodDAAccStates =  new Vector<BitSet>();
+		Vector<BitSet> prodDAAccStates = new Vector<BitSet>();
 		for (DA<BitSet, ? extends AcceptanceOmega> da : das) {
 			daAccStates.add(da.getAccStates());
 			prodDAAccStates.add(new BitSet(numstates));
 		}
 		int[] automatonStates = new int[das.size()];
-	
-	
+
 		for (int prodstate = 0; prodstate < numstates; prodstate++) {
 			for (int danum = 0; danum < productStateToDAStateMap.size(); danum++) {
 				automatonStates[danum] = productStateToDAStateMap.get(danum).get(prodstate);
@@ -177,41 +192,42 @@ public class NestedProductMDP extends Product<MDP> {
 					prodDAAccStates.get(danum).set(prodstate);
 				}
 			}
-			
+
 		}
-		BitSet avoid = null; 
+		BitSet avoid = null;
 		BitSet target = null;
-		for(int i = 0; i<das.size(); i++)
-		{
-			if(i!=this.safetyDAInd)
-			{
-				if(target == null)
-				{
-					target =(BitSet) prodDAAccStates.get(i).clone();
-				}
-				else
-				{
+		for (int i = 0; i < das.size(); i++) {
+			if (i != this.safetyDAInd) {
+				if (target == null) {
+					target = (BitSet) prodDAAccStates.get(i).clone();
+				} else {
 					target.and(prodDAAccStates.get(i));
 				}
-			}
-			else {
+			} else {
 				avoid = (BitSet) prodDAAccStates.get(i).clone();
 			}
 		}
-		this.avoid = avoid; 
-		this.acc = target; 
+		this.avoid = avoid;
+		this.acc = target;
 	}
-	public BitSet getRemainStates()
-	{
+
+	public BitSet getTargetStates() {
+		BitSet target = (BitSet) this.acc.clone();
+		// now exclude all the ones that are in avoid
+		target.andNot(avoid);
+		return target;
+	}
+
+	public BitSet getRemainStates() {
 		int numstates = productModel.getNumStates();
 		BitSet remain = new BitSet(numstates);
-		if (avoid!=null)
-		{
+		if (avoid != null) {
 			remain = (BitSet) avoid.clone();
 		}
-			remain.flip(0,numstates);
+		remain.flip(0, numstates);
 		return remain;
 	}
+
 	public MDPRewardsSimple createTaskRewards() {
 
 		Vector<BitSet> daAccStates = new Vector<BitSet>();
@@ -233,7 +249,8 @@ public class NestedProductMDP extends Product<MDP> {
 			// and if they aren't we add a rew of p*1
 			int numchoices = productModel.getNumChoices(prodstate);
 			for (int prodstatechoice = 0; prodstatechoice < numchoices; prodstatechoice++) {
-				Iterator<Entry<Integer, Double>> tranIter = productModel.getTransitionsIterator(prodstate, prodstatechoice);
+				Iterator<Entry<Integer, Double>> tranIter = productModel.getTransitionsIterator(prodstate,
+						prodstatechoice);
 				double allrew = 0;
 				while (tranIter.hasNext()) {
 					double rew = 0;
@@ -241,10 +258,12 @@ public class NestedProductMDP extends Product<MDP> {
 					int ns = sp.getKey();
 					double prob = sp.getValue();
 					for (int danum = 0; danum < productStateToDAStateMap.size(); danum++) {
-						automatonStatesSucc[danum] = productStateToDAStateMap.get(danum).get(ns);
-						if (automatonStates[danum] != automatonStatesSucc[danum]) {
-							if (daAccStates.get(danum).get(automatonStatesSucc[danum])) {
-								rew += 1; // not the same //an accepting state
+						if (danum != this.safetyDAInd) {
+							automatonStatesSucc[danum] = productStateToDAStateMap.get(danum).get(ns);
+							if (automatonStates[danum] != automatonStatesSucc[danum]) {
+								if (daAccStates.get(danum).get(automatonStatesSucc[danum])) {
+									rew += 1; // not the same //an accepting state
+								}
 							}
 						}
 					}
@@ -331,7 +350,8 @@ public class NestedProductMDP extends Product<MDP> {
 	}
 
 	public int getAutomatonState(int productState, int automatonIndex) {
-		return productStateToDAStateMap.get(automatonIndex).get(productState); // this returns a particular automatons state
+		return productStateToDAStateMap.get(automatonIndex).get(productState); // this returns a particular automatons
+																				// state
 	}
 
 	public int getAutomatonIndex(Expression expr) {

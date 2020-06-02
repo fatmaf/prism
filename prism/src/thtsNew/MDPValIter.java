@@ -1,24 +1,25 @@
 package thtsNew;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 
+import explicit.DTMCFromMDPMemorylessAdversary;
 import explicit.MDP;
 import explicit.MDPModelChecker;
 import explicit.ProbModelChecker.TermCrit;
 import explicit.rewards.MDPRewardsSimple;
 import prism.PrismException;
+import prism.PrismFileLog;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategyArray;
 
-
 public class MDPValIter {
-	
-	
+
 	/**
-	* Class storing some info/data from a call to a model checking or
-	* numerical computation method in the explicit engine. 
-	*/
+	 * Class storing some info/data from a call to a model checking or numerical
+	 * computation method in the explicit engine.
+	 */
 	public class ModelCheckerMultipleResult {
 
 		// Solution vectors
@@ -37,16 +38,14 @@ public class MDPValIter {
 		public MDStrategyArray strat = null;
 
 		/**
-		 * Clear all stored data, including setting of array pointers to null
-		 * (which may be helpful for garbage collection purposes).
+		 * Clear all stored data, including setting of array pointers to null (which may
+		 * be helpful for garbage collection purposes).
 		 */
-		public void clear()
-		{
+		public void clear() {
 			solns = lastSolns = null;
 			numIters = 0;
 			timeTaken = timePre = timeProb0 = 0.0;
 		}
-		
 
 	}
 
@@ -54,27 +53,23 @@ public class MDPValIter {
 	 * Compute reachability probabilities using value iteration - arrays Optionally,
 	 * store optimal (memoryless) strategy info.
 	 * 
-	 * @param mdp
-	 *            The MDP
+	 * @param mdp          The MDP
 	 * @param target
 	 * 
 	 * @param remain
 	 * 
-	 * @param rewards
-	 *            Arraylist of rewards in order of preference
+	 * @param rewards      Arraylist of rewards in order of preference
 	 * 
-	 * @param minRewards
-	 *            Arraylist of booleans corresponding to the rewards above, true =
-	 *            minimize, false = maximise
+	 * @param minRewards   Arraylist of booleans corresponding to the rewards above,
+	 *                     true = minimize, false = maximise
 	 * 
-	 * @param probPriority
-	 *            the priority of the probability (0 = highest, rewards.size() =
-	 *            lowest)
+	 * @param probPriority the priority of the probability (0 = highest,
+	 *                     rewards.size() = lowest)
 	 */
-	public ModelCheckerMultipleResult computeNestedValIterArray(MDPModelChecker mc,MDP mdp, BitSet target, BitSet remain, ArrayList<MDPRewardsSimple> rewards,
-			ArrayList<double[]> rewardsInitVal, ArrayList<Boolean> minRewards, BitSet statesToIgnoreForVI, int probPreference, double[] probInitVal,PrismLog mainLog)
-			throws PrismException
-	{
+	public ModelCheckerMultipleResult computeNestedValIterArray(MDPModelChecker mc, MDP mdp, BitSet target,
+			BitSet remain, ArrayList<MDPRewardsSimple> rewards, ArrayList<double[]> rewardsInitVal,
+			ArrayList<Boolean> minRewards, BitSet statesToIgnoreForVI, int probPreference, double[] probInitVal,
+			PrismLog mainLog, String resLoc,String name) throws PrismException {
 		ModelCheckerMultipleResult res;
 		int i, n, iters, numYes, numNo;
 		double initValProb, initValRew, initValCost;
@@ -86,8 +81,8 @@ public class MDPValIter {
 		int strat[] = null;
 		boolean min = false;
 		int numRewards = rewards.size();
-		TermCrit termCrit=mc.getTermCrit();
-		
+		TermCrit termCrit = mc.getTermCrit();
+
 		timerGlobal = System.currentTimeMillis();
 
 		// Check for deadlocks in non-target state (because breaks e.g. prob1)
@@ -96,14 +91,13 @@ public class MDPValIter {
 		// Store num states
 		n = mdp.getNumStates();
 
-
 		// If required, create/initialise strategy storage
 		// Set choices to -1, denoting unknown
 		// (except for target states, which are -2, denoting arbitrary)
-			strat = new int[n];
-			for (i = 0; i < n; i++) {
-				strat[i] = target.get(i) ? -2 : -1;
-			}
+		strat = new int[n];
+		for (i = 0; i < n; i++) {
+			strat[i] = target.get(i) ? -2 : -1;
+		}
 
 		// Precomputation
 		timerProb0 = System.currentTimeMillis();
@@ -111,6 +105,10 @@ public class MDPValIter {
 			no = mc.prob0(mdp, remain, target, min, strat);
 		} else {
 			no = new BitSet();
+			if (remain != null) {
+				no = (BitSet) remain.clone();
+				no.flip(0, n);
+			}
 		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();
@@ -124,21 +122,22 @@ public class MDPValIter {
 		// Print results of precomputation
 		numYes = yes.cardinality();
 		numNo = no.cardinality();
-		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
+		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe="
+				+ (n - (numYes + numNo)));
 
 		// If still required, store strategy for no/yes (0/1) states.
 		// This is just for the cases max=0 and min=1, where arbitrary choices
 		// suffice (denoted by -2)
-			if (min) {
-				for (i = yes.nextSetBit(0); i >= 0; i = yes.nextSetBit(i + 1)) {
-					if (!target.get(i))
-						strat[i] = -2;
-				}
-			} else {
-				for (i = no.nextSetBit(0); i >= 0; i = no.nextSetBit(i + 1)) {
+		if (min) {
+			for (i = yes.nextSetBit(0); i >= 0; i = yes.nextSetBit(i + 1)) {
+				if (!target.get(i))
 					strat[i] = -2;
-				}
 			}
+		} else {
+			for (i = no.nextSetBit(0); i >= 0; i = no.nextSetBit(i + 1)) {
+				strat[i] = -2;
+			}
+		}
 
 		// Start value iteration
 		timerVI = System.currentTimeMillis();
@@ -215,179 +214,61 @@ public class MDPValIter {
 				}
 			}
 			for (i = 0; i < n; i++) {
+				
 				if (!statesToIgnoreForVI.get(i)) {
 
 					numChoices = mdp.getNumChoices(i);
-					if (iters > maxIters - 5) {
-						if (i == 92) {
-							mainLog.println("Debug here");
-						}
-					}
-					for (j = 0; j < numChoices; j++) {
-						currentProbVal = mdp.mvMultJacSingle(i, j, solnProb);
-						for (int rew = 0; rew < numRewards; rew++) {
 
+					for (j = 0; j < numChoices; j++) {
+						// for each reward
+						// get the current value
+						currentProbVal = mdp.mvMultJacSingle(i, j, solnProb);
+						boolean updateVals = false;
+						// get all rew vals
+						for (int rew = 0; rew < numRewards; rew++) {
 							if (rewards.get(rew) == null) {
 								mainLog.println("Reward null!!!" + rew);
 							}
-//							System.out.println("Reward for state,action: "+i+","+j);
 							currentCost = mdp.mvMultRewSingle(i, j, solnReward.get(rew), rewards.get(rew));
 							if (currentCostVal.size() > rew)
 								currentCostVal.set(rew, currentCost);
 							else
 								currentCostVal.add(currentCost);
-							sameCostVal = PrismUtils.doublesAreClose(currentCost, solnReward.get(rew)[i], epsilon
-							/*termCritParam*/, termCrit == TermCrit.ABSOLUTE);
-							if (sameCost.size() > rew)
-								sameCost.set(rew, sameCostVal);
-							else
-								sameCost.add(sameCostVal);
-
 						}
-						sameProb = PrismUtils.doublesAreClose(currentProbVal, solnProb[i], epsilon
-						//								termCritParam
-								, termCrit == TermCrit.ABSOLUTE);
+						for (int rew = 0; rew < numRewards; rew++) {
 
-						//just to get stuff going cuz this is a bit buggy 
-						int rew = 0;
-						boolean thirdCheck = false;
-						if (!(sameCost.get(rew))) {
-							double diff = (currentCostVal.get(rew) - solnReward.get(rew)[i]);
-							if (iters > 100 && (solnReward.get(rew)[i] != 0)) {
-								//do the percentage thing 
-								diff = currentCostVal.get(rew) / (solnReward.get(rew)[i]);
-								//if the difference is within epsilon of 1 we know they're very close 
-								if (!(Math.abs(1-diff) < epsilon)) {
-									if (minRewards.get(rew)) {
-
-										if (diff < 1)
-											thirdCheck = true;
-
-										//								thirdCheck = currentCostVal.get(rew) < solnReward.get(rew)[i];
-
-									} else {
-										//								thirdCheck = currentCostVal.get(rew) > solnReward.get(rew)[i];
-										if (diff > 1)
-											thirdCheck = true;
-
-									}
+							boolean isBetter = false;
+							if (minRewards.get(rew)) {
+								// minimise reward
+								if (currentCostVal.get(rew) < solnReward.get(rew)[i]) {
+									isBetter = true;
 								}
+
 							} else {
-								if (!(Math.abs(diff) < epsilon)) {
-
-									if (minRewards.get(rew)) {
-
-										if (diff < 0)
-											thirdCheck = true;
-
-										//								thirdCheck = currentCostVal.get(rew) < solnReward.get(rew)[i];
-
-									} else {
-										//								thirdCheck = currentCostVal.get(rew) > solnReward.get(rew)[i];
-										if (diff > 0)
-											thirdCheck = true;
-
-									}
+								if (currentCostVal.get(rew) > solnReward.get(rew)[i]) {
+									isBetter = true;
 								}
 							}
-							if (thirdCheck) {
-								if (iters > maxIters - 5) {
-									System.out.println("third check val" + thirdCheck);
-								}
-								if (iters > maxIters - 5) {
-									System.out.println("Current values for state " + i);
-									System.out.println("P:" + solnProb[i]);
-									for (int rews = 0; rews < numRewards; rews++) {
-										System.out.println("R" + rews + ": " + solnReward.get(rews)[i]);
-										System.out.println("R" + rews + ": " + sameCost.get(rews));
-
-									}
-									System.out.println(diff);
-								}
-
-							}
-
-						} else {
-							rew = 1;
-							if (!(sameCost.get(rew))) {
-								double diff = (currentCostVal.get(rew) - solnReward.get(rew)[i]);
-
-								if (iters > 100 && (solnReward.get(rew)[i] != 0)) {
-									//do the percentage thing 
-									diff = currentCostVal.get(rew) / (solnReward.get(rew)[i]);
-									//if the difference is within epsilon of 1 we know they're very close 
-									if (!(Math.abs(1-diff) < epsilon)) {
-										if (minRewards.get(rew)) {
-
-											if (diff < 1)
-												thirdCheck = true;
-
-											//								thirdCheck = currentCostVal.get(rew) < solnReward.get(rew)[i];
-
-										} else {
-											//								thirdCheck = currentCostVal.get(rew) > solnReward.get(rew)[i];
-											if (diff > 1)
-												thirdCheck = true;
-
-										}
-									}
-								} else {
-									if (!(Math.abs(diff) < epsilon)) {
-										if (minRewards.get(rew)) {
-											if (diff < 0)
-												thirdCheck = true;
-
-											//									thirdCheck = currentCostVal.get(rew) < solnReward.get(rew)[i];
-
-										} else {
-											if (diff > 0)
-												thirdCheck = true;
-
-											//									thirdCheck = currentCostVal.get(rew) > solnReward.get(rew)[i];
-
-										}
-									}
-								}
-								if (thirdCheck) {
-									if (iters > maxIters - 5) {
-										System.out.println("third check val" + thirdCheck);
-									}
-									if (iters > maxIters - 5) {
-										System.out.println("Current values for state " + i);
-										System.out.println("P:" + solnProb[i]);
-										for (int rews = 0; rews < numRewards; rews++) {
-											System.out.println("R" + rews + ": " + solnReward.get(rews)[i]);
-											System.out.println("R" + rews + ": " + sameCost.get(rews));
-
-										}
-										System.out.println(diff);
-									}
-
-								}
+							if (isBetter) {
+								updateVals = true;
+								break;
+							} else {
+								// check if they're the same
+								sameCostVal = PrismUtils.doublesAreClose(currentCostVal.get(rew),
+										solnReward.get(rew)[i], epsilon
+										/* termCritParam */, termCrit == TermCrit.ABSOLUTE);
+								if (!sameCostVal)
+									break;
+								// otherwise just continue
 							}
 						}
-						if (thirdCheck) {
-							done = false;
-							if (iters > maxIters - 5) {
-								System.out.println("Previous values for state " + i + " with action " + strat[i]);
-								System.out.println("P:" + solnProb[i]);
-								for (int rews = 0; rews < numRewards; rews++) {
-									System.out.println("R" + rews + ": " + solnReward.get(rews)[i]);
-								}
-							}
+						if (updateVals) {
 							solnProb[i] = currentProbVal;
 							for (int rews = 0; rews < numRewards; rews++) {
 								solnReward.get(rews)[i] = currentCostVal.get(rews);
 							}
-								strat[i] = j;
-								if (iters > maxIters - 5) {
-								System.out.println("Updating values for state " + i + " with action " + strat[i]);
-								System.out.println("P:" + solnProb[i]);
-								for (int rews = 0; rews < numRewards; rews++) {
-									System.out.println("R" + rews + ": " + solnReward.get(rews)[i]);
-									System.out.println("R" + rews + ": " + sameCost.get(rews));
-								}
-							}
+							strat[i] = j;
+							done = false;
 						}
 
 					}
@@ -416,24 +297,30 @@ public class MDPValIter {
 
 		res = new ModelCheckerMultipleResult();
 		// Store strategy
-			res.strat = new MDStrategyArray(mdp, strat);		
-//			}
+		res.strat = new MDStrategyArray(mdp, strat);
+		PrismFileLog out;
+		// }
+		if (resLoc != null) {
+			if(name!=null) {
+			out = new PrismFileLog(resLoc + "nviadv" + name);
+			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
+			out.close();
+			}
+		}
 		// Export adversary
-			// Prune strategy
-			// restrictStrategyToReachableStates(trimProdMdp, strat);
-			// Export
+		// Prune strategy
+		// restrictStrategyToReachableStates(trimProdMdp, strat);
+		// Export
 //			PrismLog out = new PrismFileLog(exportAdvFilename);
 //			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
 //			out.close();
 
-
-		solnReward.add(0,solnProb.clone());
+		solnReward.add(0, solnProb.clone());
 		res.solns = solnReward;
 
 		res.numIters = iters;
 		res.timeTaken = timerGlobal / 1000.0;
 		return res;
 	}
-
 
 }
