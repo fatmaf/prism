@@ -100,6 +100,7 @@ public class SingleAgentSolverMaxExpTask {
 		// loads the prism model
 		modulesFile = prism.parseModelFile(new File(modelFileName));
 		prism.loadPRISMModel(modulesFile);
+		mainLog.println("Loaded model "+modelFileName);
 	}
 
 	public void loadProperties(String propertiesFileName) throws Exception {
@@ -142,11 +143,13 @@ public class SingleAgentSolverMaxExpTask {
 					exprOthers.add(exprHere);
 				}
 			}
-		
+		mainLog.println("Properities "+exprOthers.toString()+" safety "+exprSafety.toString());
 
 	}
 
 	public HashMap<Objectives, HashMap<State, Double>> getSolution() throws Exception {
+	
+		mainLog.println("Beginning NVI setup");
 		AcceptanceType[] allowedAcceptance = { AcceptanceType.RABIN, AcceptanceType.REACH };
 
 		// create the model generator thing for rewards
@@ -156,6 +159,7 @@ public class SingleAgentSolverMaxExpTask {
 		// get the mdp
 		MDP mdp = (MDP) prism.getBuiltModelExplicit();
 
+		mainLog.println("Built model MDP\n"+mdp.infoStringTable());
 		// things we need
 		// some of this is probably superfluous and should be changed
 		// but alas i'm a bit of a loser
@@ -165,6 +169,7 @@ public class SingleAgentSolverMaxExpTask {
 		// an object to use to construct rewards
 		ConstructRewards constructRewards = new ConstructRewards(pmc);
 
+		mainLog.println("Creating nested product");
 		// create a nestedmdp object for storing the nested mdp and doing stuff
 		NestedProductMDP npMDP = new NestedProductMDP(mdp);
 
@@ -176,6 +181,7 @@ public class SingleAgentSolverMaxExpTask {
 		{
 			Expression exprHere = exprOthers.get(exprnum);
 			npMDP.constructProductModel(exprHere, ltlMC, pmc, allowedAcceptance, resLoc);
+			mainLog.println("Added "+exprHere.toString()+" to product \n"+npMDP.getProductModel().infoStringTable());
 		}
 		// now do it for the reward ones
 
@@ -187,6 +193,7 @@ public class SingleAgentSolverMaxExpTask {
 		// we've got to not the safetyexpression
 //		Expression notSafety = Expression.Not(exprSafety);
 		npMDP.constructProductModel(exprSafety, ltlMC, pmc, allowedAcceptance, resLoc, true);
+		mainLog.println("Added "+exprSafety.toString()+" to product \n"+npMDP.getProductModel().infoStringTable());
 
 		ArrayList<MDPRewardsSimple> rewardsList = new ArrayList<>();
 		ArrayList<Boolean> minRewards = new ArrayList<>();
@@ -204,7 +211,7 @@ public class SingleAgentSolverMaxExpTask {
 		}
 		// now get the max task prog stuff
 		// uff ye np wali cheez bohat kuch hai
-		mainLog.println("Building task rewards - ye watan tumhara hai");
+		mainLog.println("Building task rewards");
 
 		MDPRewardsSimple taskProgRewards = npMDP.createTaskRewards();
 		rewardsList.add(0, taskProgRewards);
@@ -222,7 +229,7 @@ public class SingleAgentSolverMaxExpTask {
 
 			npMDP.getProductModel().exportToPrismExplicitTra(resLoc + "jointmdpstates" + name + ".tra");
 		}
-		mainLog.println("Getting acc states and states to avoid - iss k paasbaan tum ho");
+		mainLog.println("Getting acc states and states to avoid");
 		npMDP.createTargetStates();
 		BitSet remain = npMDP.getRemainStates();
 		BitSet target = npMDP.getTargetStates();
@@ -232,7 +239,7 @@ public class SingleAgentSolverMaxExpTask {
 		// just another thing we need and we should really look into changing this cuz
 		// liek why do you need this?
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
-		mainLog.println("Finally doing nvi on this!!! meine tumhari ghagar se kabhi paani piya tha");
+		mainLog.println("Performing NVI");
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, npMDP.getProductModel(), target, remain,
 				rewardsList, null, minRewards, null, 1, null, this.mainLog, resLoc,name);
 		// now this is possibly the MOST important bit
@@ -265,7 +272,7 @@ public class SingleAgentSolverMaxExpTask {
 				currsolnmap.put(state, val);
 				if (npMDP.isInitialState(s)) {
 					// print the values
-					System.out.println(currobj.toString() + " value in initial state " + state.toString() + " " + val);
+					mainLog.println(currobj.toString() + " value in initial state " + state.toString() + " " + val);
 				}
 			}
 			solution.put(currobj, currsolnmap);

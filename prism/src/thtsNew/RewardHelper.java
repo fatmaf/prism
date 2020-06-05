@@ -8,6 +8,6 @@ import thts.Objectives;
 //so its kind of a layer you can use to get rewards using objectives
 public interface RewardHelper {
 	double getReward(Objectives obj,ChanceNode n) throws PrismException;
-	boolean isGoal(DecisionNode n); 
-	boolean isDeadend(DecisionNode n) throws PrismException; 
+//	boolean isGoal(DecisionNode n); 
+//	boolean isDeadend(DecisionNode n) throws PrismException; 
 }

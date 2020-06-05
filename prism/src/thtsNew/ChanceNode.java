@@ -187,5 +187,9 @@ public class ChanceNode extends Node {
 	public String getShortName() {
 		return this.getState().toString() + this.getAction().toString();
 	}
+	public String createShortName(State s, Object action)
+	{
+		return s.toString()+action.toString();
+	}
 
 }

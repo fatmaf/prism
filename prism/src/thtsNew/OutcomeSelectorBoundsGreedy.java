@@ -76,6 +76,7 @@ public class OutcomeSelectorBoundsGreedy implements OutcomeSelector {
 				break;
 			}
 		}
+		if(sumdiffs !=0) {
 		// create a new order
 		rgen = new Random();
 		double rand = rgen.nextDouble();
@@ -87,6 +88,15 @@ public class OutcomeSelectorBoundsGreedy implements OutcomeSelector {
 				chosendn = dns.get(i);
 				break;
 			}
+		}
+		}
+		else
+		{
+			//choose any or return null ? 
+			//for now choose any 
+			rgen = new Random(); 
+			int chosenind = rgen.nextInt(dns.size());
+			chosendn = dns.get(chosenind);
 		}
 		return chosendn;
 	}

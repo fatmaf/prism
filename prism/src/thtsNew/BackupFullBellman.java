@@ -1,5 +1,6 @@
 package thtsNew;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -8,20 +9,31 @@ import thts.Objectives;
 
 public class BackupFullBellman implements Backup {
 
+	ArrayList<Objectives> tieBreakingOrder;
+
+	public BackupFullBellman(ArrayList<Objectives> tieBreakingOrder) {
+		this.tieBreakingOrder = tieBreakingOrder;
+	}
+
 	@Override
 	public void backupChanceNode(ChanceNode cn) {
 		if (cn.getChildren() != null) {
-			Set<Objectives> objSet = cn.parents.get(0).bounds.keySet();
-			for (Objectives obj : objSet) {
+
+			for (Objectives obj : tieBreakingOrder) {
 				double rewHere = cn.getReward(obj);
 				Bounds sumHere = new Bounds();
+				boolean allChildrenAreDeadends = true;
 				for (DecisionNode dn : cn.getChildren()) {
-//					if (dn.canHaveChildren()) {
-					if(dn.hasBounds())
-						sumHere.add(dn.getBoundsValueTimesTranProb(obj, cn));
-//					}
+
+					if (dn.hasBounds()) {
+						sumHere = sumHere.add(dn.getBoundsValueTimesTranProb(obj, cn));
+						allChildrenAreDeadends = allChildrenAreDeadends & dn.isDeadend;
+					}
+
 				}
-				sumHere.add(rewHere);
+				cn.leadToDeadend = allChildrenAreDeadends;
+				if (!cn.leadToDeadend) // Ignore the reward if its a deadend
+					sumHere = sumHere.add(rewHere);
 				cn.setBounds(obj, sumHere);
 			}
 		}
@@ -31,7 +43,7 @@ public class BackupFullBellman implements Backup {
 	public void backupDecisionNode(DecisionNode dn) {
 		if (dn.isDeadend || dn.isGoal) {
 			Bounds b = null;
-			for (Objectives obj : dn.bounds.keySet()) {
+			for (Objectives obj : tieBreakingOrder) {
 				switch (obj) {
 				case Probability:
 				case TaskCompletion:
@@ -49,25 +61,74 @@ public class BackupFullBellman implements Backup {
 
 		} else {
 			if (dn.getChildren() != null) {
-				for (Objectives obj : dn.bounds.keySet()) {
 
+				HashMap<Objectives, Bounds> bestBoundsH = new HashMap<>();
+				for (Objectives obj : tieBreakingOrder) {
 					Bounds bestBounds = new Bounds();
-					bestBounds.setUpper(Double.MIN_VALUE);
-					bestBounds.setLower(Double.MAX_VALUE);
-					for (Object a : dn.getChildren().keySet()) {
-						Bounds b = dn.getChild(a).getBounds(obj);
-						if (isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
-							bestBounds.setUpper(b.getUpper());
-						}
-						if (isBetter(b.getLower(), bestBounds.getLower(), obj)) {
-							bestBounds.setLower(b.getLower());
+					bestBounds.setUpper(getObjectiveExtremeValueInit(obj));
+					bestBounds.setLower(getObjectiveExtremeValueInit(obj));
+					bestBoundsH.put(obj, bestBounds);
+				}
+
+				for (Object a : dn.getChildren().keySet()) {
+					ChanceNode cn = dn.getChild(a);
+					boolean updateUpperBounds = false;
+
+					for (Objectives obj : tieBreakingOrder) {
+
+						Bounds bestBounds = bestBoundsH.get(obj);
+						if (cn.hasBounds()) {
+							Bounds b = cn.getBounds(obj);
+							if (isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
+
+								updateUpperBounds = true;
+								break;
+							} else {
+								if (!isEqual(b.getUpper(), bestBounds.getUpper()))
+									break;
+							}
+
 						}
 
 					}
-
-					dn.setBounds(obj, bestBounds);
+					if (updateUpperBounds) {
+						for (Objectives obj : tieBreakingOrder) {
+							Bounds b = cn.getBounds(obj);
+							Bounds bestBounds = bestBoundsH.get(obj);
+							bestBounds.setUpper(b.getUpper());
+						}
+					}
 
 				}
+				for (Object a : dn.getChildren().keySet()) {
+					ChanceNode cn = dn.getChild(a);
+					boolean updateLowerBounds = false;
+					for (Objectives obj : tieBreakingOrder) {
+
+						Bounds bestBounds = bestBoundsH.get(obj);
+						if (cn.hasBounds()) {
+							Bounds b = cn.getBounds(obj);
+
+							if (isBetter(b.getLower(), bestBounds.getLower(), obj)) {
+								updateLowerBounds = true;
+								break;
+							} else {
+								if (!isEqual(b.getLower(), bestBounds.getLower()))
+									break;
+							}
+						}
+
+					}
+					if (updateLowerBounds) {
+						for (Objectives obj : tieBreakingOrder) {
+							Bounds b = cn.getBounds(obj);
+							Bounds bestBounds = bestBoundsH.get(obj);
+							bestBounds.setLower(b.getLower());
+						}
+					}
+
+				}
+				dn.setBounds(bestBoundsH);
 			}
 		}
 

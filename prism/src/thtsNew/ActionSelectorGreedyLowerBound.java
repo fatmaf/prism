@@ -40,6 +40,7 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 					}
 				}
 			}
+			selectedActionNode = greedyAction;
 		} else {
 			// do softmax
 			rgen = new Random();
@@ -92,6 +93,8 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 					toret = c2;
 					breakNow = true;
 
+				} else if (c2Bounds.getLower() != c1Bounds.getLower()) {
+					breakNow = true;
 				}
 				break;
 			}
@@ -100,6 +103,8 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 					toret = c2;
 					breakNow = true;
 
+				} else if (c2Bounds.getLower() != c1Bounds.getLower()) {
+					breakNow = true;
 				}
 				break;
 			}

@@ -44,6 +44,7 @@ public class ActionSelectorGreedyBoundsDiff implements ActionSelector {
 					}
 				}
 			}
+			selectedActionNode = greedyAction;
 		} else {
 			// do softmax
 			rgen = new Random();

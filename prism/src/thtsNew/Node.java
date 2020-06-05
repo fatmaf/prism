@@ -62,19 +62,21 @@ public abstract class Node {
 
 	public Bounds getBounds(Objectives obj) {
 
-			return bounds.get(obj);
+		return bounds.get(obj);
 
 	}
 
 	public void setBounds(Objectives obj, Bounds b) {
-		if(bounds == null)
+		if (bounds == null) {
 			bounds = new HashMap<>();
+			boundsInitialised = true;
+		}
 		bounds.put(obj, b);
 
 	}
-	public boolean hasBounds()
-	{
-		return (bounds!=null);
+
+	public boolean hasBounds() {
+		return (bounds != null);
 	}
 
 	public void setBounds(HashMap<Objectives, Bounds> b) {
@@ -129,13 +131,19 @@ public abstract class Node {
 		return str;
 	}
 
-	public String getPartialString() {
-		String str = "s:" + s + ", numVisits: " + numVisits + " , solved:" + solved + " ";
+	public String getBoundsString()
+	{
+		String str="";
 		if (bounds != null) {
 			for (Objectives obj : bounds.keySet()) {
 				str += obj.toString() + bounds.get(obj) + ", ";
 			}
 		}
+		return str; 
+	}
+	public String getPartialString() {
+		String str = "s:" + s + ", numVisits: " + numVisits + " , solved:" + solved + " ";
+		str+=getBoundsString();
 		if (parents == null || parents.size() == 0) {
 			str += ", abus:[]";
 		} else {

@@ -70,6 +70,10 @@ public class DecisionNode extends Node {
 	{
 		return (!isDeadend & !isGoal);
 	}
+	public void markSolved()
+	{
+		solved = true; 
+	}
 	@Override
 	public void setBounds(HashMap<Objectives,Bounds> b)
 	{
@@ -204,5 +208,7 @@ public class DecisionNode extends Node {
 		boolean toret = (childrenWithuninitialisedBounds().size()==0); 
 		return toret;
 	}
+
+
 
 }
