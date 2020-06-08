@@ -65,6 +65,7 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 						}
 					}
 				}
+				selectedActionNode = greedyAction;
 			} else {
 				// dorandom from unitialised kids
 				initChildren = nd.childrenWithuninitialisedBounds();
@@ -72,6 +73,8 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 				selectedActionNode = initChildren.get(chosenChild);
 			}
 		}
+//		if(selectedActionNode == null)
+//			System.out.println("Error");
 		return selectedActionNode;
 	}
 

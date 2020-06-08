@@ -49,7 +49,8 @@ public class TempTHTS {
 	public void run() throws Exception {
 
 //		thts();
-		rtdp();
+//		rtdp();
+		dothts();
 	}
 
 	public MultiAgentNestedProductModelGenerator createMAMG(Prism prism, PrismLog mainLog, ArrayList<String> filenames,
@@ -344,9 +345,10 @@ public class TempTHTS {
 		    }
 
 	}
-	public void initialiseThings() throws Exception
+	public void dothts() throws Exception
 	{
 
+		
 		
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
@@ -360,24 +362,29 @@ public class TempTHTS {
 		String propertiesFileName = testsLocation + example + ".prop";
 
 		PrismLog mainLog = new PrismFileLog("stdout");
-		PrismLog fileLog = new PrismFileLog(resultsLocation+"mainLog"+example);//
-		Prism prism = new Prism(mainLog);
+			Prism prism = new Prism(mainLog);
 		prism.initialise();
 		prism.setEngine(Prism.EXPLICIT);
 
 		mainLog.println("Initialised Prism");
-		fileLog.println("Initialised Prism");
+//		fileLog.println("Initialised Prism");
 	
 
 		
 		
 		
-		int numRobots = 2;
+		int numRobots = 1;
 		ArrayList<String> filenames = new ArrayList<String>();
 		for (int i = 0; i < numRobots; i++)
 			filenames.add(testsLocation + example + i + ".prism");
+		
+		String algoIden = "rtdp";
+		PrismLog fileLog = new PrismFileLog(resultsLocation+"log_"+example+"_"+algoIden+"_r_"+numRobots+".txt");//
 
 		rtdp(prism,mainLog,fileLog,filenames,propertiesFileName,resultsLocation);
+//		thtsBRTDP(prism,mainLog,fileLog,filenames,propertiesFileName,resultsLocation);
+//		lrtdp(prism,mainLog,fileLog,filenames,propertiesFileName,resultsLocation);
+
 		
 	}
 	public void rtdp(Prism prism,PrismLog mainLog,
@@ -433,7 +440,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Full Bellman Backup Function");
 		fileLog.println("Initialising Full Bellman Backup Function");
 		
-		Backup backupFunction = new BackupFullBellman(tieBreakingOrder);
+		BackupNVI backupFunction = new BackupFullBellman(tieBreakingOrder);
 		
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
@@ -470,7 +477,98 @@ public class TempTHTS {
 
 
 	}
-	public void thtsBRTDPPartial(Prism prism,PrismLog mainLog,
+	public void lrtdp(Prism prism,PrismLog mainLog,
+			PrismLog fileLog,ArrayList<String> filenames,
+			String propertiesFileName,String resultsLocation) throws Exception
+	{
+		//lrtdp is simple 
+		//heuristic the same 
+		//action selection greedy on lower bound really 
+		//outcome selction probabilistic 
+		//update full bellman backup 
+		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
+		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
+		
+		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(prism, mainLog, resultsLocation, filenames,
+				propertiesFileName);
+		
+		
+		mainLog.println("Creating Multiagent Nested Product Model Generator");
+		fileLog.println("Creating Multiagent Nested Product Model Generator");
+		
+		MultiAgentNestedProductModelGenerator mapmg = createMAMG(prism, mainLog, filenames, propertiesFileName,
+				resultsLocation);
+		mainLog.println("\nInitialising Multi Agent Heuristic Function");
+		fileLog.println("\nInitialising Multi Agent Heuristic Function");
+		
+		Heuristic heuristicFunction = new MultiAgentHeuristic(mapmg,singleAgentSolutions);
+
+		//lets see if we can get a heuristic for each state in the model 
+		//from the initial state 
+		//TODO: check results from nvi 
+		//TODO: check state mapping for heuristic function 
+//		this.testMAPMG(mapmg);
+//		testMultiAgentH(mapmg, heuristicFunction);
+		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+		tieBreakingOrder.add(Objectives.TaskCompletion);
+		tieBreakingOrder.add(Objectives.Cost);
+		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
+		
+		mainLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
+		fileLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
+		
+		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+
+		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder);//new ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+		
+		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+
+		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+		
+		mainLog.println("Initialising Full Bellman Backup Function");
+		fileLog.println("Initialising Full Bellman Backup Function");
+		
+		float epsilon = 0.0001f; 
+		BackupNVI backupFunction = new BackupLabelledFullBelman(tieBreakingOrder,actionSelection,epsilon);
+		
+		mainLog.println("Initialising Reward Helper Function");
+		fileLog.println("Initialising Reward Helper Function");
+
+		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,HelperClass.RewardCalculation.SUM);
+		
+		int maxRollouts = 10;
+		int trialLen = 30;
+		mainLog.println("Max Rollouts: "+maxRollouts);
+		mainLog.println("Max TrialLen: "+trialLen);
+		fileLog.println("Max Rollouts: "+maxRollouts);
+		fileLog.println("Max TrialLen: "+trialLen);
+		
+		//
+//		MultiAgentNestedProductModelGenerator mapmg = createMAMG(prism, mainLog, filenames, propertiesFileName,
+//				resultsLocation);
+//
+		mainLog.println("\nInitialising THTS");
+		fileLog.println("\nInitialising THTS");
+		boolean doForwardBackup = true; 
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) mapmg, maxRollouts, trialLen,
+				heuristicFunction,actionSelection,outcomeSelection,
+				rewardH,backupFunction,doForwardBackup,
+				tieBreakingOrder,mainLog,fileLog);
+		
+		mainLog.println("\nBeginning THTS");
+		fileLog.println("\nBeginning THTS");
+		thts.run();
+		
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+
+		thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
+
+
+	}
+	public void thtsBRTDP(Prism prism,PrismLog mainLog,
 			PrismLog fileLog,ArrayList<String> filenames,
 			String propertiesFileName,String resultsLocation) throws Exception {
 
@@ -515,20 +613,20 @@ public class TempTHTS {
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
 		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedy(tieBreakingOrder);
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder);
 		
 		mainLog.println("Initialising Full Bellman Backup Function");
 		fileLog.println("Initialising Full Bellman Backup Function");
 		
-		Backup backupFunction = new BackupFullBellman(tieBreakingOrder);
+		BackupNVI backupFunction = new BackupFullBellman(tieBreakingOrder);
 		
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
 		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,HelperClass.RewardCalculation.SUM);
 		
-		int maxRollouts = 1;
-		int trialLen = 5;
+		int maxRollouts = 10;
+		int trialLen = 30;
 		mainLog.println("Max Rollouts: "+maxRollouts);
 		mainLog.println("Max TrialLen: "+trialLen);
 		fileLog.println("Max Rollouts: "+maxRollouts);
@@ -540,7 +638,7 @@ public class TempTHTS {
 //
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
-		boolean doForwardBackup = false; 
+		boolean doForwardBackup = true; 
 		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) mapmg, maxRollouts, trialLen,
 				heuristicFunction,actionSelection,outcomeSelection,
 				rewardH,backupFunction,doForwardBackup,

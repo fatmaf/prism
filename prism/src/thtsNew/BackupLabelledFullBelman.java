@@ -2,21 +2,116 @@ package thtsNew;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Stack;
 
 import thts.Bounds;
 import thts.Objectives;
 
-public class BackupFullBellman extends BackupNVI {
+public class BackupLabelledFullBelman extends BackupNVI {
 
 	ArrayList<Objectives> tieBreakingOrder;
-
-	public BackupFullBellman(ArrayList<Objectives> tieBreakingOrder) {
+	float epsilon; 
+	ActionSelector actSel; 
+	
+	public BackupLabelledFullBelman(ArrayList<Objectives> tieBreakingOrder,ActionSelector actSel,float epsilon) {
 		this.tieBreakingOrder = tieBreakingOrder;
+		this.epsilon = epsilon; 
+		this.actSel = actSel;
+	}
+	
+	boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds)
+	{
+		boolean toret = true;
+		for(Objectives obj:tieBreakingOrder)
+		{
+			Bounds b = bounds.get(obj); 
+			if(b.getLower()>epsilon)
+			{
+				toret = false; 
+				break; 
+			}
+		}
+		return toret; 
+		
+		
+	}
+	@Override
+	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) {
+		updateChanceNode( cn);
+		return doBackup;
 	}
 
 	@Override
-	public boolean backupChanceNode(ChanceNode cn,boolean doBackup) {
+	public boolean backupDecisionNode(DecisionNode dn, boolean doBackup) {
+		boolean backupToRet = false; 
+		if(doBackup)
+		{
+			
+			boolean toret = true; 
+			Stack<DecisionNode> open = new Stack<DecisionNode>();
+			Stack<DecisionNode> closed = new Stack<DecisionNode>();
+			if (!dn.isSolved())
+			{
+				open.push(dn);
+			}
+			while(!open.isEmpty())
+			{
+				DecisionNode s = open.pop(); 
+				closed.push(s); 
+				
+					HashMap<Objectives, Bounds> bounds = residualDecision((DecisionNode)s);
+					if(boundsLessThanEpsilon(bounds))
+					{
+						//get the best action 
+						//then add in all the successors 
+						//for which we need an action selector and a chance node 
+						ChanceNode cn = actSel.selectAction(s, false);
+						for(DecisionNode dnc: cn.getChildren())
+						{
+							if(!dnc.isSolved() & !open.contains(dnc) & !closed.contains(dnc))
+							{
+								open.push(dnc);
+							}
+						}
+						
+						
+					}
+					else
+					{
+						toret = false; 
+					}
+				
+			}
+			if(toret)
+			{
+				while(!closed.isEmpty())
+				{
+					DecisionNode dns = closed.pop(); 
+					ChanceNode cn = actSel.selectAction(dns, false);
+					cn.setSolved();
+					dns.setSolved();
+					
+				}
+			}
+			else
+			{
+				while(!closed.isEmpty())
+				{
+					DecisionNode dns = closed.pop(); 
+					ChanceNode cn = actSel.selectAction(dns, false);
+					updateChanceNode(cn);
+					updateDecisionNode(dns);
+				}
+			}
+			backupToRet = toret; 
+		
+		}
+		return backupToRet;
+		
+	}
+	
+	
+	public void updateChanceNode(ChanceNode cn) {
 		if (cn.getChildren() != null) {
 
 			for (Objectives obj : tieBreakingOrder) {
@@ -37,11 +132,11 @@ public class BackupFullBellman extends BackupNVI {
 				cn.setBounds(obj, sumHere);
 			}
 		}
-		return true;
+		//return true;
 	}
 
-	@Override
-	public boolean backupDecisionNode(DecisionNode dn,boolean doBackup) {
+
+	public void  updateDecisionNode(DecisionNode dn) {
 		if (dn.isDeadend || dn.isGoal) {
 			Bounds b = null;
 			for (Objectives obj : tieBreakingOrder) {
@@ -133,17 +228,21 @@ public class BackupFullBellman extends BackupNVI {
 			}
 		}
 
-		return true;
+//		return true;
 	}
 
 	@Override
 	public boolean forwardbackupChanceNode(ChanceNode cn, boolean doBackup) {
-		return backupChanceNode(cn,doBackup);
+		updateChanceNode(cn);
+		return true;
 	}
 
 	@Override
 	public boolean forwardbackupDecisionNode(DecisionNode dn, boolean doBackup) {
-		return backupDecisionNode(dn,doBackup);
+		// TODO Auto-generated method stub
+		updateDecisionNode(dn);
+		return true; 
 	}
+
 
 }
