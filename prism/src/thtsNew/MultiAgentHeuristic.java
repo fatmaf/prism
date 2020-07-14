@@ -38,8 +38,8 @@ public class MultiAgentHeuristic implements Heuristic {
 					{
 						Bounds temp = dn.getBoundsValueTimesTranProb(obj, n);
 						sumHere = sumHere.add(temp);
-						if (dn.isDeadend)
-							n.leadToDeadend = true;
+//						if (dn.isDeadend)
+//							n.leadToDeadend = true;
 					}
 				}
 				
@@ -61,7 +61,7 @@ public class MultiAgentHeuristic implements Heuristic {
 		HashMap<Objectives, Bounds> toret = new HashMap<>();
 
 
-		boolean isAcc = mapmg.isAccState(s);
+		boolean isAcc = isGoal(s);
 		boolean isAvoid = mapmg.isAvoidState(s);
 		boolean isDeadend = isDeadend(n); 
 		
@@ -320,6 +320,12 @@ public class MultiAgentHeuristic implements Heuristic {
 
 		return toret;
 
+	}
+
+	@Override
+	public boolean isGoal(State s) {
+		// TODO Auto-generated method stub
+		return mapmg.isAccState(s);
 	}
 
 

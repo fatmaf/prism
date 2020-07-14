@@ -16,19 +16,14 @@ import prism.PrismFileLog;
 import prism.PrismLog;
 
 /**
- * @author fatma
- * a class that can be used to create an MDP 
- * why because there's plenty of book keeping to do 
- * and it can be annoying 
+ * @author fatma a class that can be used to create an MDP why because there's
+ *         plenty of book keeping to do and it can be annoying
  * 
- * it can also be used to mask some MDP things that I use regularly 
- * cuz mein thak gai hun ye kar kar k 
- * so reusable code 
- * I will probably add reward structures to this too 
- * cuz like bus yaar 
+ *         it can also be used to mask some MDP things that I use regularly cuz
+ *         mein thak gai hun ye kar kar k so reusable code I will probably add
+ *         reward structures to this too cuz like bus yaar
  */
-public class MDPCreator
-{
+public class MDPCreator {
 
 	boolean printMessages;
 	MDPSimple mdp;
@@ -36,8 +31,7 @@ public class MDPCreator
 
 	PrismLog mainLog;
 
-	public MDPCreator(PrismLog mainLog)
-	{
+	public MDPCreator(PrismLog mainLog) {
 		printMessages = false;
 		mdp = new MDPSimple();
 		List<State> statesList = new ArrayList<State>();
@@ -45,9 +39,9 @@ public class MDPCreator
 		stateIndices = new HashMap<State, Integer>();
 		this.mainLog = mainLog;
 	}
-	public MDPCreator()
-	{
-		printMessages =false;
+
+	public MDPCreator() {
+		printMessages = false;
 		mdp = new MDPSimple();
 		List<State> statesList = new ArrayList<State>();
 		mdp.setStatesList(statesList);
@@ -55,18 +49,15 @@ public class MDPCreator
 		this.mainLog = null;
 	}
 
-	public void setPrintMessagesOn()
-	{
+	public void setPrintMessagesOn() {
 		this.printMessages = true;
 	}
 
-	public void setPrintMessagesOff()
-	{
+	public void setPrintMessagesOff() {
 		this.printMessages = false;
 	}
 
-	public boolean addState(State s)
-	{
+	public boolean addState(State s) {
 		boolean added = false;
 		if (!stateIndices.containsKey(s)) {
 			int stateIndex = mdp.getNumStates();
@@ -79,8 +70,7 @@ public class MDPCreator
 		return added;
 	}
 
-	int getStateIndex(State s)
-	{
+	int getStateIndex(State s) {
 		if (!stateIndices.containsKey(s)) {
 			boolean added = addState(s);
 			if (added) {
@@ -92,8 +82,7 @@ public class MDPCreator
 		return stateIndices.get(s);
 	}
 
-	int getActionIndex(int stateIndex, Object a)
-	{
+	int getActionIndex(int stateIndex, Object a) {
 		int actionIndex = -1;
 		if (stateIndex != -1) {
 			int choices = mdp.getNumChoices(stateIndex);
@@ -107,23 +96,20 @@ public class MDPCreator
 		}
 		return actionIndex;
 	}
-	
-	int getActionIndexPartial(State state, Object a,String delim)
-	{
-		int stateIndex = getStateIndex(state); 
-		return getActionIndexPartial(stateIndex,a,delim);
+
+	int getActionIndexPartial(State state, Object a, String delim) {
+		int stateIndex = getStateIndex(state);
+		return getActionIndexPartial(stateIndex, a, delim);
 	}
 
-	int getActionIndexPartial(int stateIndex, Object a,String delim)
-	{
+	int getActionIndexPartial(int stateIndex, Object a, String delim) {
 		int actionIndex = -1;
 		if (stateIndex != -1) {
 			int choices = mdp.getNumChoices(stateIndex);
 			for (int c = 0; c < choices; c++) {
 				Object act = mdp.getAction(stateIndex, c);
 				String[] brokenAct = act.toString().split(delim);
-				if(brokenAct[0].toString().contentEquals(a.toString()))
-				 {
+				if (brokenAct[0].toString().contentEquals(a.toString())) {
 					actionIndex = c;
 					break;
 				}
@@ -132,22 +118,39 @@ public class MDPCreator
 		return actionIndex;
 	}
 
-	int renameAction(State state, Object a,String delim,int num)
-	{
-		int actionIndex = this.getActionIndexPartial(state, a,delim); 
-		if(actionIndex != -1)
-		{
-			mdp.setAction(this.getStateIndex(state), actionIndex, a.toString()+delim+num);
+	int renameAction(State state, Object a, String delim, int num) {
+		int actionIndex = this.getActionIndexPartial(state, a, delim);
+		if (actionIndex != -1) {
+			mdp.setAction(this.getStateIndex(state), actionIndex, a.toString() + delim + num);
 		}
-		return actionIndex; 
+		return actionIndex;
 	}
 
-	public boolean addAction(State s, Object a, ArrayList<Entry<State, Double>> successorsWithProbs)
-	{
+	public boolean addActionSingleSuccessor(State s, Object a, State successor, double prob) {
 
-		//add an action to a state
-		//does not check if the same action is added twice!!! 
-		//it shouldnt be you know 
+		// add an action to a state
+		// does not check if the same action is added twice!!!
+		// it shouldnt be you know
+		Distribution distr = new Distribution();
+		int stateIndex = getStateIndex(s);
+		int actionIndex = mdp.getNumChoices(stateIndex);
+//		for (int i = 0; i < successorsWithProbs.size(); i++) {
+//			Entry<State, Double> stateProbPair = successorsWithProbs.get(i);
+		State succState = successor;// stateProbPair.getKey();
+//			double prob = stateProbPair.getValue();
+		int succStateIndex = getStateIndex(succState);
+		distr.add(succStateIndex, prob);
+//		}
+		mdp.addActionLabelledChoice(stateIndex, distr, a);
+
+		return true;
+	}
+
+	public boolean addAction(State s, Object a, ArrayList<Entry<State, Double>> successorsWithProbs) {
+
+		// add an action to a state
+		// does not check if the same action is added twice!!!
+		// it shouldnt be you know
 		Distribution distr = new Distribution();
 		int stateIndex = getStateIndex(s);
 		int actionIndex = mdp.getNumChoices(stateIndex);
@@ -159,96 +162,81 @@ public class MDPCreator
 			distr.add(succStateIndex, prob);
 		}
 		mdp.addActionLabelledChoice(stateIndex, distr, a);
-	
-		return true; 
+
+		return true;
 	}
-	
-	//adds an action or parts of an action 
-	public boolean addActionPartial(State s, Object a, ArrayList<Entry<State,Double>>successorsWithProbs)
-	{
-	
+
+	// adds an action or parts of an action
+	public boolean addActionPartial(State s, Object a, ArrayList<Entry<State, Double>> successorsWithProbs) {
+
 		boolean added = false;
-		int stateIndex = getStateIndex(s); 
-		int actionIndex = getActionIndex(stateIndex,a); 
-		if(actionIndex == -1)
-		{
-			added=addAction(s,a,successorsWithProbs);
-		}
-		else
-		{
-			//this action exists 
-			//so we're just going to add to it 
-			Distribution distr = mdp.getChoice(stateIndex, actionIndex); 
-			if(printMessages)
-			{
-				mainLog.println("Action "+a.toString()+" exists, adding to it"); 
-			
-			Iterator<Entry<Integer, Double>> distList = distr.iterator(); 
-			String succStatesString = "Existing states: ";
-			while(distList.hasNext()) {
-				Entry<Integer, Double> stateProbPair = distList.next();
-				State sas = mdp.getStatesList().get(stateProbPair.getKey());
-				succStatesString+=" "+sas.toString()+":"+stateProbPair.toString();
-			}
-			mainLog.println(succStatesString);
-			}
-			for(int i = 0; i<successorsWithProbs.size(); i++)
-			{
-				Entry<State, Double> stateProbPair = successorsWithProbs.get(i); 
-				State state = stateProbPair.getKey(); 
-				int succStateIndex = getStateIndex(state); 
-				double prob = stateProbPair.getValue(); 
-				//if we dont have a transition to this state 
-				//add it 
-				if(distr.contains(succStateIndex))
-				{
-					if(printMessages)
-						mainLog.println(state.toString()+" already exists!! Not adding it."); 
+		int stateIndex = getStateIndex(s);
+		int actionIndex = getActionIndex(stateIndex, a);
+		if (actionIndex == -1) {
+			added = addAction(s, a, successorsWithProbs);
+		} else {
+			// this action exists
+			// so we're just going to add to it
+			Distribution distr = mdp.getChoice(stateIndex, actionIndex);
+			if (printMessages) {
+				mainLog.println("Action " + a.toString() + " exists, adding to it");
+
+				Iterator<Entry<Integer, Double>> distList = distr.iterator();
+				String succStatesString = "Existing states: ";
+				while (distList.hasNext()) {
+					Entry<Integer, Double> stateProbPair = distList.next();
+					State sas = mdp.getStatesList().get(stateProbPair.getKey());
+					succStatesString += " " + sas.toString() + ":" + stateProbPair.toString();
 				}
-				else
-				{
+				mainLog.println(succStatesString);
+			}
+			for (int i = 0; i < successorsWithProbs.size(); i++) {
+				Entry<State, Double> stateProbPair = successorsWithProbs.get(i);
+				State state = stateProbPair.getKey();
+				int succStateIndex = getStateIndex(state);
+				double prob = stateProbPair.getValue();
+				// if we dont have a transition to this state
+				// add it
+				if (distr.contains(succStateIndex)) {
+					if (printMessages)
+						mainLog.println(state.toString() + " already exists!! Not adding it.");
+				} else {
 					mdp.getChoice(stateIndex, actionIndex).add(succStateIndex, prob);
-					if(!added)
-						added=true;
+					if (!added)
+						added = true;
 				}
-				
+
 			}
-			
+
 		}
 		return added;
 	}
-	
-	
-	public void setInitialState(State s)
-	{
-		int sIndex = getStateIndex(s); 
+
+	public void setInitialState(State s) {
+		int sIndex = getStateIndex(s);
 		mdp.addInitialState(sIndex);
 	}
-	
-	public List<State> getInitialStates()
-	{
-		List<State> initStates = new ArrayList<State>(); 
-		Iterable<Integer> iterable = mdp.getInitialStates(); 
-		Iterator<Integer> iter = iterable.iterator(); 
-		while(iter.hasNext())
-		{
-			int s = iter.next(); 
-			State ss = mdp.getStatesList().get(s); 
+
+	public List<State> getInitialStates() {
+		List<State> initStates = new ArrayList<State>();
+		Iterable<Integer> iterable = mdp.getInitialStates();
+		Iterator<Integer> iter = iterable.iterator();
+		while (iter.hasNext()) {
+			int s = iter.next();
+			State ss = mdp.getStatesList().get(s);
 			initStates.add(ss);
 		}
-		return initStates; 
+		return initStates;
 	}
-	
-	public State getFirstInitialState()
-	{
-		int s = mdp.getFirstInitialState(); 
+
+	public State getFirstInitialState() {
+		int s = mdp.getFirstInitialState();
 		return mdp.getStatesList().get(s);
 	}
-	
-	public void saveMDP(String saveLoc, String name)
-	{
+
+	public void saveMDP(String saveLoc, String name) {
 		System.out.println(mdp.infoStringTable());
-		String fn = saveLoc + name +".dot";
+		String fn = saveLoc + name + ".dot";
 		PrismLog out = new PrismFileLog(fn);
 		mdp.exportToDotFile(out, null, true);
 		out.close();

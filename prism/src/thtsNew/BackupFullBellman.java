@@ -11,12 +11,14 @@ public class BackupFullBellman extends BackupNVI {
 
 	ArrayList<Objectives> tieBreakingOrder;
 
-	public BackupFullBellman(ArrayList<Objectives> tieBreakingOrder) {
+	double deadendCost; 
+	public BackupFullBellman(ArrayList<Objectives> tieBreakingOrder,double deadendCost) {
 		this.tieBreakingOrder = tieBreakingOrder;
+		this.deadendCost = deadendCost;
 	}
 
 	@Override
-	public boolean backupChanceNode(ChanceNode cn,boolean doBackup) {
+	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) {
 		if (cn.getChildren() != null) {
 
 			for (Objectives obj : tieBreakingOrder) {
@@ -32,8 +34,8 @@ public class BackupFullBellman extends BackupNVI {
 
 				}
 				cn.leadToDeadend = allChildrenAreDeadends;
-				if (!cn.leadToDeadend) // Ignore the reward if its a deadend
-					sumHere = sumHere.add(rewHere);
+//				if (!cn.leadToDeadend) // Ignore the reward if its a deadend
+				sumHere = sumHere.add(rewHere);
 				cn.setBounds(obj, sumHere);
 			}
 		}
@@ -41,8 +43,8 @@ public class BackupFullBellman extends BackupNVI {
 	}
 
 	@Override
-	public boolean backupDecisionNode(DecisionNode dn,boolean doBackup) {
-		if (dn.isDeadend || dn.isGoal) {
+	public boolean backupDecisionNode(DecisionNode dn, boolean doBackup) {
+		if (dn.isGoal) {
 			Bounds b = null;
 			for (Objectives obj : tieBreakingOrder) {
 				switch (obj) {
@@ -61,75 +63,99 @@ public class BackupFullBellman extends BackupNVI {
 			}
 
 		} else {
-			if (dn.getChildren() != null) {
-
-				HashMap<Objectives, Bounds> bestBoundsH = new HashMap<>();
+			if (dn.isDeadend) {
+				Bounds b = null;
 				for (Objectives obj : tieBreakingOrder) {
-					Bounds bestBounds = new Bounds();
-					bestBounds.setUpper(getObjectiveExtremeValueInit(obj));
-					bestBounds.setLower(getObjectiveExtremeValueInit(obj));
-					bestBoundsH.put(obj, bestBounds);
+					switch (obj) {
+					case Probability:
+					case TaskCompletion:
+					case Progression: {
+						double lb = 0.0;
+						double ub = 0.0;
+						b = new Bounds(ub, lb);
+						break;
+					}
+					case Cost: {
+						double lb = deadendCost;
+						double ub = deadendCost;
+						b = new Bounds(ub, lb);
+						break;
+					}
+					}
+					dn.setBounds(obj, b);
+
 				}
+			} else {
+				if (dn.getChildren() != null) {
 
-				for (Object a : dn.getChildren().keySet()) {
-					ChanceNode cn = dn.getChild(a);
-					boolean updateUpperBounds = false;
-
+					HashMap<Objectives, Bounds> bestBoundsH = new HashMap<>();
 					for (Objectives obj : tieBreakingOrder) {
+						Bounds bestBounds = new Bounds();
+						bestBounds.setUpper(getObjectiveExtremeValueInit(obj));
+						bestBounds.setLower(getObjectiveExtremeValueInit(obj));
+						bestBoundsH.put(obj, bestBounds);
+					}
 
-						Bounds bestBounds = bestBoundsH.get(obj);
-						if (cn.hasBounds()) {
-							Bounds b = cn.getBounds(obj);
-							if (isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
+					for (Object a : dn.getChildren().keySet()) {
+						ChanceNode cn = dn.getChild(a);
+						boolean updateUpperBounds = false;
 
-								updateUpperBounds = true;
-								break;
-							} else {
-								if (!isEqual(b.getUpper(), bestBounds.getUpper()))
+						for (Objectives obj : tieBreakingOrder) {
+
+							Bounds bestBounds = bestBoundsH.get(obj);
+							if (cn.hasBounds()) {
+								Bounds b = cn.getBounds(obj);
+								if (isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
+
+									updateUpperBounds = true;
 									break;
+								} else {
+									if (!isEqual(b.getUpper(), bestBounds.getUpper()))
+										break;
+								}
+
 							}
 
 						}
-
-					}
-					if (updateUpperBounds) {
-						for (Objectives obj : tieBreakingOrder) {
-							Bounds b = cn.getBounds(obj);
-							Bounds bestBounds = bestBoundsH.get(obj);
-							bestBounds.setUpper(b.getUpper());
-						}
-					}
-
-				}
-				for (Object a : dn.getChildren().keySet()) {
-					ChanceNode cn = dn.getChild(a);
-					boolean updateLowerBounds = false;
-					for (Objectives obj : tieBreakingOrder) {
-
-						Bounds bestBounds = bestBoundsH.get(obj);
-						if (cn.hasBounds()) {
-							Bounds b = cn.getBounds(obj);
-
-							if (isBetter(b.getLower(), bestBounds.getLower(), obj)) {
-								updateLowerBounds = true;
-								break;
-							} else {
-								if (!isEqual(b.getLower(), bestBounds.getLower()))
-									break;
+						if (updateUpperBounds) {
+							for (Objectives obj : tieBreakingOrder) {
+								Bounds b = cn.getBounds(obj);
+								Bounds bestBounds = bestBoundsH.get(obj);
+								bestBounds.setUpper(b.getUpper());
 							}
 						}
 
 					}
-					if (updateLowerBounds) {
+					for (Object a : dn.getChildren().keySet()) {
+						ChanceNode cn = dn.getChild(a);
+						boolean updateLowerBounds = false;
 						for (Objectives obj : tieBreakingOrder) {
-							Bounds b = cn.getBounds(obj);
-							Bounds bestBounds = bestBoundsH.get(obj);
-							bestBounds.setLower(b.getLower());
-						}
-					}
 
+							Bounds bestBounds = bestBoundsH.get(obj);
+							if (cn.hasBounds()) {
+								Bounds b = cn.getBounds(obj);
+
+								if (isBetter(b.getLower(), bestBounds.getLower(), obj)) {
+									updateLowerBounds = true;
+									break;
+								} else {
+									if (!isEqual(b.getLower(), bestBounds.getLower()))
+										break;
+								}
+							}
+
+						}
+						if (updateLowerBounds) {
+							for (Objectives obj : tieBreakingOrder) {
+								Bounds b = cn.getBounds(obj);
+								Bounds bestBounds = bestBoundsH.get(obj);
+								bestBounds.setLower(b.getLower());
+							}
+						}
+
+					}
+					dn.setBounds(bestBoundsH);
 				}
-				dn.setBounds(bestBoundsH);
 			}
 		}
 
@@ -137,13 +163,13 @@ public class BackupFullBellman extends BackupNVI {
 	}
 
 	@Override
-	public boolean forwardbackupChanceNode(ChanceNode cn, boolean doBackup) {
-		return backupChanceNode(cn,doBackup);
+	public boolean forwardbackupChanceNode(ChanceNode cn) {
+		return backupChanceNode(cn,true);
 	}
 
 	@Override
-	public boolean forwardbackupDecisionNode(DecisionNode dn, boolean doBackup) {
-		return backupDecisionNode(dn,doBackup);
+	public boolean forwardbackupDecisionNode(DecisionNode dn) {
+		return backupDecisionNode(dn,true);
 	}
 
 }

@@ -25,6 +25,11 @@ public class Bounds{
 		upper = u; 
 		lower = l; 
 	}
+	public Bounds(Bounds defaultBounds) {
+		// TODO Auto-generated constructor stub
+		this.upper = defaultBounds.upper; 
+		this.lower = defaultBounds.lower;
+	}
 	public double getUpper()
 	{
 		return upper;
@@ -49,9 +54,13 @@ public class Bounds{
 	{
 		return upper - m; 
 	}
-	public double subractLower(double m)
+	public double subtractLower(double m)
 	{
 		return lower - m; 
+	}
+	public Bounds subtract(double m)
+	{
+		return new Bounds(subtractUpper(m),subtractLower(m));
 	}
 	public double subtractUpper(Bounds m)
 	{
@@ -59,11 +68,15 @@ public class Bounds{
 	}
 	public double subtractLower(Bounds m)
 	{
-		return subractLower(m.getLower());
+		return subtractLower(m.getLower());
 	}
 	public Bounds subtract(Bounds m)
 	{
 		return new Bounds(subtractUpper(m),subtractLower(m));
+	}
+	public Bounds abs()
+	{
+		return new Bounds(Math.abs(getUpper()),Math.abs(getLower()));
 	}
 	@Override
 	public String toString()

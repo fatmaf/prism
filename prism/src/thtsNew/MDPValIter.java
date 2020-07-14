@@ -72,9 +72,8 @@ public class MDPValIter {
 			PrismLog mainLog, String resLoc,String name) throws PrismException {
 		ModelCheckerMultipleResult res;
 		int i, n, iters, numYes, numNo;
-		double initValProb, initValRew, initValCost;
-		double solnProb[], prevSolnProb[];
-		ArrayList<double[]> solnReward, prevSolnReward;
+		double solnProb[];
+		ArrayList<double[]> solnReward;
 		boolean done;
 		BitSet no, yes, unknown;
 		long timerVI, timerProb0, timerProb1, timerGlobal;
@@ -165,8 +164,7 @@ public class MDPValIter {
 		// Initialise solution vectors to initVal
 		// where initVal is 0.0 or 1.0, depending on whether we converge from
 		// below/above.
-		initValProb = 0.0;
-		initValCost = 0.0;
+
 
 		// Determine set of states actually need to compute values for
 		unknown = new BitSet();

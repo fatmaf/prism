@@ -377,20 +377,32 @@ public class TempTHTS {
 		ArrayList<String> filenames = new ArrayList<String>();
 		for (int i = 0; i < numRobots; i++)
 			filenames.add(testsLocation + example + i + ".prism");
-		
-		String algoIden = "rtdp";
+		String combString = "_cost_noh_nod";
+		String algoIden = "rtdp"+combString;
 		PrismLog fileLog = new PrismFileLog(resultsLocation+"log_"+example+"_"+algoIden+"_r_"+numRobots+".txt");//
 
-		rtdp(prism,mainLog,fileLog,filenames,propertiesFileName,resultsLocation);
+		rtdp(prism,mainLog,fileLog,filenames,propertiesFileName,resultsLocation,combString);
+	
+//		algoIden = "brtdp";
+//		fileLog = new PrismFileLog(resultsLocation+"log_"+example+"_"+algoIden+"_r_"+numRobots+".txt");//
+//
 //		thtsBRTDP(prism,mainLog,fileLog,filenames,propertiesFileName,resultsLocation);
+//		algoIden = "lrtdp";
+//		fileLog = new PrismFileLog(resultsLocation+"log_"+example+"_"+algoIden+"_r_"+numRobots+".txt");//
+//
 //		lrtdp(prism,mainLog,fileLog,filenames,propertiesFileName,resultsLocation);
 
 		
 	}
 	public void rtdp(Prism prism,PrismLog mainLog,
 			PrismLog fileLog,ArrayList<String> filenames,
-			String propertiesFileName,String resultsLocation) throws Exception
+			String propertiesFileName,String resultsLocation,String combString) throws Exception
 	{
+		int maxRollouts = 100;
+		int trialLen = 30;
+		double deadendCost = 0;//maxRollouts*trialLen;//1000;
+		boolean dodeadends  = false; 
+		double costH = maxRollouts*trialLen*100;
 		//rtdp is simple 
 		//heuristic the same 
 		//action selection greedy on lower bound really 
@@ -411,7 +423,7 @@ public class TempTHTS {
 		mainLog.println("\nInitialising Multi Agent Heuristic Function");
 		fileLog.println("\nInitialising Multi Agent Heuristic Function");
 		
-		Heuristic heuristicFunction = new MultiAgentHeuristic(mapmg,singleAgentSolutions);
+		Heuristic heuristicFunction = new EmptyMultiAgentHeuristic(costH,mapmg,deadendCost,dodeadends);//new EmptyHeuristic();//new MultiAgentHeuristic(mapmg,singleAgentSolutions);
 
 		//lets see if we can get a heuristic for each state in the model 
 		//from the initial state 
@@ -420,9 +432,9 @@ public class TempTHTS {
 //		this.testMAPMG(mapmg);
 //		testMultiAgentH(mapmg, heuristicFunction);
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
-		tieBreakingOrder.add(Objectives.TaskCompletion);
+//		tieBreakingOrder.add(Objectives.TaskCompletion);
 		tieBreakingOrder.add(Objectives.Cost);
-		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
+//		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
 		
 		mainLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
@@ -440,15 +452,14 @@ public class TempTHTS {
 		mainLog.println("Initialising Full Bellman Backup Function");
 		fileLog.println("Initialising Full Bellman Backup Function");
 		
-		BackupNVI backupFunction = new BackupFullBellman(tieBreakingOrder);
+		BackupNVI backupFunction = new BackupFullBellman(tieBreakingOrder,deadendCost);
 		
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
 		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,HelperClass.RewardCalculation.SUM);
 		
-		int maxRollouts = 10;
-		int trialLen = 30;
+
 		mainLog.println("Max Rollouts: "+maxRollouts);
 		mainLog.println("Max TrialLen: "+trialLen);
 		fileLog.println("Max Rollouts: "+maxRollouts);
@@ -468,12 +479,14 @@ public class TempTHTS {
 		
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
+		thts.setName("rtdp"+combString);
+		thts.setResultsLocation(resultsLocation);
 		thts.run();
 		
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
+		thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder),resultsLocation);
 
 
 	}
@@ -511,8 +524,8 @@ public class TempTHTS {
 //		testMultiAgentH(mapmg, heuristicFunction);
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.TaskCompletion);
-		tieBreakingOrder.add(Objectives.Cost);
-		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
+//		tieBreakingOrder.add(Objectives.Cost);
+//		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
 		
 		mainLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
@@ -559,12 +572,13 @@ public class TempTHTS {
 		
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
+		thts.setName("lrtdp");
 		thts.run();
 		
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
+		thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder),resultsLocation);
 
 
 	}
@@ -572,6 +586,7 @@ public class TempTHTS {
 			PrismLog fileLog,ArrayList<String> filenames,
 			String propertiesFileName,String resultsLocation) throws Exception {
 
+		double deadendCost = 0; 
 	
 
 		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
@@ -599,8 +614,8 @@ public class TempTHTS {
 //		testMultiAgentH(mapmg, heuristicFunction);
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.TaskCompletion);
-		tieBreakingOrder.add(Objectives.Cost);
-		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
+//		tieBreakingOrder.add(Objectives.Cost);
+//		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
 		
 		mainLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order "+tieBreakingOrder.toString());
@@ -618,7 +633,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Full Bellman Backup Function");
 		fileLog.println("Initialising Full Bellman Backup Function");
 		
-		BackupNVI backupFunction = new BackupFullBellman(tieBreakingOrder);
+		BackupNVI backupFunction = new BackupFullBellman(tieBreakingOrder,deadendCost);
 		
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
@@ -646,12 +661,13 @@ public class TempTHTS {
 		
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
+		thts.setName("brtdp");
 		thts.run();
 		
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
+		thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder),resultsLocation);
 
 	}
 

@@ -15,6 +15,7 @@ public interface Heuristic {
 
 	ArrayList<Bounds> getCostStateBounds(DecisionNode n);
 	void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode c) throws PrismException;
+	boolean isGoal(State s);
 
 
 }

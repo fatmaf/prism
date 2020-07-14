@@ -10,13 +10,58 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 
 	Random rgen;
 	ArrayList<Objectives> tieBreakingOrder;
-
+	boolean simple = false; 
+	
 	public ActionSelectorGreedyLowerBound(ArrayList<Objectives> tieBreakingOrder) {
 		this.tieBreakingOrder = tieBreakingOrder;
 	}
+	public ActionSelectorGreedyLowerBound(ArrayList<Objectives> tieBreakingOrder,boolean dosimple) {
+		this.tieBreakingOrder = tieBreakingOrder;
+		simple =dosimple;
+	}
 
+	public ChanceNode selectActionSimple(DecisionNode nd)
+	{
+		ChanceNode selectedActionNode = null;
+		//if bounds are not initialised choose the one with uninitialised bounds 
+		//just the next one 
+		if(nd.allChildrenInitialised())
+		{
+			ChanceNode greedyAction = null;
+			ChanceNode tempChoice = null;
+			for (Object a : nd.getChildren().keySet()) {
+				ChanceNode cn = nd.getChild(a);
+				if (greedyAction == null)
+					greedyAction = cn;
+				else {
+					tempChoice = getNodeWithBetterLowerBound(greedyAction, cn);
+					if (tempChoice != null) {
+						greedyAction = cn;
+					}
+				}
+			}
+			selectedActionNode = greedyAction;
+		}
+		else
+		{
+			ArrayList<ChanceNode> initChildren = nd.childrenWithuninitialisedBounds();
+			selectedActionNode = initChildren.get(0);
+		}
+		return selectedActionNode;
+	}
 	@Override
-	public ChanceNode selectAction(DecisionNode nd, boolean doMin) {
+	public ChanceNode selectAction(DecisionNode nd,boolean doMin)
+	{
+		if(simple)
+		{
+			return this.selectActionSimple(nd);
+		}
+		else
+		{
+			return this.selectActionSoftmax(nd, doMin);
+		}
+	}
+	public ChanceNode selectActionSoftmax(DecisionNode nd, boolean doMin) {
 		ChanceNode selectedActionNode = null;
 
 		// select an action and choice
@@ -40,6 +85,23 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 					}
 				}
 			}
+//			ArrayList<ChanceNode> allTheSame = new ArrayList<>();
+//			allTheSame.add(greedyAction);
+//			// perhaps there are others with equal bounds
+//			for (Object a : nd.getChildren().keySet()) {
+//				ChanceNode cn = nd.getChild(a);
+//				if (cn != greedyAction) {
+//					if (this.sameBounds(greedyAction, cn)) {
+//						allTheSame.add(cn);
+//					}
+//				}
+//			}
+//			if (allTheSame.size() > 1) {
+//				// then randomly select a node
+//				rgen = new Random();
+//				int chosenChild = rgen.nextInt(allTheSame.size());
+//				greedyAction = allTheSame.get(chosenChild);
+//			}
 			selectedActionNode = greedyAction;
 		} else {
 			// do softmax
@@ -76,6 +138,25 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 //		if(selectedActionNode == null)
 //			System.out.println("Error");
 		return selectedActionNode;
+	}
+
+	boolean sameBounds(ChanceNode c1, ChanceNode c2) {
+		if (c1 == c2)
+			return true;
+
+		boolean same = true;
+		for (Objectives obj : tieBreakingOrder) {
+			// we just want the difference between the bounds to be samller
+			// so we choose the one with greater diff
+			Bounds c2Bounds = c2.getBounds(obj);
+			Bounds c1Bounds = c1.getBounds(obj);
+
+			if (c2Bounds.getLower() != c1Bounds.getLower()) {
+				same = false;
+				break;
+			}
+		}
+		return same;
 	}
 
 	private ChanceNode getNodeWithBetterLowerBound(ChanceNode c1, ChanceNode c2) {
