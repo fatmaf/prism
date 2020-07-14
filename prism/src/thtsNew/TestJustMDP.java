@@ -39,7 +39,9 @@ public class TestJustMDP {
 //		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
 
-		String example = "tro_example_new_small_noprob";
+		String example = "tro_example_new_small_onefailaction";
+//		example="tro_example_new_small_noprob";
+		example="tro_example_new_small_allfailpaths";
 		String propertiesFileName = testsLocation + example + ".prop";
 
 		PrismLog mainLog = new PrismFileLog("stdout");
@@ -72,7 +74,7 @@ public class TestJustMDP {
 		//action selection greedy on lower bound really 
 		//outcome selction probabilistic 
 		//update full bellman backup 
-		int stateVal = 6;
+		int stateVal = 3;
 		List<State> gs = new ArrayList<State>();
 //		State goalState1 = new State(2); 
 //		goalState1.setValue(0, stateVal);
@@ -106,6 +108,7 @@ public class TestJustMDP {
 //		testMultiAgentH(mapmg, heuristicFunction);
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 //		tieBreakingOrder.add(Objectives.TaskCompletion);
+		tieBreakingOrder.add(Objectives.Probability);
 		tieBreakingOrder.add(Objectives.Cost);
 //		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
 		

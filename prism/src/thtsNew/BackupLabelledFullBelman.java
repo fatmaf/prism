@@ -56,9 +56,17 @@ public class BackupLabelledFullBelman extends BackupNVI {
 				DecisionNode s = open.pop();
 				closed.push(s);
 
-				for (Object a : s.getChildren().keySet()) {
-					ChanceNode cn = s.getChild(a);
-					updateChanceNode(cn);
+				if (s.canHaveChildren()) {
+					if (s.getChildren() != null) {
+						for (Object a : s.getChildren().keySet()) {
+							ChanceNode cn = s.getChild(a);
+							updateChanceNode(cn);
+						}
+					}
+//					else
+//					{
+//						System.out.println("bug");
+//					}
 				}
 				HashMap<Objectives, Bounds> bounds = residualDecision((DecisionNode) s);
 
@@ -89,7 +97,7 @@ public class BackupLabelledFullBelman extends BackupNVI {
 			} else {
 				while (!closed.isEmpty()) {
 					DecisionNode dns = closed.pop();
-					ChanceNode cn = actSel.selectAction(dns, false);
+//					ChanceNode cn = actSel.selectAction(dns, false);
 //					updateChanceNode(cn);
 					updateDecisionNode(dns);
 				}

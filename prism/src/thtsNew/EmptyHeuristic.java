@@ -24,7 +24,16 @@ public class EmptyHeuristic implements Heuristic {
 
 		HashMap<Objectives, Bounds> emptyBounds = new HashMap<>();
 		for (Objectives obj : objs) {
-			emptyBounds.put(obj, new Bounds());
+		
+			if(obj == Objectives.Probability && n.isGoal)
+			{
+				emptyBounds.put(obj, new Bounds(1.0,1.0));
+			}
+			else
+			{
+				emptyBounds.put(obj, new Bounds());
+			}
+				
 		}
 		return emptyBounds;
 	}
