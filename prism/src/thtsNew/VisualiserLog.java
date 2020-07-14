@@ -2,6 +2,7 @@ package thtsNew;
 
 import java.util.ArrayList;
 
+import prism.PrismDevNullLog;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import thts.Objectives;
@@ -24,12 +25,14 @@ public class VisualiserLog {
 		mainLog = new PrismFileLog(logName);
 		this.boundsOrder = boundsOrder;
 	}
-	public VisualiserLog(ArrayList<Objectives> boundsOrder)
-	{
-		mainLog = new PrismFileLog("stdout");
+
+	public VisualiserLog(ArrayList<Objectives> boundsOrder, boolean donull) {
+		if (donull)
+			mainLog = new PrismDevNullLog();
+		else
+			mainLog = new PrismFileLog("stdout");
 		this.boundsOrder = boundsOrder;
 	}
-
 	// each bit has a step
 	// we want to save the following
 	// the THTS exploration tree
@@ -136,8 +139,7 @@ public class VisualiserLog {
 		return toret + "}";
 	}
 
-	public void closeLog()
-	{
+	public void closeLog() {
 		this.mainLog.close();
 	}
 }

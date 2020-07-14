@@ -146,7 +146,8 @@ public class TrialBasedTreeSearch {
 
 	public void run() throws PrismException {
 
-		vl = new VisualiserLog(/*resultsLocation + name + ".vl",*/ this.tieBreakingOrder);
+		boolean donullvl = true; 
+		vl = new VisualiserLog(/*resultsLocation + name + ".vl",*/ this.tieBreakingOrder,donullvl);
 		vl.newRollout(numRollouts);
 		boolean initStateSolved = false;
 		while (this.numRollouts < this.maxRollouts && !initStateSolved) {
@@ -434,7 +435,8 @@ public class TrialBasedTreeSearch {
 		}
 	}
 
-	void runThrough(ActionSelector actSelrt, String resultsLocation) throws PrismException {
+	boolean runThrough(ActionSelector actSelrt, String resultsLocation) throws PrismException {
+		boolean goalFound = false; 
 		Node n0 = getRootNode();
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
@@ -444,6 +446,8 @@ public class TrialBasedTreeSearch {
 		q.push((DecisionNode) n0);
 		while (!q.isEmpty()) {
 			DecisionNode d = q.pop();
+			if(d.isGoal)
+				goalFound = true; 
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
@@ -471,5 +475,6 @@ public class TrialBasedTreeSearch {
 			}
 		}
 		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
+		return goalFound;
 	}
 }
