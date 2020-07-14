@@ -75,7 +75,7 @@ public class TestJustMDP {
 			MDPModelGenerator mdpModGen = new MDPModelGenerator(modGen);
 
 			int maxRollouts = 100;
-			int trialLen = 1000;
+			int trialLen = 100;
 			double deadendCost = 0;// maxRollouts*trialLen;//1000;
 			boolean dodeadends = false;
 			double costH = maxRollouts * trialLen * 100;
