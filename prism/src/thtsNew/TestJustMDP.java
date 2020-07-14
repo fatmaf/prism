@@ -29,14 +29,23 @@ public class TestJustMDP {
 	
 	// testing trialbasedtree search with just an mdp
 	// have the default product model generator
+	public void createDirIfNotExist(String directoryName)
+	{
+		 File directory = new File(directoryName);
+		    if (! directory.exists()){
+		        directory.mkdir();
+		        // If you require it to make the entire directory path including parents,
+		        // use directory.mkdirs(); here instead.
+		    }
 
+	}
 	public void run() throws FileNotFoundException, PrismException {
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
 		String resultsLocation = testsLocation + "/results/";
 		// making sure resultsloc exits
-//		createDirIfNotExist(resultsLocation);
+		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
 
 		String example = "tro_example_new_small_onefailaction";
