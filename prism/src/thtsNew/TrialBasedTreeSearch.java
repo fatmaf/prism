@@ -144,7 +144,7 @@ public class TrialBasedTreeSearch {
 		return nodeInMap;
 	}
 
-	public void run() throws PrismException {
+	public void run(boolean fixSCCs) throws PrismException {
 
 		boolean donullvl = true; 
 		vl = new VisualiserLog(/*resultsLocation + name + ".vl",*/ this.tieBreakingOrder,donullvl);
@@ -157,12 +157,21 @@ public class TrialBasedTreeSearch {
 
 			Node n0 = getRootNode();
 			while (!n0.isSolved() & notTimedOut()) {
-				trialMDP = new MDPCreator();
+				
+				trialMDP = null;//new MDPCreator();
 				visitDecisionNode((DecisionNode) n0);
+				
 				if (resultsLocation != null)
+				{
+					if(trialMDP!=null)
 					trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
-//				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
-//				sccfinder.doTarjan((DecisionNode) n0);
+				
+				}
+				if(fixSCCs) {
+				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
+//				
+				sccfinder.findSCCs((DecisionNode)n0,fixSCCs);
+				}
 				mainLog.println("Trial Ended with steps:" + trialLen);
 				fileLog.println("Trial Ended with steps:" + trialLen);
 				if (notTimedOut()) {
@@ -183,7 +192,7 @@ public class TrialBasedTreeSearch {
 
 	boolean visitDecisionNode(DecisionNode n) throws PrismException {
 
-		double prevTrialLen = trialLen; 
+		int prevTrialLen = trialLen; 
 		boolean doBackup = true;
 		if (!n.isSolved() & notTimedOut()) {
 			doBackup = true;
@@ -438,6 +447,7 @@ public class TrialBasedTreeSearch {
 	boolean runThrough(ActionSelector actSelrt, String resultsLocation) throws PrismException {
 		boolean goalFound = false; 
 		Node n0 = getRootNode();
+		System.out.println("Root node solved: "+n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
 		fileLog.println("Running through");

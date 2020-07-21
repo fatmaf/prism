@@ -9,6 +9,7 @@ import parser.State;
 import parser.ast.ModulesFile;
 import prism.DefaultModelGenerator;
 import prism.Prism;
+import prism.PrismDevNullLog;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
@@ -19,7 +20,8 @@ public class TestJustMDP {
 
 	public static void main(String[] args) {
 		try {
-			new TestJustMDP().run();
+//			new TestJustMDP().run();
+			new TestJustMDP().gssp();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -37,6 +39,126 @@ public class TestJustMDP {
 
 	}
 
+	public void gssp() throws Exception {
+		int goalFound = 0;
+
+		System.out.println(System.getProperty("user.dir"));
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+
+		String example = "gssp_paper_example";
+		String propertiesFileName = testsLocation + example + ".prop";
+
+		PrismLog mainLog = new PrismFileLog("stdout");// new PrismDevNullLog();//new PrismFileLog("stdout");
+		Prism prism = new Prism(mainLog);
+		String combString = "_cost_noh_nod_noprob";
+		String algoIden = "rtdp" + combString;
+		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + "_" + algoIden + "_justmdp" + ".txt");//
+
+		prism.initialise();
+		prism.setEngine(Prism.EXPLICIT);
+
+		mainLog.println("Initialised Prism");
+
+		String modelFileName = testsLocation + example + ".prism";
+		ModulesFile modulesFile = prism.parseModelFile(new File(modelFileName)); // because the models are uniform
+
+		ModulesFileModelGenerator modGen = new ModulesFileModelGenerator(modulesFile, prism);
+		MDPModelGenerator mdpModGen = new MDPModelGenerator(modGen);
+
+		int maxRollouts = 1000;
+		int trialLen = 500;
+		double deadendCost = 0;// maxRollouts*trialLen;//1000;
+		boolean dodeadends = false;
+		double costH = maxRollouts * trialLen * 100;
+		float epsilon = 0.0001f;
+		// rtdp is simple
+		// heuristic the same
+		// action selection greedy on lower bound really
+		// outcome selction probabilistic
+		// update full bellman backup
+		int stateVal = 5;
+		List<State> gs = new ArrayList<State>();
+		State goalState1 = new State(1);
+		goalState1.setValue(0, stateVal);
+		gs.add(goalState1);
+
+		Heuristic heuristicFunction = new EmptyHeuristic(gs,null);// new EmptyHeuristic();//new
+																// MultiAgentHeuristic(mapmg,singleAgentSolutions);
+
+		// lets see if we can get a heuristic for each state in the model
+		// from the initial state
+		// TODO: check results from nvi
+		// TODO: check state mapping for heuristic function
+//	this.testMAPMG(mapmg);
+//	testMultiAgentH(mapmg, heuristicFunction);
+		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+//	tieBreakingOrder.add(Objectives.TaskCompletion);
+//	tieBreakingOrder.add(Objectives.Probability);
+		tieBreakingOrder.add(Objectives.Cost);
+
+//	tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
+
+		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+
+		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+
+		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+
+		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+
+		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+
+		mainLog.println("Initialising Full Bellman Backup Function");
+		fileLog.println("Initialising Full Bellman Backup Function");
+
+		BackupNVI backupFunction = new BackupLabelledFullBelman(tieBreakingOrder, actionSelection, epsilon);
+
+		mainLog.println("Initialising Reward Helper Function");
+		fileLog.println("Initialising Reward Helper Function");
+
+		RewardHelper rewardH = new RewardHelperGSSPPaper(mdpModGen);
+
+		mainLog.println("Max Rollouts: " + maxRollouts);
+		mainLog.println("Max TrialLen: " + trialLen);
+		fileLog.println("Max Rollouts: " + maxRollouts);
+		fileLog.println("Max TrialLen: " + trialLen);
+
+		//
+//	MultiAgentNestedProductModelGenerator mapmg = createMAMG(prism, mainLog, filenames, propertiesFileName,
+//			resultsLocation);
+//
+		mainLog.println("\nInitialising THTS");
+		fileLog.println("\nInitialising THTS");
+		boolean doForwardBackup = true;
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) mdpModGen, maxRollouts, trialLen,
+				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
+				tieBreakingOrder, mainLog, fileLog);
+
+		mainLog.println("\nBeginning THTS");
+		fileLog.println("\nBeginning THTS");
+		thts.setName("rtdp" + combString);
+		thts.setResultsLocation(resultsLocation);
+		boolean fixSCCs = true;
+		thts.run(fixSCCs);
+
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+
+		boolean goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true), resultsLocation);
+		if (goalack)
+			goalFound++;
+
+	}
+
 	public void run() throws FileNotFoundException, PrismException {
 		int goalFound = 0;
 		int maxruns = 5;
@@ -44,7 +166,7 @@ public class TestJustMDP {
 			System.out.println(System.getProperty("user.dir"));
 			String currentDir = System.getProperty("user.dir");
 			String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-			String resultsLocation = testsLocation + "/results/";
+			String resultsLocation = testsLocation + "results/";
 			// making sure resultsloc exits
 			createDirIfNotExist(resultsLocation);
 			System.out.println("Results Location " + resultsLocation);
@@ -52,11 +174,11 @@ public class TestJustMDP {
 			String example = "tro_example_new_small_onefailaction";
 //		example="tro_example_new_small_noprob";
 			example = "tro_example_new_small_allfailpaths";
-			example = "tro_example_new_small_allfailpaths_nowait";
+//			example = "tro_example_new_small_allfailpaths_nowait";
 
 			String propertiesFileName = testsLocation + example + ".prop";
 
-			PrismLog mainLog = new PrismFileLog("stdout");
+			PrismLog mainLog = new PrismFileLog("stdout"); //new PrismDevNullLog();// new PrismFileLog("stdout");
 			Prism prism = new Prism(mainLog);
 			String combString = "_cost_noh_nod_noprob";
 			String algoIden = "rtdp" + combString;
@@ -74,8 +196,8 @@ public class TestJustMDP {
 			ModulesFileModelGenerator modGen = new ModulesFileModelGenerator(modulesFile, prism);
 			MDPModelGenerator mdpModGen = new MDPModelGenerator(modGen);
 
-			int maxRollouts = 100;
-			int trialLen = 100;
+			int maxRollouts = 1000;
+			int trialLen = 500;
 			double deadendCost = 0;// maxRollouts*trialLen;//1000;
 			boolean dodeadends = false;
 			double costH = maxRollouts * trialLen * 100;
@@ -87,6 +209,7 @@ public class TestJustMDP {
 			// update full bellman backup
 			int stateVal = 3;
 			List<State> gs = new ArrayList<State>();
+			List<State> deadend = new ArrayList<State>();
 //		State goalState1 = new State(2); 
 //		goalState1.setValue(0, stateVal);
 //		goalState1.setValue(1, 0);
@@ -102,6 +225,9 @@ public class TestJustMDP {
 			State goalState1 = new State(1);
 			goalState1.setValue(0, stateVal);
 			gs.add(goalState1);
+			State de1 = new State(1); 
+			de1.setValue(0, -1); 
+			deadend.add(de1);
 //		goalState1 = new State (1);
 //		goalState1.setValue(0, stateVal);;
 //		gs.add(goalState1); 
@@ -109,7 +235,7 @@ public class TestJustMDP {
 //		goalState1.setValue(0, stateVal);
 //		gs.add(goalState1); 
 
-			Heuristic heuristicFunction = new EmptyHeuristic(gs);// new EmptyHeuristic();//new
+			Heuristic heuristicFunction = new EmptyHeuristic(gs,deadend);// new EmptyHeuristic();//new
 																	// MultiAgentHeuristic(mapmg,singleAgentSolutions);
 
 			// lets see if we can get a heuristic for each state in the model
@@ -120,7 +246,7 @@ public class TestJustMDP {
 //		testMultiAgentH(mapmg, heuristicFunction);
 			ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 //		tieBreakingOrder.add(Objectives.TaskCompletion);
-//		tieBreakingOrder.add(Objectives.Probability);
+		tieBreakingOrder.add(Objectives.Probability);
 			tieBreakingOrder.add(Objectives.Cost);
 
 //		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
@@ -169,7 +295,7 @@ public class TestJustMDP {
 			fileLog.println("\nBeginning THTS");
 			thts.setName("rtdp" + combString);
 			thts.setResultsLocation(resultsLocation);
-			thts.run();
+			thts.run(false);
 
 			mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");

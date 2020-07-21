@@ -1,6 +1,7 @@
 package thtsNew;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -9,13 +10,12 @@ import prism.PrismException;
 import thts.Bounds;
 import thts.Objectives;
 
-public class EmptyHeuristic implements Heuristic {
+//because I'm too lazy to do stuff
+public class GSSPPaperHeuristic implements Heuristic {
 	List<State> goalStates = null;
 
-	List<State> deadends = null;
-	public EmptyHeuristic(List<State> goalStates,List<State> deadends) {
+	public GSSPPaperHeuristic(List<State> goalStates) {
 		this.goalStates = goalStates;
-		this.deadends = deadends;
 	}
 
 	@Override
@@ -23,7 +23,6 @@ public class EmptyHeuristic implements Heuristic {
 			throws PrismException {
 
 		n.isGoal = isGoal(n.getState());
-		n.isDeadend = isDeadend(n.getState());
 
 		HashMap<Objectives, Bounds> emptyBounds = new HashMap<>();
 		for (Objectives obj : objs) {
@@ -66,25 +65,6 @@ public class EmptyHeuristic implements Heuristic {
 
 	}
 
-	public boolean isDeadend (State s)
-	{
-		if(deadends == null)
-			return false; 
-		else 
-		{
-			boolean toret = false; 
-			for(State de: deadends)
-			{
-				if(s.compareTo(de)==0)
-				{
-					toret = true; 
-					break;
-				}
-			}
-			return toret;
-		}
-		
-	}
 	@Override
 	public boolean isGoal(State s) {
 		if (goalStates == null) { // TODO Auto-generated method stub

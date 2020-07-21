@@ -481,7 +481,7 @@ public class TempTHTS {
 		fileLog.println("\nBeginning THTS");
 		thts.setName("rtdp"+combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run();
+		thts.run(false);
 		
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
@@ -573,7 +573,7 @@ public class TempTHTS {
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
 		thts.setName("lrtdp");
-		thts.run();
+		thts.run(false);
 		
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
@@ -662,7 +662,7 @@ public class TempTHTS {
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
 		thts.setName("brtdp");
-		thts.run();
+		thts.run(false);
 		
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");

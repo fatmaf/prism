@@ -10,23 +10,45 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 
 	Random rgen;
 	ArrayList<Objectives> tieBreakingOrder;
-	boolean simple = false; 
-	
+	boolean simple = false;
+
 	public ActionSelectorGreedyLowerBound(ArrayList<Objectives> tieBreakingOrder) {
 		this.tieBreakingOrder = tieBreakingOrder;
 	}
-	public ActionSelectorGreedyLowerBound(ArrayList<Objectives> tieBreakingOrder,boolean dosimple) {
+
+	public ActionSelectorGreedyLowerBound(ArrayList<Objectives> tieBreakingOrder, boolean dosimple) {
 		this.tieBreakingOrder = tieBreakingOrder;
-		simple =dosimple;
+		simple = dosimple;
 	}
 
-	public ChanceNode selectActionSimple(DecisionNode nd)
-	{
+	public ChanceNode selectActionSimpleArrayList(ArrayList<ChanceNode> cns) {
 		ChanceNode selectedActionNode = null;
-		//if bounds are not initialised choose the one with uninitialised bounds 
-		//just the next one 
-		if(nd.allChildrenInitialised())
-		{
+		// if bounds are not initialised choose the one with uninitialised bounds
+		// just the next one
+		ChanceNode greedyAction = null;
+		ChanceNode tempChoice = null;
+		for (ChanceNode cn : cns) {
+
+			if (greedyAction == null)
+				greedyAction = cn;
+			else {
+				tempChoice = getNodeWithBetterLowerBound(greedyAction, cn);
+				if (tempChoice != null) {
+					greedyAction = cn;
+				}
+			}
+		}
+		selectedActionNode = greedyAction;
+
+		return selectedActionNode;
+
+	}
+
+	public ChanceNode selectActionSimple(DecisionNode nd) {
+		ChanceNode selectedActionNode = null;
+		// if bounds are not initialised choose the one with uninitialised bounds
+		// just the next one
+		if (nd.allChildrenInitialised()) {
 			ChanceNode greedyAction = null;
 			ChanceNode tempChoice = null;
 			for (Object a : nd.getChildren().keySet()) {
@@ -41,26 +63,22 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 				}
 			}
 			selectedActionNode = greedyAction;
-		}
-		else
-		{
+		} else {
 			ArrayList<ChanceNode> initChildren = nd.childrenWithuninitialisedBounds();
 			selectedActionNode = initChildren.get(0);
 		}
 		return selectedActionNode;
 	}
+
 	@Override
-	public ChanceNode selectAction(DecisionNode nd,boolean doMin)
-	{
-		if(simple)
-		{
+	public ChanceNode selectAction(DecisionNode nd, boolean doMin) {
+		if (simple) {
 			return this.selectActionSimple(nd);
-		}
-		else
-		{
+		} else {
 			return this.selectActionSoftmax(nd, doMin);
 		}
 	}
+
 	public ChanceNode selectActionSoftmax(DecisionNode nd, boolean doMin) {
 		ChanceNode selectedActionNode = null;
 
