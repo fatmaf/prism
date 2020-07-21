@@ -20,8 +20,8 @@ public class TestJustMDP {
 
 	public static void main(String[] args) {
 		try {
-//			new TestJustMDP().run();
-			new TestJustMDP().gssp();
+			new TestJustMDP().run();
+//			new TestJustMDP().gssp();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -87,8 +87,8 @@ public class TestJustMDP {
 		goalState1.setValue(0, stateVal);
 		gs.add(goalState1);
 
-		Heuristic heuristicFunction = new EmptyHeuristic(gs,null);// new EmptyHeuristic();//new
-																// MultiAgentHeuristic(mapmg,singleAgentSolutions);
+		Heuristic heuristicFunction = new EmptyHeuristic(gs, null);// new EmptyHeuristic();//new
+																	// MultiAgentHeuristic(mapmg,singleAgentSolutions);
 
 		// lets see if we can get a heuristic for each state in the model
 		// from the initial state
@@ -153,8 +153,8 @@ public class TestJustMDP {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true), resultsLocation);
-		if (goalack)
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true), resultsLocation);
+		if (goalack[0])
 			goalFound++;
 
 	}
@@ -175,10 +175,11 @@ public class TestJustMDP {
 //		example="tro_example_new_small_noprob";
 			example = "tro_example_new_small_allfailpaths";
 //			example = "tro_example_new_small_allfailpaths_nowait";
+			example = "tro_example_new_small";
 
 			String propertiesFileName = testsLocation + example + ".prop";
 
-			PrismLog mainLog = new PrismFileLog("stdout"); //new PrismDevNullLog();// new PrismFileLog("stdout");
+			PrismLog mainLog = new PrismFileLog("stdout"); // new PrismDevNullLog();// new PrismFileLog("stdout");
 			Prism prism = new Prism(mainLog);
 			String combString = "_cost_noh_nod_noprob";
 			String algoIden = "rtdp" + combString;
@@ -207,36 +208,35 @@ public class TestJustMDP {
 			// action selection greedy on lower bound really
 			// outcome selction probabilistic
 			// update full bellman backup
-			int stateVal = 3;
+			int stateVal = 4;
 			List<State> gs = new ArrayList<State>();
 			List<State> deadend = new ArrayList<State>();
-//		State goalState1 = new State(2); 
-//		goalState1.setValue(0, stateVal);
-//		goalState1.setValue(1, 0);
-//		gs.add(goalState1); 
-//		goalState1 = new State (2);
-//		goalState1.setValue(0, stateVal);
-//		goalState1.setValue(1, 1);
-//		gs.add(goalState1); 
-//		goalState1 = new State (2);
-//		goalState1.setValue(0, stateVal);
-//		goalState1.setValue(1, -1);
-//		gs.add(goalState1); 
-			State goalState1 = new State(1);
-			goalState1.setValue(0, stateVal);
-			gs.add(goalState1);
-			State de1 = new State(1); 
-			de1.setValue(0, -1); 
-			deadend.add(de1);
-//		goalState1 = new State (1);
-//		goalState1.setValue(0, stateVal);;
-//		gs.add(goalState1); 
-//		goalState1 = new State (1);
-//		goalState1.setValue(0, stateVal);
-//		gs.add(goalState1); 
+			for (int i = -1; i < 2; i++) {
 
-			Heuristic heuristicFunction = new EmptyHeuristic(gs,deadend);// new EmptyHeuristic();//new
-																	// MultiAgentHeuristic(mapmg,singleAgentSolutions);
+				State goalState1 = new State(2);
+				goalState1.setValue(0, stateVal);
+				goalState1.setValue(1, i);
+				gs.add(goalState1);
+			}
+
+			int deadendval = -1;
+			for (int i = -1; i < 2; i++) {
+				State de1 = new State(2);
+				de1.setValue(0, deadendval);
+				de1.setValue(1, i);
+				deadend.add(de1);
+			}
+			
+//			State goalState1 = new State(1);
+//			goalState1.setValue(0, stateVal);
+//			gs.add(goalState1);
+//			State de1 = new State(1); 
+//			de1.setValue(0, -1); 
+//			deadend.add(de1);
+
+
+			Heuristic heuristicFunction = new EmptyHeuristic(gs, deadend);// new EmptyHeuristic();//new
+			// MultiAgentHeuristic(mapmg,singleAgentSolutions);
 
 			// lets see if we can get a heuristic for each state in the model
 			// from the initial state
@@ -246,7 +246,7 @@ public class TestJustMDP {
 //		testMultiAgentH(mapmg, heuristicFunction);
 			ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 //		tieBreakingOrder.add(Objectives.TaskCompletion);
-		tieBreakingOrder.add(Objectives.Probability);
+			tieBreakingOrder.add(Objectives.Probability);
 			tieBreakingOrder.add(Objectives.Cost);
 
 //		tieBreakingOrder.add(Objectives.Probability); // really just here so I can get this too
@@ -300,9 +300,9 @@ public class TestJustMDP {
 			mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-			boolean goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+			boolean[] goalackAndSolved = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
 					resultsLocation);
-			if (goalack)
+			if (goalackAndSolved[0])
 				goalFound++;
 		}
 

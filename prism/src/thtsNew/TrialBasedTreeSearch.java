@@ -444,7 +444,7 @@ public class TrialBasedTreeSearch {
 		}
 	}
 
-	boolean runThrough(ActionSelector actSelrt, String resultsLocation) throws PrismException {
+	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation) throws PrismException {
 		boolean goalFound = false; 
 		Node n0 = getRootNode();
 		System.out.println("Root node solved: "+n0.isSolved());
@@ -485,6 +485,7 @@ public class TrialBasedTreeSearch {
 			}
 		}
 		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
-		return goalFound;
+		boolean[] toRet = {goalFound,n0.isSolved()};
+		return toRet;
 	}
 }
