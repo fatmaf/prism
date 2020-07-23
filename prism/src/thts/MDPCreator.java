@@ -235,8 +235,10 @@ public class MDPCreator {
 	}
 
 	public void saveMDP(String saveLoc, String name) {
+		
 		System.out.println(mdp.infoStringTable());
 		String fn = saveLoc + name + ".dot";
+		System.out.println("Saving MDP "+fn);
 		PrismLog out = new PrismFileLog(fn);
 		mdp.exportToDotFile(out, null, true);
 		out.close();

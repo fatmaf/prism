@@ -13,7 +13,16 @@ public class EmptyHeuristic implements Heuristic {
 	List<State> goalStates = null;
 
 	List<State> deadends = null;
-	public EmptyHeuristic(List<State> goalStates,List<State> deadends) {
+
+	double baseVal = 0.0;
+
+	public EmptyHeuristic(List<State> goalStates, List<State> deadends, double initialVal) {
+		this.goalStates = goalStates;
+		this.deadends = deadends;
+		this.baseVal = initialVal;
+	}
+
+	public EmptyHeuristic(List<State> goalStates, List<State> deadends) {
 		this.goalStates = goalStates;
 		this.deadends = deadends;
 	}
@@ -27,16 +36,23 @@ public class EmptyHeuristic implements Heuristic {
 
 		HashMap<Objectives, Bounds> emptyBounds = new HashMap<>();
 		for (Objectives obj : objs) {
-		
-			if(obj == Objectives.Probability && n.isGoal)
+
+			if (obj == Objectives.Probability)
+
 			{
-				emptyBounds.put(obj, new Bounds(1.0,1.0));
+				if (n.isGoal)
+					emptyBounds.put(obj, new Bounds(1.0, 1.0));
+				else
+					emptyBounds.put(obj, new Bounds());
+			} else {
+				if (obj == Objectives.Cost) {
+					if (n.isGoal)
+						emptyBounds.put(obj, new Bounds());
+					else
+						emptyBounds.put(obj, new Bounds(baseVal, baseVal));
+				}
 			}
-			else
-			{
-				emptyBounds.put(obj, new Bounds());
-			}
-				
+
 		}
 		return emptyBounds;
 	}
@@ -66,25 +82,22 @@ public class EmptyHeuristic implements Heuristic {
 
 	}
 
-	public boolean isDeadend (State s)
-	{
-		if(deadends == null)
-			return false; 
-		else 
-		{
-			boolean toret = false; 
-			for(State de: deadends)
-			{
-				if(s.compareTo(de)==0)
-				{
-					toret = true; 
+	public boolean isDeadend(State s) {
+		if (deadends == null)
+			return false;
+		else {
+			boolean toret = false;
+			for (State de : deadends) {
+				if (s.compareTo(de) == 0) {
+					toret = true;
 					break;
 				}
 			}
 			return toret;
 		}
-		
+
 	}
+
 	@Override
 	public boolean isGoal(State s) {
 		if (goalStates == null) { // TODO Auto-generated method stub

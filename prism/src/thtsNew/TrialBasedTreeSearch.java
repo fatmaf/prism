@@ -13,6 +13,7 @@ import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.DefaultModelGenerator;
+import prism.PrismDevNullLog;
 import thts.Bounds;
 import thts.MDPCreator;
 import thts.Objectives;
@@ -146,8 +147,12 @@ public class TrialBasedTreeSearch {
 
 	public void run(boolean fixSCCs) throws PrismException {
 
-		boolean donullvl = true; 
-		vl = new VisualiserLog(/*resultsLocation + name + ".vl",*/ this.tieBreakingOrder,donullvl);
+		boolean donullvl = false;// true;
+		if (donullvl)
+			vl = new VisualiserLog(/* resultsLocation + name + ".vl", */ this.tieBreakingOrder, donullvl);
+		else
+			vl = new VisualiserLog(resultsLocation + name + ".vl", this.tieBreakingOrder);
+
 		vl.newRollout(numRollouts);
 		boolean initStateSolved = false;
 		while (this.numRollouts < this.maxRollouts && !initStateSolved) {
@@ -156,33 +161,32 @@ public class TrialBasedTreeSearch {
 			vl.newRollout(numRollouts);
 
 			Node n0 = getRootNode();
-			while (!n0.isSolved() & notTimedOut()) {
-				
-				trialMDP = null;//new MDPCreator();
+//			while (!n0.isSolved() || notTimedOut()) {
+
+				trialMDP = null;// new MDPCreator();
 				visitDecisionNode((DecisionNode) n0);
-				
-				if (resultsLocation != null)
-				{
-					if(trialMDP!=null)
-					trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
-				
+
+				if (resultsLocation != null) {
+					if (trialMDP != null)
+						trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
+
 				}
-				if(fixSCCs) {
-				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
+				if (fixSCCs) {
+					SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedyLowerBound(tieBreakingOrder));
 //				
-				sccfinder.findSCCs((DecisionNode)n0,fixSCCs);
+					sccfinder.findSCCs((DecisionNode) n0, fixSCCs);
 				}
 				mainLog.println("Trial Ended with steps:" + trialLen);
 				fileLog.println("Trial Ended with steps:" + trialLen);
-				if (notTimedOut()) {
-					mainLog.println("New trial since number of steps was not used up");
-					fileLog.println("New trial since number of steps was not used up");
-
-				}
+//				if (notTimedOut()) {
+//					mainLog.println("New trial since number of steps was not used up");
+//					fileLog.println("New trial since number of steps was not used up");
+//
+//				}
 				if (n0.isSolved())
 					initStateSolved = true;
 
-			}
+//			}
 			vl.endRollout();
 			numRollouts++;
 			trialLen = 0;
@@ -192,7 +196,7 @@ public class TrialBasedTreeSearch {
 
 	boolean visitDecisionNode(DecisionNode n) throws PrismException {
 
-		int prevTrialLen = trialLen; 
+		int prevTrialLen = trialLen;
 		boolean doBackup = true;
 		if (!n.isSolved() & notTimedOut()) {
 			doBackup = true;
@@ -235,8 +239,10 @@ public class TrialBasedTreeSearch {
 //			if (n.getShortName().contains("5"))
 //				mainLog.println("debugHere");
 			doBackup = backup.backupDecisionNode(n, doBackup);
-			mainLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
-			fileLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
+			mainLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
+					+ n.getBoundsString());
+			fileLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
+					+ n.getBoundsString());
 
 		} else {
 			if (n != null) {
@@ -251,7 +257,7 @@ public class TrialBasedTreeSearch {
 
 	boolean visitChanceNode(ChanceNode n) throws PrismException {
 
-		int prevTrialLen = trialLen; //just for book keeping 
+		int prevTrialLen = trialLen; // just for book keeping
 		boolean doBackup = true;
 		if (!n.isSolved() & notTimedOut()) {
 			vl.chanceNodeString(n);
@@ -296,10 +302,10 @@ public class TrialBasedTreeSearch {
 //			if (n.getShortName().contains("2,-1,0,0,0"))
 //				mainLog.println("debughere");
 			backup.backupChanceNode(n, doBackup);
-			mainLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
-					+ n.getBoundsString());
-			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
-					+ n.getBoundsString());
+			mainLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+					+ n.numVisits + ",B:" + n.getBoundsString());
+			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+					+ n.numVisits + ",B:" + n.getBoundsString());
 
 		}
 		return doBackup;
@@ -381,8 +387,8 @@ public class TrialBasedTreeSearch {
 				n0.addChild(child);
 
 			}
-			//TODO: double check if we need this??? 
-			//I dont think we do // cuz we do two levels 
+			// TODO: double check if we need this???
+			// I dont think we do // cuz we do two levels
 			if (backup instanceof BackupFullBellman) {
 				for (DecisionNode child : n0.getChildren()) {
 					setNodeHeuristics(child);
@@ -445,9 +451,9 @@ public class TrialBasedTreeSearch {
 	}
 
 	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation) throws PrismException {
-		boolean goalFound = false; 
+		boolean goalFound = false;
 		Node n0 = getRootNode();
-		System.out.println("Root node solved: "+n0.isSolved());
+		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
 		fileLog.println("Running through");
@@ -456,8 +462,8 @@ public class TrialBasedTreeSearch {
 		q.push((DecisionNode) n0);
 		while (!q.isEmpty()) {
 			DecisionNode d = q.pop();
-			if(d.isGoal)
-				goalFound = true; 
+			if (d.isGoal)
+				goalFound = true;
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
@@ -485,7 +491,7 @@ public class TrialBasedTreeSearch {
 			}
 		}
 		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
-		boolean[] toRet = {goalFound,n0.isSolved()};
+		boolean[] toRet = { goalFound, n0.isSolved() };
 		return toRet;
 	}
 }
