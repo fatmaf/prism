@@ -30,130 +30,238 @@ public class IncrementalLRTDPTests {
 
 	}
 
-	public static void main(String[] args) {
-		try {
-			String goalsNotFound = "";
-			String notSolved = "";
-			int tests = 1;
-			int passed = 0;
-			int goalFound = 0;
-			int solved = 0;
-			boolean debug = false;
+	public void runTests() throws Exception {
+		String goalsNotFound = "";
+		String notSolved = "";
+		int tests = 1;
+		int passed = 0;
+		int goalFound = 0;
+		int solved = 0;
+		boolean debug = false;
 
-			int[] goalStates = { 3, 6 };
+		int[] goalStates = { 3, 6 };
 
-			String[] examples = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction" };
+		String[] examples = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction" };
 
-			tests = tests + goalStates.length * examples.length;
+		tests = tests + goalStates.length * examples.length;
 
-			String[] examples2 = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction",
-					"tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+		String[] examples2 = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction",
+				"tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
 
-			tests = tests + goalStates.length * examples2.length;
+		tests = tests + goalStates.length * examples2.length;
 
-			String[] examples3 = { "tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
-			tests = tests + goalStates.length * examples3.length;
+		String[] examples3 = { "tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+//		tests = tests + goalStates.length * examples3.length;
 
-			int[] goalStates2 = { 0, 4, 6 };
-			tests = tests + goalStates2.length;
+		int[] goalStates2 = { 0, 4, 6 };
+		tests = tests + goalStates2.length;
 
-			int currentTest = 1;
+		int currentTest = 1;
 
-			IncrementalLRTDPTests tester = new IncrementalLRTDPTests();
-			System.out.println("Test " + currentTest++ + "/" + tests);
-			boolean[] goalFoundAndSolved = tester.gssp(debug);
+		System.out.println("Test " + currentTest++ + "/" + tests);
+		boolean[] goalFoundAndSolved = gssp(debug);
 
-			if (goalFoundAndSolved[0])
-				goalFound++;
-			else
-				goalsNotFound += "GSSP\n";
-			if (goalFoundAndSolved[1])
-				solved++;
-			else
-				notSolved += "GSSP\n";
-			if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
-				passed++;
+		if (goalFoundAndSolved[0])
+			goalFound++;
+		else
+			goalsNotFound += "GSSP\n";
+		if (goalFoundAndSolved[1])
+			solved++;
+		else
+			notSolved += "GSSP\n";
+		if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+			passed++;
 
-			for (String example : examples) {
-				for (int g : goalStates) {
-					System.out.println("Test " + currentTest++ + "/" + tests);
-					goalFoundAndSolved = tester.simpleLRTDPNoDeadends(example, g, debug);
-					if (goalFoundAndSolved[0])
-						goalFound++;
-					else
-						goalsNotFound += example + " lrtdp no deadends\n";
-					if (goalFoundAndSolved[1])
-						solved++;
-					else
-						notSolved += example + " lrtdp no deadends\n";
-					if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
-						passed++;
-
-				}
-			}
-
-			for (String example : examples2) {
-				for (int g : goalStates) {
-//with deadends	
-					System.out.println("Test " + currentTest++ + "/" + tests);
-					goalFoundAndSolved = tester.simpleLRTDP(example, g, debug);
-					if (goalFoundAndSolved[0])
-						goalFound++;
-					else
-						goalsNotFound += example + " lrtdp with deadends\n";
-					if (goalFoundAndSolved[1])
-						solved++;
-					else
-						notSolved += example + " lrtdp with deadends\n";
-					if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
-						passed++;
-
-				}
-			}
-
-			for (String example : examples3) {
-				for (int g : goalStates) {
-//with deadends
-					System.out.println("Test " + currentTest++ + "/" + tests);
-					goalFoundAndSolved = tester.nestedLRTDP(example, g, debug);
-					if (goalFoundAndSolved[0])
-						goalFound++;
-					else
-						goalsNotFound += example + " " + g + " nested lrtdp with deadends\n";
-					if (goalFoundAndSolved[1])
-						solved++;
-					else
-						notSolved += example + " " + g + " nested lrtdp with deadends\n";
-					if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
-						passed++;
-
-				}
-			}
-
-			for (int g : goalStates2) {
-				// with deadends
+		for (String example : examples) {
+			for (int g : goalStates) {
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = tester.nestedLRTDPDoors(g, debug);
+				goalFoundAndSolved = simpleLRTDPNoDeadends(example, g, debug);
 				if (goalFoundAndSolved[0])
 					goalFound++;
 				else
-					goalsNotFound += " " + g + " doors nested lrtdp with deadends\n";
-
+					goalsNotFound += example + " lrtdp no deadends\n";
 				if (goalFoundAndSolved[1])
 					solved++;
 				else
-					notSolved += " " + g + " doors nested lrtdp with deadends\n";
-
+					notSolved += example + " lrtdp no deadends\n";
 				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
 					passed++;
 
 			}
+		}
 
-			System.out.println("Passed " + passed + "/" + tests);
-			System.out.println("Goals Found " + goalFound + "/" + tests
-					+ ((goalFound == tests) ? "" : "\nGoals Not Found:\n" + goalsNotFound));
-			System.out.println("Initial State Solved " + solved + "/" + tests
-					+ ((solved == tests) ? "" : "\nInitial State Not Solved:\n" + notSolved));
+		for (String example : examples2) {
+			for (int g : goalStates) {
+//with deadends	
+				System.out.println("Test " + currentTest++ + "/" + tests);
+				goalFoundAndSolved = simpleLRTDP(example, g, debug);
+				if (goalFoundAndSolved[0])
+					goalFound++;
+				else
+					goalsNotFound += example + " lrtdp with deadends\n";
+				if (goalFoundAndSolved[1])
+					solved++;
+				else
+					notSolved += example + " lrtdp with deadends\n";
+				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+					passed++;
+
+			}
+		}
+
+//		for (String example : examples3) {
+//			for (int g : goalStates) {
+////with deadends
+//				System.out.println("Test " + currentTest++ + "/" + tests);
+//				goalFoundAndSolved = nestedLRTDP(example, g, debug);
+//				if (goalFoundAndSolved[0])
+//					goalFound++;
+//				else {
+//					goalsNotFound += example + " " + g + " nested lrtdp with deadends\n";
+//					System.out.println(example + " " + g + " nested lrtdp with deadends - goal not found");
+//				}
+//				if (goalFoundAndSolved[1])
+//					solved++;
+//				else {
+//					notSolved += example + " " + g + " nested lrtdp with deadends\n";
+//					System.out.println(example + " " + g + " nested lrtdp with deadends - not solved");
+//				}
+//				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+//					passed++;
+//
+//			}
+//		}
+
+		for (int g : goalStates2) {
+			// with deadends
+			System.out.println("Test " + currentTest++ + "/" + tests);
+			goalFoundAndSolved = nestedLRTDPDoors(g, debug);
+			if (goalFoundAndSolved[0])
+				goalFound++;
+			else
+				goalsNotFound += " " + g + " doors nested lrtdp with deadends\n";
+
+			if (goalFoundAndSolved[1])
+				solved++;
+			else
+				notSolved += " " + g + " doors nested lrtdp with deadends\n";
+
+			if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+				passed++;
+
+		}
+		
+
+		System.out.println("Passed " + passed + "/" + tests);
+		System.out.println("Goals Found " + goalFound + "/" + tests
+				+ ((goalFound == tests) ? "" : "\nGoals Not Found:\n" + goalsNotFound));
+		System.out.println("Initial State Solved " + solved + "/" + tests
+				+ ((solved == tests) ? "" : "\nInitial State Not Solved:\n" + notSolved));
+
+//		subTest();
+	}
+
+	public void testNestedLRTDPDoors() throws Exception
+	{
+		
+		boolean[] goalFoundAndSolved;
+		String goalsNotFound = "";
+		String notSolved = "";
+		int[] goalStates2 = { 0, 4, 6 };
+		int tests =  goalStates2.length;
+		int passed = 0;
+		int goalFound = 0;
+		int solved = 0;
+		boolean debug = false;
+		int currentTest = 1;
+
+		for (int g : goalStates2) {
+			// with deadends
+			System.out.println("Test " + currentTest++ + "/" + tests);
+			goalFoundAndSolved = nestedLRTDPDoors(g, debug);
+			if (goalFoundAndSolved[0])
+				goalFound++;
+			else
+				goalsNotFound += " " + g + " doors nested lrtdp with deadends\n";
+
+			if (goalFoundAndSolved[1])
+				solved++;
+			else
+				notSolved += " " + g + " doors nested lrtdp with deadends\n";
+
+			if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+				passed++;
+
+		}
+		System.out.println("Passed " + passed + "/" + tests);
+		System.out.println("Goals Found " + goalFound + "/" + tests
+				+ ((goalFound == tests) ? "" : "\nGoals Not Found:\n" + goalsNotFound));
+		System.out.println("Initial State Solved " + solved + "/" + tests
+				+ ((solved == tests) ? "" : "\nInitial State Not Solved:\n" + notSolved));
+
+
+	}
+	public void testNestedLRTDPWithDeadends() throws Exception {
+		int[] goalStates = { 3, 6 };
+		String[] examples3 = { "tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+		boolean[] goalFoundAndSolved;
+		String goalsNotFound = "";
+		String notSolved = "";
+		int tests = goalStates.length * examples3.length;
+		int passed = 0;
+		int goalFound = 0;
+		int solved = 0;
+		boolean debug = false;
+		int currentTest = 1;
+
+		for (String example : examples3) {
+			for (int g : goalStates) {
+//with deadends
+				System.out.println("Test " + currentTest++ + "/" + tests);
+				goalFoundAndSolved = nestedLRTDP(example, g, debug);
+				if (goalFoundAndSolved[0])
+					goalFound++;
+				else {
+					goalsNotFound += example + " " + g + " nested lrtdp with deadends\n";
+					System.out.println(example + " " + g + " nested lrtdp with deadends - goal not found");
+				}
+				if (goalFoundAndSolved[1])
+					solved++;
+				else {
+					notSolved += example + " " + g + " nested lrtdp with deadends\n";
+					System.out.println(example + " " + g + " nested lrtdp with deadends - not solved");
+				}
+				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+					passed++;
+
+			}
+		}
+		System.out.println("Passed " + passed + "/" + tests);
+		System.out.println("Goals Found " + goalFound + "/" + tests
+				+ ((goalFound == tests) ? "" : "\nGoals Not Found:\n" + goalsNotFound));
+		System.out.println("Initial State Solved " + solved + "/" + tests
+				+ ((solved == tests) ? "" : "\nInitial State Not Solved:\n" + notSolved));
+
+	}
+
+	public void debugInstance() throws Exception {
+		String[] examples3 = { "tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+
+		String example = "tro_example_new_small_allfailpaths";
+		int g = 6;
+		boolean debug = true;
+		boolean[] goalFoundAndSolved = nestedLRTDP(example, g, debug);
+		if (goalFoundAndSolved[1] == false)
+			System.out.println("Not Solved");
+	}
+
+	public static void main(String[] args) {
+		try {
+			IncrementalLRTDPTests tester = new IncrementalLRTDPTests();
+//			tester.runTests();
+//			tester.debugInstance();
+//			tester.testNestedLRTDPWithDeadends();
+			tester.testNestedLRTDPDoors();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -271,6 +379,15 @@ public class IncrementalLRTDPTests {
 
 	boolean[] nestedLRTDP(String example, int stateVal, boolean debug) throws Exception {
 
+		boolean isSolved = false;
+		int maxRollouts = 5000;
+		int minRollouts = 1000;
+		boolean[] goalack = null;
+		int numRollouts = minRollouts;
+//		for (int numRollouts = minRollouts; numRollouts < maxRollouts; numRollouts += 1000) {
+		int trialLen = 50;
+		float epsilon = 0.0001f;
+
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
@@ -302,10 +419,6 @@ public class IncrementalLRTDPTests {
 
 		ModulesFileModelGenerator modGen = new ModulesFileModelGenerator(modulesFile, prism);
 		MDPModelGenerator mdpModGen = new MDPModelGenerator(modGen);
-
-		int maxRollouts = 2000;
-		int trialLen = 50;
-		float epsilon = 0.0001f;
 
 		List<State> gs = new ArrayList<State>();
 		List<State> deadend = new ArrayList<State>();
@@ -346,15 +459,15 @@ public class IncrementalLRTDPTests {
 
 		RewardHelper rewardH = new RewardHelperMDP(mdpModGen);
 
-		mainLog.println("Max Rollouts: " + maxRollouts);
+		mainLog.println("Max Rollouts: " + numRollouts);
 		mainLog.println("Max TrialLen: " + trialLen);
-		fileLog.println("Max Rollouts: " + maxRollouts);
+		fileLog.println("Max Rollouts: " + numRollouts);
 		fileLog.println("Max TrialLen: " + trialLen);
 
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) mdpModGen, maxRollouts, trialLen,
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) mdpModGen, numRollouts, trialLen,
 				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
 				tieBreakingOrder, mainLog, fileLog);
 
@@ -367,8 +480,11 @@ public class IncrementalLRTDPTests {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
-				resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true), resultsLocation);
+		isSolved = goalack[1];
+//			if (isSolved)
+//				break;
+//		}
 		return goalack;
 
 	}

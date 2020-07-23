@@ -43,8 +43,8 @@ module world
        [v5_v0] (s=5) -> (s'=0);
 
        [v6_v4] (s=6) -> p:(s'=4)+(1-p):(s'=failstate);
-       [failed] (s=failstate) -> (s'=failstate);
-       
+       //[failed] (s=failstate) -> (s'=failstate);
+       [wait] (s=0|s=1|s=2|s=3|s=4|s=5|s=6|s=failstate)-> (s'=s);
        
        
 
@@ -89,7 +89,8 @@ rewards "time"
        [v5_v0] (s=5) :1.0;
 
        [v6_v4] (s=6) :1.0;
-       [failed] (s=failstate):1.0;
+      // [failed] (s=failstate):1.0;
+      [wait] (s=0|s=1|s=2|s=3|s=4|s=5|s=6|s=failstate):1.0;
  
  
 endrewards
