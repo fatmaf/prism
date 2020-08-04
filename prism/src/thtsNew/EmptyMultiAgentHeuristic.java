@@ -27,11 +27,29 @@ double costH;
 
 	public void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode n)
 	{
+//		HashMap<Objectives,Bounds> emptyBounds = new HashMap<>(); 
+//		for(Objectives obj: objs)
+//		{
+//			emptyBounds.put(obj, new Bounds());
+//		}
 		HashMap<Objectives,Bounds> emptyBounds = new HashMap<>(); 
 		for(Objectives obj: objs)
 		{
 			emptyBounds.put(obj, new Bounds());
+			if(obj == Objectives.Cost)
+			{
+				emptyBounds.get(obj).setLower(costH);
+				emptyBounds.get(obj).setUpper(costH);
+			}
+//			if(obj == Objectives.Probability)
+//			{
+//				emptyBounds.get(obj).setLower(1.0);
+//				emptyBounds.get(obj).setUpper(1.0);
+//			}
+		
 		}
+//		return emptyBounds;
+
 		n.setBounds(emptyBounds);
 	}
 	
@@ -50,6 +68,8 @@ double costH;
 		n.isDeadend = isAvoid;// | isDeadend;
 		if(n.isGoal)
 			System.out.println("Goal Found "+n.getShortName());
+		if((int)s.varValues[0] == -1)
+			n.isDeadend = true; 
 		
 		HashMap<Objectives,Bounds> emptyBounds = new HashMap<>(); 
 		for(Objectives obj: objs)
@@ -57,15 +77,34 @@ double costH;
 			emptyBounds.put(obj, new Bounds());
 			if(obj == Objectives.Cost)
 			{
-				emptyBounds.get(obj).setLower(costH);
-				emptyBounds.get(obj).setUpper(costH);
-			}
-			if(n.isDeadend)
-			{
-				if(obj == Objectives.Cost)
+				if(n.isGoal)
+				{
+					emptyBounds.get(obj).setLower(0);
+					emptyBounds.get(obj).setUpper(0);
+				}
+				else if(n.isDeadend)
 				{
 					emptyBounds.get(obj).setLower(deadendCost);
 					emptyBounds.get(obj).setUpper(deadendCost);
+				}
+				else {
+				emptyBounds.get(obj).setLower(costH);
+				emptyBounds.get(obj).setUpper(costH);
+				}
+			}
+			if(obj == Objectives.Probability)
+			{
+				if(n.isGoal)
+				{
+					emptyBounds.get(obj).setLower(1.0);
+					emptyBounds.get(obj).setUpper(1.0);
+				}
+				else 
+				{
+					if(!n.isDeadend) {
+					emptyBounds.get(obj).setLower(1.0);
+					emptyBounds.get(obj).setUpper(1.0);
+					}
 				}
 			}
 		

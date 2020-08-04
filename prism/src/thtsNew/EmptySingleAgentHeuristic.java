@@ -9,22 +9,24 @@ import prism.PrismException;
 import thts.Bounds;
 import thts.Objectives;
 
-public class EmptyHeuristic implements Heuristic {
+public class EmptySingleAgentHeuristic implements Heuristic {
 	List<State> goalStates = null;
 
 	List<State> deadends = null;
 
 	double baseVal = 0.0;
-
-	public EmptyHeuristic(List<State> goalStates, List<State> deadends, double initialVal) {
+	SingleAgentProductModelGenerator sa; 
+	public EmptySingleAgentHeuristic(SingleAgentProductModelGenerator sa,List<State> goalStates, List<State> deadends, double initialVal) {
 		this.goalStates = goalStates;
 		this.deadends = deadends;
 		this.baseVal = initialVal;
+		this.sa = sa; 
 	}
 
-	public EmptyHeuristic(List<State> goalStates, List<State> deadends) {
+	public EmptySingleAgentHeuristic(SingleAgentProductModelGenerator sa,List<State> goalStates, List<State> deadends) {
 		this.goalStates = goalStates;
 		this.deadends = deadends;
+		this.sa = sa;
 	}
 
 	@Override
@@ -104,17 +106,18 @@ public class EmptyHeuristic implements Heuristic {
 
 	@Override
 	public boolean isGoal(State s) {
-		if (goalStates == null) { // TODO Auto-generated method stub
-			return false;
-		} else {
-			boolean toret = false;
-			for (State gs : goalStates)
-				if (s.compareTo(gs) == 0) {
-					toret = true;
-					break;
-				}
-			return toret;
-		}
+		return sa.isReachAcceptanceGoalState(s);
+//		if (goalStates == null) { // TODO Auto-generated method stub
+//			return false;
+//		} else {
+//			boolean toret = false;
+//			for (State gs : goalStates)
+//				if (s.compareTo(gs) == 0) {
+//					toret = true;
+//					break;
+//				}
+//			return toret;
+//		}
 	}
 
 }

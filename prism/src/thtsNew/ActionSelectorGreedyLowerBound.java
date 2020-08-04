@@ -2,6 +2,7 @@ package thtsNew;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Set;
 
 import thts.Bounds;
 import thts.Objectives;
@@ -53,6 +54,8 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 			ChanceNode tempChoice = null;
 			for (Object a : nd.getChildren().keySet()) {
 				ChanceNode cn = nd.getChild(a);
+				if (cn.ignoreAction)
+					continue;
 				if (greedyAction == null)
 					greedyAction = cn;
 				else {
@@ -89,11 +92,18 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 		// if some are not initialised go a softmax
 		// otherwise always choose greedily
 		if (nd.allChildrenInitialised()) {
-			// dogreedy
+			// dogreedy softmax
+			double randomProb = 0;
+			rgen = new Random();
+			if(rgen.nextDouble() > randomProb)
+			{
+			//greedy
 			ChanceNode greedyAction = null;
 			ChanceNode tempChoice = null;
 			for (Object a : nd.getChildren().keySet()) {
 				ChanceNode cn = nd.getChild(a);
+				if(cn.ignoreAction)
+					continue;
 				if (greedyAction == null)
 					greedyAction = cn;
 				else {
@@ -103,24 +113,33 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 					}
 				}
 			}
-//			ArrayList<ChanceNode> allTheSame = new ArrayList<>();
-//			allTheSame.add(greedyAction);
-//			// perhaps there are others with equal bounds
-//			for (Object a : nd.getChildren().keySet()) {
-//				ChanceNode cn = nd.getChild(a);
-//				if (cn != greedyAction) {
-//					if (this.sameBounds(greedyAction, cn)) {
-//						allTheSame.add(cn);
-//					}
-//				}
-//			}
-//			if (allTheSame.size() > 1) {
-//				// then randomly select a node
-//				rgen = new Random();
-//				int chosenChild = rgen.nextInt(allTheSame.size());
-//				greedyAction = allTheSame.get(chosenChild);
-//			}
+			ArrayList<ChanceNode> allTheSame = new ArrayList<>();
+			allTheSame.add(greedyAction);
+			// perhaps there are others with equal bounds
+			for (Object a : nd.getChildren().keySet()) {
+				ChanceNode cn = nd.getChild(a);
+				if (cn != greedyAction) {
+					if (this.sameBounds(greedyAction, cn)) {
+						allTheSame.add(cn);
+					}
+				}
+			}
+			if (allTheSame.size() > 1) {
+				// then randomly select a node
+				rgen = new Random();
+				int chosenChild = rgen.nextInt(allTheSame.size());
+				greedyAction = allTheSame.get(chosenChild);
+			}
 			selectedActionNode = greedyAction;
+			}
+			else
+			{
+				//do a random selection 
+				rgen = new Random(); 
+				ArrayList<ChanceNode> initChildren = nd.childrenWithInitialisedBounds();
+				int chosenChild = rgen.nextInt(initChildren.size());
+				selectedActionNode = initChildren.get(chosenChild);
+			}
 		} else {
 			// do softmax
 			rgen = new Random();
@@ -136,6 +155,8 @@ public class ActionSelectorGreedyLowerBound implements ActionSelector {
 				ChanceNode greedyAction = null;
 				ChanceNode tempChoice = null;
 				for (ChanceNode cn : initChildren) {
+					if (cn.ignoreAction)
+						continue;
 					if (greedyAction == null)
 						greedyAction = cn;
 					else {

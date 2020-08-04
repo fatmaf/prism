@@ -51,17 +51,17 @@ public class VisualiserLog {
 	}
 
 	public void newRollout(int rNum) {
-		currentRollout = "[beginRollout]{" + createKeyValueString("rollout", rNum);
+		currentRollout = "[beginRollout]{" + createKeyValueString("rollout", rNum) +"\n";
 	}
 
 	public void endRollout() {
-		currentRollout += currentStep + "}[endRollout]\n";
+		currentRollout += currentStep + "}[endRollout]\n\n\n";
 		mainLog.println(currentRollout);
 		currentRollout = "";
 	}
 
 	public void newStep(int trialNum) {
-		currentStep = "[beginStep]{" + createKeyValueString("step", trialNum);
+		currentStep = "\n\t[beginStep]{\n" + createKeyValueString("step", trialNum);
 
 	}
 
@@ -72,38 +72,38 @@ public class VisualiserLog {
 	}
 
 	public void addStateBit(DecisionNode d) {
-		currentStep += "state:{" + decisionNodeString(d) + "}";
+		currentStep += "\t\tstate:{" + decisionNodeString(d) + "}\n";
 	}
 
 	public void beginActionSelection() {
-		currentStep += "[beginActSel]{";
+		currentStep += "\n\t\t[beginActSel]{";
 
 	}
 
 	public void endActionSelectin() {
-		currentStep += "}[endActSel]";
+		currentStep += "}[endActSel]\n";
 	}
 
 	public void writeSelectedAction(ChanceNode d) {
-		currentStep += "selected:{" + chanceNodeString(d) + "}";
+		currentStep += "\n\t\tselected:{" + chanceNodeString(d) + "}";
 	}
 
 	public void writeActSelChoices(DecisionNode d) {
-		currentStep += "node:{" + decisionNodeString(d) + "}";
-		currentStep += "children:{";
+		currentStep += "\tnode:{" + decisionNodeString(d) + "}";
+		currentStep += "\n\t\t\tchildren:{\n";
 		if (d.getChildren() != null) {
 
 			boolean addSep = false;
 			for (Object a : d.getChildren().keySet()) {
 				if (addSep)
-					currentStep += ",";
+					currentStep += "\n";
 				if (d.getChild(a) != null) {
-					currentStep += "{" + chanceNodeString(d.getChild(a)) + "}";
+					currentStep += "\t\t\t{" + chanceNodeString(d.getChild(a)) + "}";
 					addSep = true;
 				}
 			}
 		}
-		currentStep += "}";
+		currentStep += "}\n";
 	}
 
 	public String decisionNodeString(DecisionNode d) {
@@ -116,11 +116,13 @@ public class VisualiserLog {
 
 	public String chanceNodeString(ChanceNode d) {
 		String towrite = "state:";
-		towrite += d.getState();
-		towrite += " action:";
+		if (d != null) {
+			towrite += d.getState();
+			towrite += " action:";
 
-		towrite += d.getAction() != null ? d.getAction().toString() : "null";
-		towrite += " bounds:" + getBoundsString(d);
+			towrite += d.getAction() != null ? d.getAction().toString() : "null";
+			towrite += " bounds:" + getBoundsString(d);
+		}
 		return towrite;
 
 	}

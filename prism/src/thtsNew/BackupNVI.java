@@ -70,6 +70,8 @@ public abstract class BackupNVI implements Backup {
 
 				for (Object a : n.getChildren().keySet()) {
 					ChanceNode cn = n.getChild(a);
+					if(cn.ignoreAction)
+						continue;
 					boolean updateUpperBounds = false;
 
 					for (Objectives obj : n.bounds.keySet()) {
@@ -100,6 +102,8 @@ public abstract class BackupNVI implements Backup {
 				}
 				for (Object a : n.getChildren().keySet()) {
 					ChanceNode cn = n.getChild(a);
+					if(cn.ignoreAction)
+						continue;
 					boolean updateLowerBounds = false;
 					for (Objectives obj : n.bounds.keySet()) {
 

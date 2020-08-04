@@ -148,10 +148,10 @@ public class SCCFinder {
 			System.out.println(sccString);
 			ArrayList<ChanceNode> exitActions = new ArrayList<>();
 			ArrayList<ChanceNode> stayActions = new ArrayList<>();
-			SCCType scctype = sccAnalyser(sccs.get(i), exitActions,stayActions);
+			SCCType scctype = sccAnalyser(sccs.get(i), exitActions, stayActions);
 			scctypes.add(scctype);
 			if (fixSCCs) {
-				anyFixed = anyFixed | fixSCC(sccs.get(i), scctype, exitActions,stayActions);
+				anyFixed = anyFixed | fixSCC(sccs.get(i), scctype, exitActions, stayActions);
 			}
 		}
 
@@ -175,9 +175,8 @@ public class SCCFinder {
 		}
 	}
 
-	boolean fixSCC(ArrayList<DecisionNode> scc, SCCType scctype,
-			ArrayList<ChanceNode> exitActions,ArrayList<ChanceNode> stayActions)
-			throws PrismException {
+	boolean fixSCC(ArrayList<DecisionNode> scc, SCCType scctype, ArrayList<ChanceNode> exitActions,
+			ArrayList<ChanceNode> stayActions) throws PrismException {
 		// so we just assign the min or max and thats it
 		// we do nothing else
 		// if permenant we assign + or - infinity
@@ -198,6 +197,7 @@ public class SCCFinder {
 			}
 			fixed = true;
 		} else if (scctype == SCCType.Transient) {
+			// if (scc.size() > 1) {
 			// so technically we want to collapse these into one big state
 			// but we just set the values to the best exit action
 			// from the exit actions lets find the best exit action
@@ -214,29 +214,36 @@ public class SCCFinder {
 //				d.setSolved();
 
 			}
-			for(ChanceNode cn: stayActions)
-			{
-				cn.setBounds(bestCN.bounds);
+
+			for (ChanceNode cn : stayActions) {
+				if (scc.size() > 1) {
+					cn.setBounds(bestCN.bounds);
+				}
+				if (scc.size() == 1)
+					cn.ignoreAction = true;
+
 			}
 			fixed = true;
+			// }
 		}
 		return fixed;
 	}
 
 	ChanceNode findBestAction(ArrayList<ChanceNode> cns) throws PrismException {
+		ChanceNode bestCN = null;
 		if (actSel != null) {
 			DecisionNode dummy = new DecisionNode(null, null, 1.0);
 			for (ChanceNode cn : cns) {
 				dummy.addChild(cn.getAction(), cn);
 			}
 
-			return actSel.selectAction(dummy, false);
+			bestCN = actSel.selectAction(dummy, false);
 		} else {
 			// lets just assume we have one objective cost
 			// minimise cost
 			Objectives obj = Objectives.Cost;
 			Bounds bestB = new Bounds(Double.MAX_VALUE, Double.MAX_VALUE);
-			ChanceNode bestCN = null;
+
 			for (ChanceNode cn : cns) {
 				if (cn.boundsInitialised()) {
 					Bounds b = cn.getBounds(obj);
@@ -247,8 +254,10 @@ public class SCCFinder {
 					}
 				}
 			}
-			return bestCN;
+
 		}
+		System.out.println("Best Action:" + bestCN);
+		return bestCN;
 
 	}
 
@@ -272,8 +281,9 @@ public class SCCFinder {
 		}
 	}
 
-	SCCType sccAnalyser(ArrayList<DecisionNode> scc, ArrayList<ChanceNode> exitActions,ArrayList<ChanceNode> stayActions) {
-		
+	SCCType sccAnalyser(ArrayList<DecisionNode> scc, ArrayList<ChanceNode> exitActions,
+			ArrayList<ChanceNode> stayActions) {
+
 		// perm => no actions that lead to a state outside of the scc even without the
 		// greedy ones //and goal isnt include
 		// tran => some actions that lead to a state outside of the scc using greedy
@@ -304,10 +314,10 @@ public class SCCFinder {
 				}
 				for (Object a : d.getChildren().keySet()) {
 					ChanceNode c = d.getChild(a);
-					boolean isExitAction = false; 
+					boolean isExitAction = false;
 					for (DecisionNode dc : c.getChildren()) {
 						if (!scc.contains(dc)) {
-							isExitAction = true; 
+							isExitAction = true;
 							exitFound = true;
 							if (!exitActions.contains(c))
 								exitActions.add(c);
@@ -330,8 +340,7 @@ public class SCCFinder {
 						}
 
 					}
-					if(!isExitAction)
-					{
+					if (!isExitAction) {
 						stayActions.add(c);
 					}
 				}

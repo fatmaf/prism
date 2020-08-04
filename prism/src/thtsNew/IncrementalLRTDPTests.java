@@ -1,18 +1,30 @@
 package thtsNew;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 
+import acceptance.AcceptanceOmega;
+import acceptance.AcceptanceType;
+import automata.DA;
+import explicit.LTLModelChecker;
 import parser.State;
+import parser.ast.Expression;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionQuant;
+import parser.ast.ExpressionReward;
 import parser.ast.ModulesFile;
+import parser.ast.PropertiesFile;
 import prism.DefaultModelGenerator;
 import prism.Prism;
 import prism.PrismDevNullLog;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
+import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
 
@@ -427,20 +439,26 @@ public class IncrementalLRTDPTests {
 
 	public void debugInstance() throws Exception {
 
-		String example = "tro_example_new_small_noprob";//"tro_example_new_small_allfailpaths";
-		int g = 4;//3;//6;
+		String example = "tro_example_new_small_noprob";// "tro_example_new_small_allfailpaths";
+		int g = 4;// 3;//6;
 		boolean debug = true;
 		boolean[] goalFoundAndSolved = nestedLRTDPDoorsAvoid(g, debug);// nestedLRTDPAvoid(example, g, debug);
 		if (goalFoundAndSolved[1] == false)
 			System.out.println("Not Solved");
 	}
 
+	public void currentWIP() throws Exception {
+		int g = 4;
+		boolean debug = true;
+		boolean[] goalFoundAndSolved = nestedLRTDPDoorsAvoidProductSingleAgent(g, debug);
+	}
+
 	public static void main(String[] args) {
 		try {
 			IncrementalLRTDPTests tester = new IncrementalLRTDPTests();
 			String options[] = { "all", "lrtdp_deadends", "nested_lrtdp_deadends_doors", "nested_lrtdp_deadends",
-					"help", "-h", "nested_lrtdp_deadends_doors_avoid","debugInstance"};
-			String option = "debugInstance";//"all";
+					"help", "-h", "nested_lrtdp_deadends_doors_avoid", "debugInstance", "currentWIP" };
+			String option = "currentWIP";// "debugInstance";//"all";
 			if (args.length > 1) {
 				System.out.println(Arrays.deepToString(args));
 				option = args[0];
@@ -460,12 +478,11 @@ public class IncrementalLRTDPTests {
 				System.out.println("Available options " + Arrays.toString(options));
 			} else if (option.contentEquals(options[6])) {
 				tester.testNestedLRTDPDoorsAvoid();
-			} 
-			else if (option.contentEquals(options[7]))
-			{
+			} else if (option.contentEquals(options[7])) {
 				tester.debugInstance();
-			}
-			else {
+			} else if (option.contentEquals(options[8])) {
+				tester.currentWIP();
+			} else {
 				System.out
 						.println("Unimplemented option " + option + "\nAvailable options " + Arrays.toString(options));
 			}
@@ -592,6 +609,249 @@ public class IncrementalLRTDPTests {
 		return goalack;
 	}
 
+	public MultiAgentNestedProductModelGenerator createMAMG(Prism prism, PrismLog mainLog, ArrayList<String> filenames,
+			String propertiesFileName, String resultsLocation, boolean hasSharedState)
+			throws PrismException, FileNotFoundException {
+
+		AcceptanceType[] allowedAcceptance = { AcceptanceType.RABIN, AcceptanceType.REACH };
+
+		// step 1
+		// create the modulesfilemodelgenerators
+		ArrayList<ModulesFileModelGenerator> mfmodgens = new ArrayList<>();
+		ModulesFile modulesFile = null; // just here so we can use the last modules file for our properties
+
+		for (String modelFileName : filenames) {
+			mainLog.println("Loading model gen for " + modelFileName);
+			modulesFile = prism.parseModelFile(new File(modelFileName)); // because the models are uniform
+			// we might have to find a way to change this later
+			ModulesFileModelGenerator modGen = new ModulesFileModelGenerator(modulesFile, prism);
+			mfmodgens.add(modGen);
+		}
+		// step 2
+		// load all the exprs and remember to check them
+		mainLog.println("Loading properties ");
+		PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propertiesFileName));
+		List<Expression> processedExprs = new ArrayList<Expression>();
+		int safetydaind = -1;
+		Expression safetyexpr = null;
+		for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
+			mainLog.println(propertiesFile.getProperty(i));
+			// so reward + safety
+			boolean isSafeExpr = false;
+			Expression exprHere = propertiesFile.getProperty(i);
+
+			Expression daExpr = ((ExpressionQuant) exprHere).getExpression();
+			isSafeExpr = !Expression.isCoSafeLTLSyntactic(daExpr, true);
+			if (isSafeExpr) {
+				if (safetyexpr != null) {
+					// two safety exprs? lets and this stuff
+					// TODO: could this cause problems ? //like if one was min and max since we're
+					// ignoring those
+					safetyexpr = Expression.And(safetyexpr, daExpr);
+				} else
+					safetyexpr = daExpr;
+
+			}
+
+			if (!isSafeExpr)
+				processedExprs.add(daExpr);
+		}
+		// we've got the safety stuff left
+		// we need to not it
+		Expression notsafetyexpr = Expression.Not(safetyexpr);
+		safetydaind = processedExprs.size();
+		processedExprs.add(safetyexpr);
+
+		mainLog.println("Properties " + processedExprs.toString());
+		// hmmmm so this is important I guess
+		// and we have a single safety da okay
+		// oooo reward structures we don't have to care about
+		// right o -lets do this
+		// for the honor of greyskull
+
+		LTLModelChecker ltlMC = new LTLModelChecker(prism);
+
+		ArrayList<List<Expression>> labelExprsList = new ArrayList<List<Expression>>();
+		ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das = new ArrayList<DA<BitSet, ? extends AcceptanceOmega>>();
+		for (int i = 0; i < processedExprs.size(); i++) {
+			List<Expression> labelExprs = new ArrayList<Expression>();
+
+			Expression expr = (Expression) processedExprs.get(i);
+			// this will need to be changed if you've got different variables accross models
+			// then its better to do the v=5 stuff in the prop files and just ignore labels
+			expr = (Expression) expr.expandPropRefsAndLabels(propertiesFile, modulesFile.getLabelList());
+			DA<BitSet, ? extends AcceptanceOmega> da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs,
+					allowedAcceptance);
+			da.setDistancesToAcc();
+			PrismLog out = new PrismFileLog(resultsLocation + "da_" + i + ".dot");
+			// printing the da
+			da.print(out, "dot");
+			out.close();
+			labelExprsList.add(labelExprs);
+			das.add(da);
+			mainLog.println("Created DA for " + expr.toString());
+		}
+		ArrayList<String> sharedStateVars = new ArrayList<String>();
+		if (hasSharedState)
+			sharedStateVars.add("door0");
+//		sharedStateVars = null;
+		MultiAgentNestedProductModelGenerator mapmg = new MultiAgentNestedProductModelGenerator(mfmodgens, das,
+				labelExprsList, safetydaind, sharedStateVars);
+
+		return mapmg;
+	}
+
+	boolean[] nestedLRTDPDoorsAvoidProductSingleAgent(int stateVal, boolean debug) throws Exception {
+		System.out.println(System.getProperty("user.dir"));
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+
+		String example = "tro_example_new_small";
+
+//		example = "tro_example_new_small_allfailpaths";//"tro_example_new_small_onefailaction";//"tro_example_new_small_noprob";
+		boolean hasSharedState = false;
+		PrismLog mainLog;
+		if (debug)
+			mainLog = new PrismFileLog("stdout");
+		else
+			mainLog = new PrismDevNullLog();
+
+		Prism prism = new Prism(mainLog);
+		String combString = "_prob_cost_lrtdp_avoid_prod";
+		String algoIden = "rtdp" + combString;
+		PrismLog fileLog = new PrismFileLog(
+				resultsLocation + "log_" + example + "_g_" + stateVal + "_" + algoIden + "_justmdp" + ".txt");//
+
+		prism.initialise();
+		prism.setEngine(Prism.EXPLICIT);
+
+		mainLog.println("Initialised Prism");
+
+		// create a single agent model generator first
+
+		AcceptanceType[] allowedAcceptance = { AcceptanceType.RABIN, AcceptanceType.REACH };
+//
+		List<Expression> labelExprs = new ArrayList<Expression>();
+
+		String modelFileName = testsLocation + example + "0.prism";
+		ModulesFile modulesFile = prism.parseModelFile(new File(modelFileName)); // because the models are uniform
+		String propertiesFileName = testsLocation + example + ".prop";
+
+		ArrayList<String> filenames = new ArrayList<>();
+		filenames.add(modelFileName);
+		// so we want to create a single agent model generator
+		// good test
+		PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propertiesFileName));
+
+		// the assumption is that its a reward expr for now
+		Expression exprHere = propertiesFile.getProperty(0);
+		ExpressionReward exprRew = (ExpressionReward) exprHere;
+		Expression expr = exprRew.getExpression();
+		ModulesFileModelGenerator modGen = new ModulesFileModelGenerator(modulesFile, prism);
+		LTLModelChecker ltlMC = new LTLModelChecker(prism);
+
+		DA<BitSet, ? extends AcceptanceOmega> da = ltlMC.constructExpressionDAForLTLFormula(expr, // .getExpression(),
+				labelExprs, allowedAcceptance);
+
+		da.printDot(System.out);
+		SingleAgentProductModelGenerator saModelGen = new SingleAgentProductModelGenerator(modGen, da, labelExprs);
+//		MDPModelGenerator mdpModGen = new MDPModelGenerator(modGen);
+
+		int maxRollouts = 1000;
+		int trialLen = 50;
+		float epsilon = 0.0001f;
+
+		double hval = 20;
+
+		List<State> gs = new ArrayList<State>();
+		List<State> deadend = new ArrayList<State>();
+		for (int j = -1; j < 2; j++) {
+			for (int i = 1; i < 2; i++) {
+
+				State goalState1 = new State(3);
+				// State goalState1 = new State(2);
+				goalState1.setValue(0, stateVal);
+				goalState1.setValue(1, j);
+				goalState1.setValue(2, i);
+				gs.add(goalState1);
+			}
+		}
+		int[] deadendvals = { -1,5};
+		for (int j = -1; j < 2; j++) {
+			for (int deadendval : deadendvals) {
+				for (int i = 1; i < 4; i++) {
+					State de1 = new State(3);
+					// State de1 = new State(2);
+					de1.setValue(0, deadendval);
+					de1.setValue(1, j);
+					de1.setValue(2, i);
+					deadend.add(de1);
+				}
+			}
+		}
+
+		Heuristic heuristicFunction = new EmptySingleAgentHeuristic(saModelGen,gs,deadend,hval);
+				//new EmptyHeuristic(gs, deadend, hval);
+		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+		tieBreakingOrder.add(Objectives.Probability);
+		tieBreakingOrder.add(Objectives.Cost);
+
+		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+
+		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+
+		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+
+		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+
+		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+
+		mainLog.println("Initialising Full Bellman Backup Function");
+		fileLog.println("Initialising Full Bellman Backup Function");
+
+		BackupNVI backupFunction = new BackupLabelledFullBelman(tieBreakingOrder, actionSelection, epsilon);
+
+		mainLog.println("Initialising Reward Helper Function");
+		fileLog.println("Initialising Reward Helper Function");
+
+		RewardHelper rewardH = new RewardHelperMDP(saModelGen);
+
+		mainLog.println("Max Rollouts: " + maxRollouts);
+		mainLog.println("Max TrialLen: " + trialLen);
+		fileLog.println("Max Rollouts: " + maxRollouts);
+		fileLog.println("Max TrialLen: " + trialLen);
+
+		mainLog.println("\nInitialising THTS");
+		fileLog.println("\nInitialising THTS");
+		boolean doForwardBackup = true;
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) saModelGen, maxRollouts, trialLen,
+				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
+				tieBreakingOrder, mainLog, fileLog);
+
+		mainLog.println("\nBeginning THTS");
+		fileLog.println("\nBeginning THTS");
+		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
+		thts.setResultsLocation(resultsLocation);
+		thts.run(false);
+
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+				resultsLocation);
+		mainLog.println("Goal Found: "+goalack[0]); 
+		mainLog.println("Initial State Solved: "+goalack[1]);
+		return goalack;
+	}
+
 	boolean[] nestedLRTDPDoorsAvoid(int stateVal, boolean debug) throws Exception {
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
@@ -649,8 +909,8 @@ public class IncrementalLRTDPTests {
 				deadend.add(de1);
 			}
 		}
-		double hval = 20; 
-		Heuristic heuristicFunction = new EmptyHeuristic(gs, deadend,hval);
+		double hval = 20;
+		Heuristic heuristicFunction = new EmptyHeuristic(gs, deadend, hval);
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.Probability);
 		tieBreakingOrder.add(Objectives.Cost);
@@ -884,7 +1144,7 @@ public class IncrementalLRTDPTests {
 		deadend.add(de1);
 
 		double hval = 20;
-		Heuristic heuristicFunction = new EmptyHeuristic(gs, deadend,hval);
+		Heuristic heuristicFunction = new EmptyHeuristic(gs, deadend, hval);
 
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.Probability);
@@ -1200,7 +1460,7 @@ public class IncrementalLRTDPTests {
 		deadend.add(de1);
 
 		double hval = 20;
-		Heuristic heuristicFunction = new EmptyHeuristic(gs, deadend,hval);
+		Heuristic heuristicFunction = new EmptyHeuristic(gs, deadend, hval);
 
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.Cost);

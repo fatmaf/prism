@@ -301,11 +301,11 @@ public class TrialBasedTreeSearch {
 			// backupChanceNode(n)
 //			if (n.getShortName().contains("2,-1,0,0,0"))
 //				mainLog.println("debughere");
-			backup.backupChanceNode(n, doBackup);
-			mainLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
-					+ n.numVisits + ",B:" + n.getBoundsString());
-			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
-					+ n.numVisits + ",B:" + n.getBoundsString());
+//			backup.backupChanceNode(n, doBackup);
+//			mainLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+//					+ n.numVisits + ",B:" + n.getBoundsString());
+//			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+//					+ n.numVisits + ",B:" + n.getBoundsString());
 
 		}
 		return doBackup;
@@ -362,6 +362,8 @@ public class TrialBasedTreeSearch {
 		ChanceNode selected = actSel.selectAction(n0, doMin);
 		vl.writeSelectedAction(selected);
 		vl.endActionSelectin();
+		if(selected == null)
+			System.out.println("meh");
 		return selected;
 	}
 
@@ -472,6 +474,7 @@ public class TrialBasedTreeSearch {
 //			if (d.getShortName().contains("4,0,0,1,0"))
 //				mainLog.println("debug");
 			if (d.canHaveChildren() && !d.isLeafNode()) {
+				mainLog.println(d.getChildren());
 				ChanceNode a = actSelrt.selectAction(d, false);
 				// get these children
 				if (a != null) {

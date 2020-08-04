@@ -19,6 +19,7 @@ public class ChanceNode extends Node {
 	boolean leadToDeadend =false; 
 	int numChildren = 0; 
 	HashMap<Objectives,Double> rewards;
+	boolean ignoreAction = false;
 
 	
 	public ChanceNode(Node parent, State s, Object a, int actionChoice,HashMap<Objectives, Bounds> bounds, ArrayList<Bounds> cost) {
