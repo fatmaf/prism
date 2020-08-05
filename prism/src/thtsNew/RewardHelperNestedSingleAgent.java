@@ -4,30 +4,30 @@ package thtsNew;
 import prism.PrismException;
 import thts.Objectives;
 
-public class RewardHelperMultiAgent implements RewardHelper {
+public class RewardHelperNestedSingleAgent implements RewardHelper {
 
-	MultiAgentNestedProductModelGenerator mapmg;
-	HelperClass.RewardCalculation rewCalc;
+	NestedProductModelGenerator singleAgentNestedProduct;
 
 
-	public RewardHelperMultiAgent(MultiAgentNestedProductModelGenerator mapmg, HelperClass.RewardCalculation rewCalc) {
-		this.mapmg = mapmg;
-		this.rewCalc = rewCalc;
+	public RewardHelperNestedSingleAgent(NestedProductModelGenerator singleAgentNestedProduct) {
+		this.singleAgentNestedProduct = singleAgentNestedProduct;
 
 	}
 
+
 	@Override
 	public double getReward(Objectives obj, ChanceNode n) throws PrismException {
-		mapmg.exploreState(n.getState());
+		singleAgentNestedProduct.exploreState(n.getState());
 		double rew=0;
 
 		switch (obj) {
 		case TaskCompletion: {
-			rew = mapmg.getStateActionTaskReward(n.actionChoice);
+			rew = singleAgentNestedProduct.getStateActionTaskCompletionReward(n.getState(), n.actionChoice);
+
 			break;
 		}
 		case Cost: {
-			rew = mapmg.getStateActionReward(0,n.getState(),n.getAction(), rewCalc);
+			rew = singleAgentNestedProduct.getStateActionReward(0,n.getState(),n.getAction());
 			break;
 		}
 		case Progression:

@@ -338,7 +338,7 @@ public class TestThings {
 
 		mc.setModelCheckingInfo(modelInfo, altPropertiesFile, (RewardGenerator) prismModelGen);
 		// so lets find out how many properties there are
-		MDP oldproduct = null;
+//		MDP oldproduct = null;
 
 		ExpressionReward rewExpr = null;
 		Expression safetyExpr = null;
@@ -368,8 +368,8 @@ public class TestThings {
 		otherExpressions.add(((ExpressionQuant) rewExpr).getExpression());
 		otherExpressions.add(safetyExpr);
 
-		ProbModelChecker pmc = new ProbModelChecker(prism);
-		oldproduct = mdp;
+//		ProbModelChecker pmc = new ProbModelChecker(prism);
+//		oldproduct = mdp;
 
 		ArrayList<List<Expression>> labelExprsList = new ArrayList<List<Expression>>();
 		ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das = new ArrayList<DA<BitSet, ? extends AcceptanceOmega>>();
@@ -381,7 +381,7 @@ public class TestThings {
 			expr = (Expression) expr.expandPropRefsAndLabels(altPropertiesFile, modulesFile.getLabelList());
 			da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs, allowedAcceptance);
 			da.setDistancesToAcc();
-			BitSet daAccStates = da.getAccStates();
+//			BitSet daAccStates = da.getAccStates();
 			PrismLog out = new PrismFileLog(resultsLocation + "da_" + i + ".dot");
 			// printing the da
 			da.print(out, "dot");
@@ -395,7 +395,7 @@ public class TestThings {
 		List<Expression> labelExprs = new ArrayList<Expression>();
 		da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs, allowedAcceptance);
 		da.setDistancesToAcc();
-		BitSet daAccStates = da.getAccStates();
+//		BitSet daAccStates = da.getAccStates();
 		PrismLog out = new PrismFileLog(resultsLocation + "da_safety.dot");
 		// printing the da
 		da.print(out, "dot");

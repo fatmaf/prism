@@ -3,6 +3,8 @@ package thts;
 public class Bounds{
 	double upper; 
 	double lower; 
+	
+	
 	public Bounds()
 	{
 		upper = 0; 
@@ -19,6 +21,10 @@ public class Bounds{
 	public Bounds multiply(double m)
 	{
 		return new Bounds(upper*m, lower*m);
+	}
+	public Bounds min(double m)
+	{
+		return new Bounds(Math.min(upper,m),Math.min(lower,m));
 	}
 	public Bounds(double u, double l)
 	{
