@@ -470,14 +470,53 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 
 	public boolean isAvoidState(State state) {
 		BitSet daAccs = getDAAccsForState(state);
-		return !daAccs.get(safetyDAIndex);
+		return daAccs.get(safetyDAIndex);
+	}
+
+	public boolean isDeadend(State state) throws PrismException {
+		boolean resetState = false;
+		boolean toret = false;
+		State currentES = getExploreState();
+		if (currentES == null) {
+			exploreState(state);
+		} else {
+			if (state.compareTo(currentES) != 0) {
+				exploreState(state);
+				resetState = true;
+			}
+		}
+		int numC = this.getNumChoices();
+		if (numC < 2) {
+			if (numC == 0)
+				toret = true;
+
+			for (int c = 0; c < numC; c++) {
+				int numT = this.getNumTransitions(c);
+				if (numT == 1) {
+					State endState = this.computeTransitionTarget(c, 0);
+					if (endState.compareTo(state) == 0)
+						toret = true;
+				}
+			}
+		}
+		if (resetState)
+			exploreState(currentES);
+		return toret;
+	}
+
+	
+	private State getExploreState() {
+		// TODO Auto-generated method stub
+		return exploreState;
 	}
 
 	public boolean isAccState(State state) {
 		boolean acc = true;
 		BitSet daAccs = getDAAccsForState(state);
-		if (!daAccs.get(safetyDAIndex))
+		if(safetyDAIndex != -1) {
+		if (daAccs.get(safetyDAIndex))
 			acc = false;
+		}
 		if (acc) {
 			for (int d = 0; d < das.size(); d++) {
 				if (d != safetyDAIndex) {

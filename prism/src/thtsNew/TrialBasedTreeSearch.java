@@ -212,6 +212,8 @@ public class TrialBasedTreeSearch {
 			fileLog.println(
 					"Step:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
 			vl.addStateBit(n);
+			if(n.getState().toString().contains("2,6,-1,0,1,0"))
+				mainLog.println("debug");
 			// mark for goal or deadend
 //			n.isGoal = rewH.isGoal(n);
 //			n.isDeadend = rewH.isDeadend(n);

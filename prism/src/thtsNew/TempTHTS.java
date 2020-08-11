@@ -423,7 +423,8 @@ public class TempTHTS {
 		mainLog.println("\nInitialising Multi Agent Heuristic Function");
 		fileLog.println("\nInitialising Multi Agent Heuristic Function");
 		
-		Heuristic heuristicFunction = new EmptyMultiAgentHeuristic(costH,mapmg,deadendCost,dodeadends);//new EmptyHeuristic();//new MultiAgentHeuristic(mapmg,singleAgentSolutions);
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristic(mapmg,null,null,costH);
+		//new EmptyNestedMultiAgentHeuristic(costH,mapmg,deadendCost,dodeadends);//new EmptyHeuristic();//new MultiAgentHeuristic(mapmg,singleAgentSolutions);
 
 		//lets see if we can get a heuristic for each state in the model 
 		//from the initial state 
