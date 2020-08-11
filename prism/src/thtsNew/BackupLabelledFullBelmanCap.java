@@ -9,14 +9,15 @@ import thts.Objectives;
 
 public class BackupLabelledFullBelmanCap extends BackupNVI {
 
-	ArrayList<Objectives> tieBreakingOrder;
+//	ArrayList<Objectives> tieBreakingOrder;
 	float epsilon;
 	ActionSelector actSel;
 	double maxCost;
 
 	public BackupLabelledFullBelmanCap(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
 			double maxCost) {
-		this.tieBreakingOrder = tieBreakingOrder;
+//		this.tieBreakingOrder = tieBreakingOrder;
+		super(tieBreakingOrder);
 		this.epsilon = epsilon;
 		this.actSel = actSel;
 		this.maxCost = maxCost;
@@ -134,8 +135,9 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 				if (obj == Objectives.Cost) {
 
 					sumHere = sumHere.min(maxCost);
-					if(sumHere.getLower() > maxCost)
-						System.out.println("debug");					
+//					if (sumHere.getLower() >= maxCost)
+//						cn.leadToDeadend = true;
+
 				}
 				cn.setBounds(obj, sumHere);
 			}
@@ -244,9 +246,16 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 
 				}
 				dn.setBounds(bestBoundsH);
+//				if (tieBreakingOrder.contains(Objectives.Cost)) {
+//					Bounds cbounds = dn.getBounds(Objectives.Cost);
+//					if (cbounds.getLower() == maxCost) {
+//						dn.isDeadend = true;
+//					}
+//				}
 			}
 		}
 
+		
 //		return true;
 	}
 

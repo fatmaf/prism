@@ -163,7 +163,7 @@ public class TrialBasedTreeSearch {
 			Node n0 = getRootNode();
 //			while (!n0.isSolved() || notTimedOut()) {
 
-				trialMDP = null;// new MDPCreator();
+				trialMDP = new MDPCreator();
 				visitDecisionNode((DecisionNode) n0);
 
 				if (resultsLocation != null) {
@@ -301,11 +301,11 @@ public class TrialBasedTreeSearch {
 			// backupChanceNode(n)
 //			if (n.getShortName().contains("2,-1,0,0,0"))
 //				mainLog.println("debughere");
-//			backup.backupChanceNode(n, doBackup);
-//			mainLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
-//					+ n.numVisits + ",B:" + n.getBoundsString());
-//			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
-//					+ n.numVisits + ",B:" + n.getBoundsString());
+			backup.backupChanceNode(n, doBackup);
+			mainLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+					+ n.numVisits + ",B:" + n.getBoundsString());
+			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+					+ n.numVisits + ",B:" + n.getBoundsString());
 
 		}
 		return doBackup;

@@ -8,12 +8,18 @@ import thts.Objectives;
 
 public abstract class BackupNVI implements Backup {
 
+	
+	ArrayList<Objectives> tieBreakingOrder;
 	// take in a decisionnode
 	// take in a chancenode
 	// just update them
 	// the boolean dobackup is always true // except for lrtdp style backups
 	// just return whether a node has been backed up or not
 	// again always true unless lrtdp style
+	public BackupNVI(ArrayList<Objectives> tieBreakingOrder)
+	{
+		this.tieBreakingOrder = tieBreakingOrder;
+	}
 	public abstract boolean backupChanceNode(ChanceNode cn, boolean doBackup);
 
 	public abstract boolean backupDecisionNode(DecisionNode dn, boolean doBackup);
@@ -61,7 +67,7 @@ public abstract class BackupNVI implements Backup {
 		if (n.getChildren() != null) {
 			if (n.allChildrenInitialised()) {
 				HashMap<Objectives, Bounds> bestBoundsH = new HashMap<>();
-				for (Objectives obj : n.bounds.keySet()) {
+				for (Objectives obj : tieBreakingOrder) {
 					Bounds bestBounds = new Bounds();
 					bestBounds.setUpper(getObjectiveExtremeValueInit(obj));
 					bestBounds.setLower(getObjectiveExtremeValueInit(obj));
@@ -74,7 +80,7 @@ public abstract class BackupNVI implements Backup {
 						continue;
 					boolean updateUpperBounds = false;
 
-					for (Objectives obj : n.bounds.keySet()) {
+					for (Objectives obj : tieBreakingOrder) {
 
 						Bounds bestBounds = bestBoundsH.get(obj);
 						if (cn.hasBounds()) {
@@ -92,7 +98,7 @@ public abstract class BackupNVI implements Backup {
 
 					}
 					if (updateUpperBounds) {
-						for (Objectives obj : n.bounds.keySet()) {
+						for (Objectives obj : tieBreakingOrder) {
 							Bounds b = cn.getBounds(obj);
 							Bounds bestBounds = bestBoundsH.get(obj);
 							bestBounds.setUpper(b.getUpper());
@@ -105,7 +111,7 @@ public abstract class BackupNVI implements Backup {
 					if(cn.ignoreAction)
 						continue;
 					boolean updateLowerBounds = false;
-					for (Objectives obj : n.bounds.keySet()) {
+					for (Objectives obj : tieBreakingOrder) {
 
 						Bounds bestBounds = bestBoundsH.get(obj);
 						if (cn.hasBounds()) {
@@ -123,7 +129,7 @@ public abstract class BackupNVI implements Backup {
 					}
 					if (updateLowerBounds) {
 
-						for (Objectives obj : n.bounds.keySet()) {
+						for (Objectives obj : tieBreakingOrder) {
 							Bounds b = cn.getBounds(obj);
 							Bounds bestBounds = bestBoundsH.get(obj);
 							bestBounds.setLower(b.getLower());
@@ -132,7 +138,7 @@ public abstract class BackupNVI implements Backup {
 
 				}
 				residual = new HashMap<>();
-				for (Objectives obj : n.bounds.keySet()) {
+				for (Objectives obj : tieBreakingOrder) {
 
 					Bounds currentBounds = n.getBounds(obj);
 					Bounds bestBounds = bestBoundsH.get(obj);

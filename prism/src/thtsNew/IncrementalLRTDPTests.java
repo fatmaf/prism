@@ -738,9 +738,9 @@ public class IncrementalLRTDPTests {
 
 	boolean[] nestedLRTDPDoorsAvoidProductNestedSingleAgentTaskCompletion(boolean debug) throws Exception {
 		boolean goalFound = false;
-		double[] hvals = { 20, 50, 200, 500, 1000, 2000, 10000 };
+		double[] hvals = {  500,1000,2000,10000};
 		int[] rollouts = { 1000, 2000, 5000, 10000 };
-		int[] trialLens = { 50, 100, 200, 500 };
+		int[] trialLens = {  50, 100, 200, 500 };
 		double hval = 20;// trialLen;//trialLen*maxRollouts;
 		boolean[] goalack = new boolean[2];
 
@@ -752,9 +752,6 @@ public class IncrementalLRTDPTests {
 					int trialLen = trialLens[trialLennum];
 
 					float epsilon = 0.0001f;
-
-					if (goalFound)
-						break;
 
 					System.out.println(System.getProperty("user.dir"));
 					String currentDir = System.getProperty("user.dir");
@@ -953,9 +950,14 @@ public class IncrementalLRTDPTests {
 					goalFound = goalack[0];
 					mainLog.println("Goal Found: " + goalack[0]);
 					mainLog.println("Initial State Solved: " + goalack[1]);
+					System.in.read();
 
 				}
+				if (goalFound)
+					break;
 			}
+			if (goalFound)
+				break;
 		}
 		return goalack;
 	}

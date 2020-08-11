@@ -1,0 +1,4 @@
+//we can also do labels but right now i'm just doing this cuz its easy
+R{"time"}min=? [ F (s=0) ]
+Pmax=? [F (s=4)]
+//Pmax=?[G (!(s=5))]

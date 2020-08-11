@@ -142,8 +142,7 @@ public class NestedProductModelGenerator extends DefaultModelGenerator {// imple
 				break; // kya?
 			}
 			if (i == safetyDAIndex) {
-				toret = false;
-				break;
+				continue;
 			}
 
 			AcceptanceReach accReach = (AcceptanceReach) acc;
@@ -207,8 +206,54 @@ public class NestedProductModelGenerator extends DefaultModelGenerator {// imple
 			rew += (double) numTasks * tranProb;
 
 		}
-			return rew;
+		return rew;
 
+	}
+
+	public boolean isAvoid(State state) {
+		boolean toret = false;
+		if (safetyDAIndex != -1) {
+			DA<BitSet, ? extends AcceptanceOmega> da = das.get(safetyDAIndex);
+			AcceptanceOmega acc = da.getAcceptance();
+			AcceptanceReach accReach = (AcceptanceReach) acc;
+			boolean isacc = accReach.getGoalStates().get(getDAState(safetyDAIndex, state));
+			if (isacc) {
+				toret = true;
+			}
+		}
+
+		return toret;
+	}
+
+	public boolean isDeadend(State state) throws PrismException {
+		boolean resetState = false;
+		boolean toret = false;
+		State currentES = getExploreState();
+		if (currentES == null) {
+			exploreState(state);
+		} else {
+			if (state.compareTo(currentES) != 0) {
+				exploreState(state);
+				resetState = true;
+			}
+		}
+		int numC = this.getNumChoices();
+		if (numC < 2) {
+			if (numC == 0)
+				toret = true;
+
+			for (int c = 0; c < numC; c++) {
+				int numT = this.getNumTransitions(c);
+				if (numT == 1) {
+					State endState = this.computeTransitionTarget(c, 0);
+					if (endState.compareTo(state) == 0)
+						toret = true;
+				}
+			}
+		}
+		if (resetState)
+			exploreState(currentES);
+		return toret;
 	}
 
 	public boolean isReachAcceptanceGoalState(State state) {
@@ -224,8 +269,7 @@ public class NestedProductModelGenerator extends DefaultModelGenerator {// imple
 				break;
 			}
 			if (i == safetyDAIndex) {
-				toret = false;
-				break;
+				continue;
 			}
 			AcceptanceReach accReach = (AcceptanceReach) acc;
 			boolean isacc = accReach.getGoalStates().get(getDAState(i, state));

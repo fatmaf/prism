@@ -12,14 +12,15 @@ import thts.Objectives;
 //and then do backup just means you set all the other nodes to solved 
 public class BackupFullBellmanRTDP extends BackupNVI {
 
-	ArrayList<Objectives> tieBreakingOrder;
+//	ArrayList<Objectives> tieBreakingOrder;
 
 	double deadendCost;
 
 	double epsilon;
 
 	public BackupFullBellmanRTDP(ArrayList<Objectives> tieBreakingOrder, double deadendCost, double epsilon) {
-		this.tieBreakingOrder = tieBreakingOrder;
+//		this.tieBreakingOrder = tieBreakingOrder;
+		super(tieBreakingOrder);
 		this.deadendCost = deadendCost;
 		this.epsilon = epsilon;
 	}

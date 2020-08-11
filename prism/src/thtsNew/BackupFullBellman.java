@@ -9,11 +9,11 @@ import thts.Objectives;
 
 public class BackupFullBellman extends BackupNVI {
 
-	ArrayList<Objectives> tieBreakingOrder;
 
 	double deadendCost; 
 	public BackupFullBellman(ArrayList<Objectives> tieBreakingOrder,double deadendCost) {
-		this.tieBreakingOrder = tieBreakingOrder;
+//		this.tieBreakingOrder = tieBreakingOrder;
+		super(tieBreakingOrder);
 		this.deadendCost = deadendCost;
 	}
 

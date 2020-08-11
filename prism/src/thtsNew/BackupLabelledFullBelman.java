@@ -9,12 +9,13 @@ import thts.Objectives;
 
 public class BackupLabelledFullBelman extends BackupNVI {
 
-	ArrayList<Objectives> tieBreakingOrder;
+//	ArrayList<Objectives> tieBreakingOrder;
 	float epsilon;
 	ActionSelector actSel;
 
 	public BackupLabelledFullBelman(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon) {
-		this.tieBreakingOrder = tieBreakingOrder;
+//		this.tieBreakingOrder = tieBreakingOrder;
+		super(tieBreakingOrder);
 		this.epsilon = epsilon;
 		this.actSel = actSel;
 	}

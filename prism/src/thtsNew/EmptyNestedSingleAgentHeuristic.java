@@ -95,12 +95,20 @@ public class EmptyNestedSingleAgentHeuristic implements Heuristic {
 
 	}
 
-	public boolean isDeadend(State s) {
-		if(s.toString().contains("-1,-1,0,1,0"))
-			System.out.println("debug");
-		if (deadends == null)
-			return false;
-		else {
+	public boolean isDeadend(State s) throws PrismException {
+
+		if (deadends == null) {
+			if (sa == null)
+				return false;
+			else {
+				boolean deadend = sa.isAvoid(s);
+				if (!deadend) {
+					deadend = sa.isDeadend(s);// check if no outgoing or incoming
+
+				}
+				return deadend;
+			}
+		} else {
 			boolean toret = false;
 			for (State de : deadends) {
 				if (s.compareTo(de) == 0) {
