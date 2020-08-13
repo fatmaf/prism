@@ -212,7 +212,7 @@ public class TrialBasedTreeSearch {
 			fileLog.println(
 					"Step:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
 			vl.addStateBit(n);
-			if(n.getState().toString().contains("2,6,-1,0,1,0"))
+			if(n.getState().toString().contains("1,4,-1,0,1,0"))
 				mainLog.println("debug");
 			// mark for goal or deadend
 //			n.isGoal = rewH.isGoal(n);
@@ -321,12 +321,15 @@ public class TrialBasedTreeSearch {
 
 		if (n0 instanceof DecisionNode) {
 
+			
 			HashMap<Objectives, Bounds> nodehs = hf.getStateBounds(tieBreakingOrder, (DecisionNode) n0);
-
+//			mainLog.println(n0.getShortName()+" Set Node H: "+nodehs.toString());
+//			fileLog.println(n0.getShortName()+" Set Node H: "+nodehs.toString());
 			((DecisionNode) n0).setBounds(nodehs);
 		} else if (n0 instanceof ChanceNode) {
 			hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNode) n0);
-
+//			mainLog.println(n0.getShortName()+" Set Node H: "+n0.getBoundsString());
+//			fileLog.println(n0.getShortName()+" Set Node H: "+n0.getBoundsString());
 		}
 
 	}
@@ -393,9 +396,9 @@ public class TrialBasedTreeSearch {
 			}
 			// TODO: double check if we need this???
 			// I dont think we do // cuz we do two levels
-			if (backup instanceof BackupFullBellman) {
+			if (backup instanceof BackupNVI) {
 				for (DecisionNode child : n0.getChildren()) {
-					setNodeHeuristics(child);
+ 					setNodeHeuristics(child);
 				}
 			}
 

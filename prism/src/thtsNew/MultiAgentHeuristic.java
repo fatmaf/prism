@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import parser.State;
 import prism.PrismException;
+import prism.PrismLog;
 import thts.Bounds;
 import thts.Objectives;
 
@@ -17,6 +18,7 @@ public class MultiAgentHeuristic implements Heuristic {
 	int numtasks = 0;
 	double maxCost;
 
+	
 	public MultiAgentHeuristic(MultiAgentNestedProductModelGenerator mapmg,
 			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns, double maxCost) {
 		this.mapmg = mapmg;
@@ -48,6 +50,10 @@ public class MultiAgentHeuristic implements Heuristic {
 				if (obj == Objectives.TaskCompletion) {
 					// not sure if this is the smartest
 					sumHere.setUpper(Math.min(sumHere.getUpper(), (double) this.numtasks));
+				}
+				else if(obj == Objectives.Cost)
+				{
+					sumHere=sumHere.min(maxCost);
 				}
 				n.setBounds(obj, sumHere);
 			}

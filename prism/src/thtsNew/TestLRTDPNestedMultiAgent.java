@@ -202,8 +202,8 @@ public class TestLRTDPNestedMultiAgent {
 
 	public void currentWIP() throws Exception {
 		boolean debug = true;
-//		this.noprobabilitiesSingleAgentSolH(debug);
-		unavoidableWarehouse(debug);
+		unavoidableSingleAgentSolH(debug);
+//		unavoidableWarehouse(debug);
 	}
 
 	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
@@ -222,6 +222,152 @@ public class TestLRTDPNestedMultiAgent {
 		return results;
 	}
 
+	boolean[] avoidableSingleAgentSolH(boolean debug) throws Exception {
+		boolean goalFound = false;
+		double[] hvals = { 50 };
+		int[] rollouts = { 100 };
+		int[] trialLens = { 50 };
+		double hval = 20;
+		boolean[] goalack = new boolean[2];
+
+		for (int hvalnum = 0; hvalnum < hvals.length; hvalnum++) {
+			hval = hvals[hvalnum];
+			for (int rolloutnum = 0; rolloutnum < rollouts.length; rolloutnum++) {
+				int maxRollouts = rollouts[rolloutnum];
+				for (int trialLennum = 0; trialLennum < trialLens.length; trialLennum++) {
+					boolean hasSharedState = false;
+					int trialLen = trialLens[trialLennum];
+
+					float epsilon = 0.0001f;
+
+					System.out.println(System.getProperty("user.dir"));
+					String currentDir = System.getProperty("user.dir");
+					String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+					String resultsLocation = testsLocation + "results/manp/";
+					// making sure resultsloc exits
+					createDirIfNotExist(resultsLocation);
+					System.out.println("Results Location " + resultsLocation);
+
+					String example = "tro_example_new_small_onefailaction";
+					ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+					tieBreakingOrder.add(Objectives.TaskCompletion);
+					tieBreakingOrder.add(Objectives.Cost);
+					String tieBreakingOrderStr = "_obj_";
+					for (Objectives obj : tieBreakingOrder) {
+						tieBreakingOrderStr += obj.toString() + "_";
+					}
+
+					PrismLog mainLog;
+					if (debug)
+						mainLog = new PrismFileLog("stdout");
+					else
+						mainLog = new PrismDevNullLog();
+
+					Prism prism = new Prism(mainLog);
+					String combString = "_multi_sash_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_"
+							+ trialLen + "_rollouts_" + maxRollouts;
+					String algoIden = "_avoid_lrtdp" + combString;
+					PrismLog fileLog = new PrismFileLog(
+							resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
+
+					prism.initialise();
+					prism.setEngine(Prism.EXPLICIT);
+
+					mainLog.println("Initialised Prism");
+
+					int numModels = 2;
+					ArrayList<String> filenames = new ArrayList<>();
+
+					for (int numModel = 0; numModel < numModels; numModel++) {
+						String modelFileName = testsLocation + example + numModel + ".prism";
+						filenames.add(modelFileName);
+					}
+
+					String propertiesFileName = testsLocation + example + "_mult.prop";
+
+					mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
+					fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
+
+					ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(
+							prism, mainLog, resultsLocation, filenames, propertiesFileName);
+
+					MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog,
+							filenames, propertiesFileName, resultsLocation, hasSharedState);
+
+					Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
+					// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+
+					mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+					fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+
+					mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+					fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+
+					ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+																												// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+
+					mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
+					fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+
+					OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+
+					mainLog.println("Initialising Full Bellman Backup Function");
+					fileLog.println("Initialising Full Bellman Backup Function");
+
+					BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection,
+							epsilon, hval);
+
+					mainLog.println("Initialising Reward Helper Function");
+					fileLog.println("Initialising Reward Helper Function");
+
+					RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, HelperClass.RewardCalculation.SUM);
+//							new RewardHelperNestedSingleAgent(saModelGen);
+
+					mainLog.println("Max Rollouts: " + maxRollouts);
+					mainLog.println("Max TrialLen: " + trialLen);
+					fileLog.println("Max Rollouts: " + maxRollouts);
+					fileLog.println("Max TrialLen: " + trialLen);
+
+					mainLog.println("\nInitialising THTS");
+					fileLog.println("\nInitialising THTS");
+					boolean doForwardBackup = true;
+					TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen,
+							maxRollouts, trialLen, heuristicFunction, actionSelection, outcomeSelection, rewardH,
+							backupFunction, doForwardBackup, tieBreakingOrder, mainLog, fileLog);
+
+					mainLog.println("\nBeginning THTS");
+					fileLog.println("\nBeginning THTS");
+					thts.setName(example + algoIden);
+					thts.setResultsLocation(resultsLocation);
+					thts.run(false);
+
+					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+
+					goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+							resultsLocation);
+					goalFound = goalack[0];
+					fileLog.println("Goal Found: " + goalack[0]);
+					fileLog.println("Initial State Solved: " + goalack[1]);
+
+					mainLog.println("Goal Found: " + goalack[0]);
+					mainLog.println("Initial State Solved: " + goalack[1]);
+//					System.in.read();
+
+					mainLog.close();
+					fileLog.close();
+
+				}
+				if (goalFound)
+					break;
+			}
+			if (goalFound)
+				break;
+		}
+		return goalack;
+	}
+
+	
 	boolean[] noprobabilitiesSingleAgentSolH(boolean debug) throws Exception {
 		boolean goalFound = false;
 		double[] hvals = { 50 };
@@ -370,7 +516,7 @@ public class TestLRTDPNestedMultiAgent {
 	boolean[] unavoidableSingleAgentSolH(boolean debug) throws Exception {
 		boolean goalFound = false;
 		double[] hvals = { 50 };
-		int[] rollouts = { 100 };
+		int[] rollouts = { 1000 };
 		int[] trialLens = { 50 };
 		double hval = 20;
 		boolean[] goalack = new boolean[2];
@@ -439,28 +585,7 @@ public class TestLRTDPNestedMultiAgent {
 					MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog,
 							filenames, propertiesFileName, resultsLocation, hasSharedState);
 
-					List<State> gs = new ArrayList<State>();
-					List<State> deadend = new ArrayList<State>();
 
-					int[] deadendvals = { -1 };
-
-					for (int a1 : deadendvals) {
-						for (int a2 : deadendvals) {
-							for (int i1 = 0; i1 < 2; i1++) {
-								for (int i2 = 0; i2 < 2; i2++) {
-									for (int i3 = 0; i3 < 2; i3++) {
-										State de1 = new State(5);
-										de1.setValue(0, a1);
-										de1.setValue(1, a2);
-										de1.setValue(2, i1);
-										de1.setValue(3, i2);
-										de1.setValue(4, i3);
-										deadend.add(de1);
-									}
-								}
-							}
-						}
-					}
 
 					Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
 					// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
