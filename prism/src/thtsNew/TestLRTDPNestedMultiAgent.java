@@ -202,8 +202,8 @@ public class TestLRTDPNestedMultiAgent {
 
 	public void currentWIP() throws Exception {
 		boolean debug = true;
-		unavoidableSingleAgentSolH(debug);
-//		unavoidableWarehouse(debug);
+//		unavoidableSingleAgentSolH(debug);
+		unavoidableWarehouse(debug);
 	}
 
 	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
