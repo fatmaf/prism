@@ -15,128 +15,59 @@ public class MultiAgentHeuristic implements Heuristic {
 	MultiAgentNestedProductModelGenerator mapmg;
 	ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns;
 	int numtasks = 0;
+	double maxCost;
 
 	public MultiAgentHeuristic(MultiAgentNestedProductModelGenerator mapmg,
-			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns) {
+			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns, double maxCost) {
 		this.mapmg = mapmg;
 		this.singleAgentSolns = singleAgentSolns;
 		numtasks = mapmg.numDAs;
+		this.maxCost = maxCost;
 	}
 
-	public void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode n)
-	{
-		//just the best 
-		//so the same as a backup 
+	public void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode n) {
+		// just the best
+		// so the same as a backup
 		if (n.getChildren() != null) {
-			
+
 			for (Objectives obj : objs) {
 				double rewHere = n.getReward(obj);
 				Bounds sumHere = new Bounds();
 				for (DecisionNode dn : n.getChildren()) {
 
-					if(dn.hasBounds())
-					{
+					if (dn.hasBounds()) {
 						Bounds temp = dn.getBoundsValueTimesTranProb(obj, n);
 						sumHere = sumHere.add(temp);
 //						if (dn.isDeadend)
 //							n.leadToDeadend = true;
 					}
 				}
-				
+
 				sumHere = sumHere.add(rewHere);
-				//just bounding the upper bound 
-				if(obj == Objectives.TaskCompletion)
-				{
-					//not sure if this is the smartest 
-					sumHere.setUpper(Math.min(sumHere.getUpper(),(double)this.numtasks));
+				// just bounding the upper bound
+				if (obj == Objectives.TaskCompletion) {
+					// not sure if this is the smartest
+					sumHere.setUpper(Math.min(sumHere.getUpper(), (double) this.numtasks));
 				}
 				n.setBounds(obj, sumHere);
 			}
 		}
 	}
-	
+
 	@Override
-	public HashMap<Objectives, Bounds> getStateBounds(ArrayList<Objectives> objs, DecisionNode n) throws PrismException {
+	public HashMap<Objectives, Bounds> getStateBounds(ArrayList<Objectives> objs, DecisionNode n)
+			throws PrismException {
 		State s = n.getState();
 		HashMap<Objectives, Bounds> toret = new HashMap<>();
 
-
 		boolean isAcc = isGoal(s);
 		boolean isAvoid = mapmg.isAvoidState(s);
-		boolean isDeadend = isDeadend(n); 
-		
-		n.isGoal = isAcc; 
+		boolean isDeadend = isDeadend(s);
+
+		n.isGoal = isAcc;
 		n.isDeadend = isAvoid | isDeadend;
-		
-		
-		if (!n.canHaveChildren()) {
-			Bounds b = null;
-			for (Objectives obj : objs) {
-				switch (obj) {
-				case Probability:
-				case TaskCompletion:
-				case Cost:
-				case Progression: {
-					double lb = 0.0;
-					double ub = 0.0;
-					b = new Bounds(ub, lb);
-					break;
-				}
-				}
-				toret.put(obj, b);
-			}
-			return toret;
-		}
-		
-		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
-//		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
 
-		// get the corresponding state from the objectives
-		// for probability the single agent solution is a lower bound
-		// max single agent sol
-		// for maxtask the single agent is a lower bound
-		// max single agent sol
-		// for cost the sum of all single agent sols is an upper bound
-		// lowerbound = 0
-		for (Objectives obj : objs) {
-			ArrayList<Double> vals = getSingleAgentStateVals(robotStates, obj);
-			Bounds b = null;
-			switch (obj) {
-			case Probability: {
-				// lower bound //the worst we can do is a single agent sol
-				double lb = this.getMinMax(vals, false);
-				double ub = 1.0;
-				b = new Bounds(ub, lb);
-				break;
-			}
-			case TaskCompletion: {
-				double lb = this.getMinMax(vals, false);
-				double ub = numtasks;
-				b = new Bounds(ub, lb);
-				break;
-			}
-			case Cost: {
-				double ub = this.getSum(vals);
-				double lb = 0.0;
-				b = new Bounds(ub, lb);
-				break;
-			}
-			case Progression: {
-				// redundant we dont have this right now
-				// but if we did
-				// ist like prob
-				double lb = this.getMinMax(vals, false);
-				double ub = 1.0;
-				b = new Bounds(ub, lb);
-				break;
-			}
-			default: {
-				throw new PrismException("Not implemented");
-			}
-			}
-			toret.put(obj, b);
-		}
-
+		toret = this.getStateBounds(objs, s);
 		return toret;
 	}
 
@@ -158,7 +89,7 @@ public class MultiAgentHeuristic implements Heuristic {
 						toadd = 0;
 						break;
 					case Cost:
-						toadd = Double.MAX_VALUE;
+						toadd = maxCost;
 						break;
 
 					}
@@ -184,7 +115,7 @@ public class MultiAgentHeuristic implements Heuristic {
 	protected double getMinMax(ArrayList<Double> vals, boolean domin) {
 		double toret = Double.MAX_VALUE;
 		if (!domin)
-			toret = (Double.MAX_VALUE-1)*-1.0;
+			toret = (Double.MAX_VALUE - 1) * -1.0;
 		for (double v : vals) {
 			if (!Double.isNaN(v)) {
 				if (domin) {
@@ -205,72 +136,98 @@ public class MultiAgentHeuristic implements Heuristic {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 //	@Override
 	public boolean isGoal(DecisionNode n) {
 		return mapmg.isAccState(n.getState());
-		
+
 	}
 
 //	@Override
-	public boolean isDeadend(DecisionNode n) throws PrismException {
-		
-		//a simple deadend is a an avoid state 
-		boolean toret = false; 
-		if(mapmg.isAvoidState(n.getState()))
-			toret = true; 
-		else
-		{
-			//how do we check if its a dead end 
-			//basically if this state leads to itself 
-			mapmg.exploreState(n.getState());
-			int numc = mapmg.getNumChoices(); 
-			if(numc == 0)
-				toret = true; 
-			else
-			{
-				if(numc == 1)
-				{
-					int numt = mapmg.getNumTransitions(0); 
-					if(numt == 1)
-					{
-						State ns = mapmg.computeTransitionTarget(0, 0); 
-						if(ns.compareTo(n.getState())==0)
-							toret = true; 
-					}
-				}
-			}
+	public boolean isDeadend(State s) throws PrismException {
+
+		// a simple deadend is a an avoid state
+		boolean toret = false;
+		if (mapmg.isAvoidState(s))
+			toret = true;
+		else {
+			if (mapmg.isDeadend(s))
+				toret = true;
+//			//how do we check if its a dead end 
+//			//basically if this state leads to itself 
+//			mapmg.exploreState(n.getState());
+//			int numc = mapmg.getNumChoices(); 
+//			if(numc == 0)
+//				toret = true; 
+//			else
+//			{
+//				if(numc == 1)
+//				{
+//					int numt = mapmg.getNumTransitions(0); 
+//					if(numt == 1)
+//					{
+//						State ns = mapmg.computeTransitionTarget(0, 0); 
+//						if(ns.compareTo(n.getState())==0)
+//							toret = true; 
+//					}
+//				}
+//			}
 		}
-		return toret; 
+		return toret;
+	}
+
+
+	@Override
+	public boolean isGoal(State s) {
+		// TODO Auto-generated method stub
+		return mapmg.isAccState(s);
 	}
 
 	@Override
 	public HashMap<Objectives, Bounds> getStateBounds(ArrayList<Objectives> objs, State s) throws PrismException {
-		boolean isAcc = mapmg.isAccState(s);
-		boolean isAvoid = mapmg.isAvoidState(s);
-		
-		
 		HashMap<Objectives, Bounds> toret = new HashMap<>();
-		if (isAcc || isAvoid) {
+
+		boolean isAcc = isGoal(s);
+		boolean isAvoid = mapmg.isAvoidState(s);
+		boolean isDeadend = isDeadend(s);
+
+		boolean isGoal = isAcc;
+		isDeadend = isAvoid | isDeadend;
+
+		if (isDeadend|isGoal) {
 			Bounds b = null;
 			for (Objectives obj : objs) {
 				switch (obj) {
 				case Probability:
 				case TaskCompletion:
-				case Cost:
 				case Progression: {
 					double lb = 0.0;
 					double ub = 0.0;
 					b = new Bounds(ub, lb);
 					break;
 				}
+				case Cost: {
+					if (isDeadend) {
+						double lb = maxCost;
+						double ub = maxCost;
+						b = new Bounds(ub, lb);
+
+					} else {
+						double lb = 0.0;
+						double ub = 0.0;
+						b = new Bounds(ub, lb);
+					}
+					break;
 				}
-				toret .put(obj, b);
+
+				}
+				toret.put(obj, b);
 			}
+
 			return toret;
 		}
-		
+
 		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
-//		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
 
 		// get the corresponding state from the objectives
 		// for probability the single agent solution is a lower bound
@@ -291,13 +248,14 @@ public class MultiAgentHeuristic implements Heuristic {
 				break;
 			}
 			case TaskCompletion: {
-				double lb = this.getMinMax(vals, false);
+				double lb = this.getMinMax(vals, true);
 				double ub = numtasks;
 				b = new Bounds(ub, lb);
 				break;
 			}
 			case Cost: {
-				double ub = this.getSum(vals);
+				double ub = getSum(vals);
+				ub = Math.min(ub,maxCost);
 				double lb = 0.0;
 				b = new Bounds(ub, lb);
 				break;
@@ -321,12 +279,5 @@ public class MultiAgentHeuristic implements Heuristic {
 		return toret;
 
 	}
-
-	@Override
-	public boolean isGoal(State s) {
-		// TODO Auto-generated method stub
-		return mapmg.isAccState(s);
-	}
-
 
 }
