@@ -22,6 +22,10 @@ public class Bounds{
 	{
 		return new Bounds(upper*m, lower*m);
 	}
+	public Bounds divide(double m)
+	{
+		return new Bounds(upper/m,lower/m);
+	}
 	public Bounds min(double m)
 	{
 		return new Bounds(Math.min(upper,m),Math.min(lower,m));
@@ -31,6 +35,7 @@ public class Bounds{
 		upper = u; 
 		lower = l; 
 	}
+	
 	public Bounds(Bounds defaultBounds) {
 		// TODO Auto-generated constructor stub
 		this.upper = defaultBounds.upper; 

@@ -87,6 +87,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 	protected HashMap<Integer, ArrayList<Integer>> modelVarIndices;
 	protected HashMap<Integer, ArrayList<Integer>> sharedVarIndices;
 	private String jointActionSep = ",";
+	ArrayList<State> initialStatesList = null;
 
 	public MultiAgentNestedProductModelGenerator(ArrayList<ModulesFileModelGenerator> modelGens,
 			ArrayList<DA<BitSet, ? extends AcceptanceOmega>> das, ArrayList<List<Expression>> labelExprs,
@@ -429,6 +430,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 			numRobotState -= sharedVarsList.size();
 		State combinedRobotState = new State(numRobotState);
 
+		int offset = 0;
 		for (int r = 0; r < modelGens.size(); r++) {
 			// assuming no shared states
 			// TODO: Fix this for shared states man
@@ -438,7 +440,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 			// so its useful to store the indices for things we care about
 
 			ArrayList<Integer> indicesToCareAbout = modelVarIndices.get(r);
-			int offset = 0;
+
 			if (r > 0)
 				offset += this.numModelVars.get(r - 1);
 			for (int i = 0; i < indicesToCareAbout.size(); i++) {
@@ -504,7 +506,38 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 		return toret;
 	}
 
-	
+	public ArrayList<ArrayList<Object>> getAvailableRobotsActionsInState(State state) throws PrismException {
+		ArrayList<ArrayList<Object>> availableRobotActionsInState = new ArrayList<>();
+		boolean resetState = false;
+
+		State currentES = getExploreState();
+		if (currentES == null) {
+			exploreState(state);
+		} else {
+			if (state.compareTo(currentES) != 0) {
+				exploreState(state);
+				resetState = true;
+			}
+		}
+		// for each robot we just want to get all the actions
+		for (int r = 0; r < modelGens.size(); r++) {
+			ArrayList<Object> robotActions = new ArrayList<>();
+			ModulesFileModelGenerator modelGen = modelGens.get(r);
+			int numChoices = modelGen.getNumChoices();
+			for (int c = 0; c < numChoices; c++) {
+				Object action = modelGen.getChoiceAction(c);
+				robotActions.add(action);
+
+			}
+			availableRobotActionsInState.add(robotActions);
+
+		}
+		if (resetState)
+			exploreState(currentES);
+
+		return availableRobotActionsInState;
+	}
+
 	private State getExploreState() {
 		// TODO Auto-generated method stub
 		return exploreState;
@@ -513,9 +546,9 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 	public boolean isAccState(State state) {
 		boolean acc = true;
 		BitSet daAccs = getDAAccsForState(state);
-		if(safetyDAIndex != -1) {
-		if (daAccs.get(safetyDAIndex))
-			acc = false;
+		if (safetyDAIndex != -1) {
+			if (daAccs.get(safetyDAIndex))
+				acc = false;
 		}
 		if (acc) {
 			for (int d = 0; d < das.size(); d++) {
@@ -572,37 +605,47 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 
 	@Override
 	public List<State> getInitialStates() throws PrismException {
-		List<State> initStates = new ArrayList<>();
-		ArrayList<ArrayList<State>> robotinitstatecombs = this.getInitialRobotStatesCombinations();
-		for (ArrayList<State> sInit : robotinitstatecombs) {
-			// automaton init states
+		if (this.initialStatesList == null) {
+			List<State> initStates = new ArrayList<>();
+			ArrayList<ArrayList<State>> robotinitstatecombs = this.getInitialRobotStatesCombinations();
+			for (ArrayList<State> sInit : robotinitstatecombs) {
+				// automaton init states
 
-			initStates.add(createCombinedRobotDAState(sInit, null, true));
+				initStates.add(createCombinedRobotDAState(sInit, null, true));
+			}
+			return initStates;
 		}
-		return initStates;
+
+		else
+			return initialStatesList;
 	}
 
 	@Override
 	public State getInitialState() {
-		// first we must get the initial states of all the models
-		ArrayList<State> robotStates = new ArrayList<State>();
-		State toret = null;
-		State sInit;
-		try {
+		if (this.initialStatesList == null) {
+			// first we must get the initial states of all the models
+			ArrayList<State> robotStates = new ArrayList<State>();
+			State toret = null;
+			State sInit;
+			try {
 
-			for (ModulesFileModelGenerator modelGen : modelGens) {
+				for (ModulesFileModelGenerator modelGen : modelGens) {
 
-				sInit = modelGen.getInitialState();
+					sInit = modelGen.getInitialState();
 
-				robotStates.add(sInit);
+					robotStates.add(sInit);
 
+				}
+				toret = createCombinedRobotDAState(robotStates, null, true);
+			} catch (Exception e) {
+
+				e.printStackTrace();
 			}
-			toret = createCombinedRobotDAState(robotStates, null, true);
-		} catch (Exception e) {
+			return toret;
+		} else {
+			return this.initialStatesList.get(0);
 
-			e.printStackTrace();
 		}
-		return toret;
 	}
 
 	private State flipState(State s) {
@@ -955,11 +998,21 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 		return getStateActionReward(r, robotStates, robotActions, rewCalc);
 	}
 
-	private ArrayList<String> getRobotActions(String action) {
+	public ArrayList<String> getRobotActions(String action) {
 		String sep = jointActionSep;
 		String[] actionlist = action.split(jointActionSep);
 		ArrayList<String> toret = new ArrayList<>();
 		toret.addAll(Arrays.asList(actionlist));
+		return toret;
+	}
+
+	String createJointActionFromString(ArrayList<String> robotChoices) {
+		String toret = "";
+
+		String sep = jointActionSep;
+		for (int r = 0; r < robotChoices.size(); r++) {
+			toret += robotChoices.get(r) + sep;
+		}
 		return toret;
 	}
 

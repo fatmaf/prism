@@ -169,8 +169,17 @@ public class NestedProductMDP extends Product<MDP> {
 		printProduct(resLoc);
 		// lets just print everything else too
 		PrismLog out = new PrismFileLog(resLoc + "_prodmiscs_" + (das.size() - 1) + ".txt");
+		out.println("Product State to Original MDP State Map");
 		out.println(productStateToOriginalModelStateMap.toString());
-		out.println(productStateToDAStateMap.toString());
+		out.println("Product State to Each DA State Map");
+		for (int i = 0; i < productStateToDAStateMap.size(); i++) {
+			out.println("DA " + i);
+			out.println(productStateToDAStateMap.get(i).toString());
+		}
+		out.println("Product State States List");
+		for (int i = 0; i < productModel.getStatesList().size(); i++)
+			out.print(i + ":" + productModel.getStatesList().get(i)+"\t");
+//		out.println(productStateToDAStateMap.toString());
 		out.close();
 	}
 
@@ -338,6 +347,7 @@ public class NestedProductMDP extends Product<MDP> {
 		PrismLog out = new PrismFileLog(resLoc + "_npProd_" + (das.size() - 1) + ".dot");
 		productModel.exportToDotFile(out, null, true);
 		out.close();
+		productModel.exportToPrismExplicit(resLoc + "_npProd_" + (das.size() - 1));
 	}
 
 	public int getModelState(int productState) {

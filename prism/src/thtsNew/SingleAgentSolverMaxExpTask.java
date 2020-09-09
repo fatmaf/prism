@@ -158,6 +158,8 @@ public class SingleAgentSolverMaxExpTask {
 		prism.buildModel();
 		// get the mdp
 		MDP mdp = (MDP) prism.getBuiltModelExplicit();
+		mdp.exportToDotFile(resLoc+"mdp.dot");
+		mainLog.println("Initial State: "+mdp.getFirstInitialState());
 
 		mainLog.println("Built model MDP\n"+mdp.infoStringTable());
 		// things we need

@@ -2,6 +2,7 @@ package thtsNew;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Stack;
 
 import thts.Bounds;
@@ -12,16 +13,15 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 //	ArrayList<Objectives> tieBreakingOrder;
 	float epsilon;
 	ActionSelector actSel;
-	double maxCost;
+	HashMap<Objectives, Entry<Double, Double>> minMaxVals; 
 
 	public BackupLabelledFullBelmanCap(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
-			double maxCost) {
+			HashMap<Objectives,Entry<Double,Double>> minMaxVals) {
 //		this.tieBreakingOrder = tieBreakingOrder;
 		super(tieBreakingOrder);
 		this.epsilon = epsilon;
 		this.actSel = actSel;
-		this.maxCost = maxCost;
-
+		this.minMaxVals = minMaxVals;
 	}
 
 	boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds) {
@@ -47,7 +47,7 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 	}
 
 	@Override
-	public boolean backupDecisionNode(DecisionNode dn, boolean doBackup) {
+	public boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception {
 		boolean backupToRet = false;
 		if (doBackup) {
 
@@ -110,6 +110,11 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 			backupToRet = toret;
 
 		}
+		// TODO: this is not really what it says to do in lrtdp we need to check this
+		else {
+			// just back up this node
+			updateDecisionNode(dn);
+		}
 		return backupToRet;
 
 	}
@@ -121,24 +126,30 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 				double rewHere = cn.getReward(obj);
 				Bounds sumHere = new Bounds();
 				boolean allChildrenAreDeadends = true;
+				boolean allChildrenSolved = true;
 				for (DecisionNode dn : cn.getChildren()) {
 
 					if (dn.hasBounds()) {
 						sumHere = sumHere.add(dn.getBoundsValueTimesTranProb(obj, cn));
-						allChildrenAreDeadends = allChildrenAreDeadends & dn.isDeadend;
+						allChildrenAreDeadends = allChildrenAreDeadends & !dn.canHaveChildren();
+						allChildrenSolved = allChildrenSolved & dn.isSolved();
 					}
 
 				}
 				cn.leadToDeadend = allChildrenAreDeadends;
+				if (allChildrenSolved || allChildrenAreDeadends)
+					cn.setSolved();
 //				if (!cn.leadToDeadend) // Ignore the reward if its a deadend
 				sumHere = sumHere.add(rewHere);
-				if (obj == Objectives.Cost) {
+				
+				sumHere = sumHere.min(minMaxVals.get(obj).getValue());
+//				if (obj == Objectives.Cost) {
 
-					sumHere = sumHere.min(maxCost);
+//					sumHere = sumHere.min(maxCost);
 //					if (sumHere.getLower() >= maxCost)
 //						cn.leadToDeadend = true;
 
-				}
+//				}
 				cn.setBounds(obj, sumHere);
 			}
 		}
@@ -162,8 +173,9 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 
 				}
 				if (dn.isDeadend && obj == Objectives.Cost) {
-					double lb = this.maxCost;
-					double ub = this.maxCost;
+
+					double lb = minMaxVals.get(obj).getValue();//this.maxCost;
+					double ub = minMaxVals.get(obj).getValue();//this.maxCost;
 					b = new Bounds(ub, lb);
 
 				}
@@ -246,6 +258,7 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 
 				}
 				dn.setBounds(bestBoundsH);
+				
 //				if (tieBreakingOrder.contains(Objectives.Cost)) {
 //					Bounds cbounds = dn.getBounds(Objectives.Cost);
 //					if (cbounds.getLower() == maxCost) {
@@ -255,7 +268,6 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 			}
 		}
 
-		
 //		return true;
 	}
 

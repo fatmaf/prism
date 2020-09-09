@@ -43,7 +43,7 @@ public class BackupLabelledFullBelman extends BackupNVI {
 	}
 
 	@Override
-	public boolean backupDecisionNode(DecisionNode dn, boolean doBackup) {
+	public boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception {
 		boolean backupToRet = false;
 		if (doBackup) {
 

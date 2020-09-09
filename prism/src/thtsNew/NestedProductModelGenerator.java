@@ -72,7 +72,7 @@ public class NestedProductModelGenerator extends DefaultModelGenerator {// imple
 
 		// so we have a list of das
 		// each has a number and an index
-		int numDAs = das.size();
+		this.numDAs = das.size();
 		// find the beginning of the da variable
 		// just incase we've been passed a model with a da
 		int daStartNumber = 0;

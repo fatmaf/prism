@@ -111,10 +111,10 @@ public class SCCFinder {
 		}
 	}
 
-	void test() throws PrismException {
+	void test() throws Exception {
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.Cost);
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
 		actSel = actionSelection;
 //		actSel = null;
 		DecisionNode root = this.createTestGraph();
@@ -123,7 +123,7 @@ public class SCCFinder {
 
 	}
 
-	void findSCCs(DecisionNode r, boolean fixSCCs) throws PrismException {
+	void findSCCs(DecisionNode r, boolean fixSCCs) throws Exception {
 		// helpers
 		ArrayList<DecisionNode> visitedList = new ArrayList<>();
 		Stack<DecisionNode> visitedStack = new Stack<>();
@@ -176,7 +176,7 @@ public class SCCFinder {
 	}
 
 	boolean fixSCC(ArrayList<DecisionNode> scc, SCCType scctype, ArrayList<ChanceNode> exitActions,
-			ArrayList<ChanceNode> stayActions) throws PrismException {
+			ArrayList<ChanceNode> stayActions) throws Exception {
 		// so we just assign the min or max and thats it
 		// we do nothing else
 		// if permenant we assign + or - infinity
@@ -229,7 +229,7 @@ public class SCCFinder {
 		return fixed;
 	}
 
-	ChanceNode findBestAction(ArrayList<ChanceNode> cns) throws PrismException {
+	ChanceNode findBestAction(ArrayList<ChanceNode> cns) throws Exception {
 		ChanceNode bestCN = null;
 		if (actSel != null) {
 			DecisionNode dummy = new DecisionNode(null, null, 1.0);
@@ -282,7 +282,7 @@ public class SCCFinder {
 	}
 
 	SCCType sccAnalyser(ArrayList<DecisionNode> scc, ArrayList<ChanceNode> exitActions,
-			ArrayList<ChanceNode> stayActions) {
+			ArrayList<ChanceNode> stayActions) throws Exception {
 
 		// perm => no actions that lead to a state outside of the scc even without the
 		// greedy ones //and goal isnt include
@@ -386,7 +386,7 @@ public class SCCFinder {
 
 	void dfsTarjan(DecisionNode r, ArrayList<DecisionNode> visitedList, Stack<DecisionNode> visitedStack,
 			HashMap<DecisionNode, Integer> id, HashMap<DecisionNode, Integer> lowlink,
-			ArrayList<ArrayList<DecisionNode>> sccs) {
+			ArrayList<ArrayList<DecisionNode>> sccs) throws Exception {
 		if (!visitedList.contains(r)) {
 			visitedList.add(r);
 			visitedStack.push(r);

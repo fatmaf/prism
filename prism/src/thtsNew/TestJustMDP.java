@@ -2,6 +2,7 @@ package thtsNew;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,7 +110,7 @@ public class TestJustMDP {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -153,13 +154,13 @@ public class TestJustMDP {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true), resultsLocation);
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
 		if (goalack[0])
 			goalFound++;
 
 	}
 
-	public void run() throws FileNotFoundException, PrismException {
+	public void run() throws Exception {
 		int goalFound = 0;
 		int maxruns = 5;
 		for (int run = 0; run < maxruns; run++) {
@@ -257,7 +258,7 @@ public class TestJustMDP {
 			mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 			fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-			ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+			ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																										// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 			mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -300,7 +301,7 @@ public class TestJustMDP {
 			mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-			boolean[] goalackAndSolved = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+			boolean[] goalackAndSolved = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 					resultsLocation);
 			if (goalackAndSolved[0])
 				goalFound++;

@@ -67,6 +67,8 @@ public class EmptyNestedMultiAgentHeuristic implements Heuristic {
 			}
 
 		}
+		if(!n.canHaveChildren())
+			n.setSolved();
 		return emptyBounds;
 	}
 

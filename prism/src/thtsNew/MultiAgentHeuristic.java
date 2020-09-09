@@ -17,6 +17,7 @@ public class MultiAgentHeuristic implements Heuristic {
 	ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns;
 	int numtasks = 0;
 	double maxCost;
+	boolean tightBounds = false; 
 
 	
 	public MultiAgentHeuristic(MultiAgentNestedProductModelGenerator mapmg,
@@ -25,6 +26,15 @@ public class MultiAgentHeuristic implements Heuristic {
 		this.singleAgentSolns = singleAgentSolns;
 		numtasks = mapmg.numDAs;
 		this.maxCost = maxCost;
+	}
+	public MultiAgentHeuristic(MultiAgentNestedProductModelGenerator mapmg,
+			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns, double maxCost
+			,boolean tightBounds) {
+		this.mapmg = mapmg;
+		this.singleAgentSolns = singleAgentSolns;
+		numtasks = mapmg.numDAs;
+		this.maxCost = maxCost;
+		this.tightBounds = tightBounds;
 	}
 
 	public void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode n) {
@@ -121,7 +131,7 @@ public class MultiAgentHeuristic implements Heuristic {
 	protected double getMinMax(ArrayList<Double> vals, boolean domin) {
 		double toret = Double.MAX_VALUE;
 		if (!domin)
-			toret = (Double.MAX_VALUE - 1) * -1.0;
+			toret = 0;
 		for (double v : vals) {
 			if (!Double.isNaN(v)) {
 				if (domin) {
@@ -254,7 +264,7 @@ public class MultiAgentHeuristic implements Heuristic {
 				break;
 			}
 			case TaskCompletion: {
-				double lb = this.getMinMax(vals, true);
+				double lb = tightBounds?this.getMinMax(vals, false):this.getMinMax(vals, true);
 				double ub = numtasks;
 				b = new Bounds(ub, lb);
 				break;

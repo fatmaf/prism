@@ -20,9 +20,9 @@ public abstract class BackupNVI implements Backup {
 	{
 		this.tieBreakingOrder = tieBreakingOrder;
 	}
-	public abstract boolean backupChanceNode(ChanceNode cn, boolean doBackup);
+	public abstract boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws Exception;
 
-	public abstract boolean backupDecisionNode(DecisionNode dn, boolean doBackup);
+	public abstract boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception;
 
 	boolean isBetter(double b1, double b2, Objectives obj) {
 		boolean isBetter = false;
@@ -49,7 +49,7 @@ public abstract class BackupNVI implements Backup {
 		case Progression:
 		case TaskCompletion:
 		case Probability:
-			toret = (Double.MAX_VALUE - 1) * -1.0;
+			toret = 0;
 			break;
 
 		}

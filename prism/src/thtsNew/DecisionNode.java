@@ -2,7 +2,6 @@ package thtsNew;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import parser.State;
 import prism.PrismException;
 import thts.Bounds;
@@ -16,7 +15,22 @@ public class DecisionNode extends Node {
 	boolean isDeadend=false;
 	boolean isGoal=false;
 	int numChildrenInitialised = 0; 
+	//a list of the base actions - their value and count for each robot 
+	//count = how many actions this base action is in 
+	//this is not going to be used unless we have multiple robots 
+	//and honestly even then if we use a specific heuristic and action selection function 
+	ArrayList<HashMap<Object,BaseActionInfo>> baseActionsForRobot = null; 
 	
+	public void reset()
+	{
+	
+		this.numVisits = 0; 
+		this.solved=false; 
+		this.isGoal=false; 
+		this.isDeadend=false; 
+		this.bounds = null; 
+		
+	}
 	public DecisionNode(Node parent, State s, double tprob, HashMap<Objectives, Bounds> bounds, ArrayList<Bounds> cost,
 			boolean deadend, boolean goal) {
 		this.setState(s);
@@ -70,10 +84,7 @@ public class DecisionNode extends Node {
 	{
 		return (!isDeadend & !isGoal);
 	}
-	public void markSolved()
-	{
-		solved = true; 
-	}
+
 	@Override
 	public void setBounds(HashMap<Objectives,Bounds> b)
 	{

@@ -7,11 +7,11 @@ public interface Backup {
 	// the boolean dobackup is always true // except for lrtdp style backups
 	// just return whether a node has been backed up or not
 	// again always true unless lrtdp style
-	boolean forwardbackupChanceNode(ChanceNode cn);
+	boolean forwardbackupChanceNode(ChanceNode cn) throws Exception;
 
-	boolean forwardbackupDecisionNode(DecisionNode dn);
+	boolean forwardbackupDecisionNode(DecisionNode dn) throws Exception;
 
-	boolean backupChanceNode(ChanceNode cn, boolean doBackup);
+	boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws Exception;
 
-	boolean backupDecisionNode(DecisionNode dn, boolean doBackup);
+	boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception;
 }

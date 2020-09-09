@@ -58,6 +58,9 @@ public class EmptyHeuristic implements Heuristic {
 			}
 
 		}
+		
+		if(!n.canHaveChildren())
+			n.setSolved();
 		return emptyBounds;
 	}
 

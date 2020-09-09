@@ -51,7 +51,7 @@ public class VisualiserLog {
 	}
 
 	public void newRollout(int rNum) {
-		currentRollout = "[beginRollout]{" + createKeyValueString("rollout", rNum) +"\n";
+		currentRollout = "[beginRollout]{" + createKeyValueString("rollout", rNum) + "\n";
 	}
 
 	public void endRollout() {
@@ -84,8 +84,48 @@ public class VisualiserLog {
 		currentStep += "}[endActSel]\n";
 	}
 
+	public void endOutcomeSelection() {
+		currentStep += "}[endOutSel]\n";
+	}
+
 	public void writeSelectedAction(ChanceNode d) {
 		currentStep += "\n\t\tselected:{" + chanceNodeString(d) + "}";
+	}
+
+	public void writeSelectedOutcome(ArrayList<DecisionNode> ds) {
+		currentStep += "\n\t\tselected:{";
+		boolean hasmore = false;
+		for (DecisionNode d : ds) {
+			if (hasmore)
+				currentStep += "\n\t\t";
+			if (d != null) {
+				currentStep += decisionNodeString(d);
+				hasmore = true;
+			}
+		}
+		currentStep += "}";
+	}
+
+	public void beginOutcomeSelection() {
+		currentStep += "\n\t\t[beginOutSel]{";
+	}
+
+	public void writeoutSelChoices(ChanceNode d) {
+		currentStep += "\tnode:{" + chanceNodeString(d) + "}";
+		currentStep += "\n\t\t\tchildren:{\n";
+		if (d.getChildren() != null) {
+
+			boolean addSep = false;
+			for (DecisionNode dn : d.getChildren()) {
+				if (addSep)
+					currentStep += "\n";
+
+				currentStep += "\t\t\t{" + decisionNodeString(dn) + "}";
+				addSep = true;
+
+			}
+		}
+		currentStep += "}\n";
 	}
 
 	public void writeActSelChoices(DecisionNode d) {
@@ -110,6 +150,8 @@ public class VisualiserLog {
 		String towrite = "state:";
 		towrite += d.getState();
 		towrite += " bounds:" + getBoundsString(d);
+		if(d.isSolved())
+			towrite += " solved ";
 		return towrite;
 
 	}
@@ -122,6 +164,8 @@ public class VisualiserLog {
 
 			towrite += d.getAction() != null ? d.getAction().toString() : "null";
 			towrite += " bounds:" + getBoundsString(d);
+			if(d.isSolved())
+				towrite += " solved ";
 		}
 		return towrite;
 
@@ -138,6 +182,7 @@ public class VisualiserLog {
 				addcomma = true;
 			}
 		}
+		
 		return toret + "}";
 	}
 

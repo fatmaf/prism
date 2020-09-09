@@ -22,6 +22,7 @@ public class RewardHelperNestedSingleAgent implements RewardHelper {
 
 		switch (obj) {
 		case TaskCompletion: {
+
 			rew = singleAgentNestedProduct.getStateActionTaskCompletionReward(n.getState(), n.actionChoice);
 
 			break;

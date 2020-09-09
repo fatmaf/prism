@@ -5,7 +5,11 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceType;
@@ -29,14 +33,15 @@ import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
 
 //a class that tests LRTDP and THTS
-public class IncrementalLRTDPTests {
-
+public class TestLRTDPSimple {
+//
+	//// PRISM_MAINCLASS=thtsNew.TestLRTDPSimple prism/bin/prism
 	// testing trialbasedtree search with just an mdp
 	// have the default product model generator
 	public void createDirIfNotExist(String directoryName) {
 		File directory = new File(directoryName);
 		if (!directory.exists()) {
-			directory.mkdir();
+			directory.mkdirs();
 			// If you require it to make the entire directory path including parents,
 			// use directory.mkdirs(); here instead.
 		}
@@ -86,143 +91,151 @@ public class IncrementalLRTDPTests {
 		if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
 			passed++;
 
+		String infoString = "";
+		infoString = " lrtdp no deadends\n";
 		for (String example : examples) {
 			for (int g : goalStates) {
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = simpleLRTDPNoDeadends(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = simpleLRTDPNoDeadends(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
 				else
-					goalsNotFound += example + " lrtdp no deadends\n";
-				if (goalFoundAndSolved[1])
+					goalsNotFound += example + infoString;
+				if (rinfo.initialStateSolved)
 					solved++;
 				else
-					notSolved += example + " lrtdp no deadends\n";
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+					notSolved += example + infoString;
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
 		}
 
+		infoString = " lrtdp with deadends\n";
 		for (String example : examples2) {
 			for (int g : goalStates) {
 //with deadends	
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = simpleLRTDP(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = simpleLRTDP(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
 				else
-					goalsNotFound += example + " lrtdp with deadends\n";
-				if (goalFoundAndSolved[1])
+					goalsNotFound += example + infoString;
+				if (rinfo.initialStateSolved)
 					solved++;
 				else
-					notSolved += example + " lrtdp with deadends\n";
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+					notSolved += example + infoString;
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
 		}
 
+		infoString = " lrtdp with deadends and avoid\n";
 		for (String example : examples2) {
 			for (int g : goalStates) {
 //with deadends	
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = simpleLRTDPAvoid(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = simpleLRTDPAvoid(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
 				else
-					goalsNotFound += example + " lrtdp with deadends and avoid\n";
-				if (goalFoundAndSolved[1])
+					goalsNotFound += example + infoString;
+				if (rinfo.initialStateSolved)
 					solved++;
 				else
-					notSolved += example + " lrtdp with deadends and avoid\n";
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+					notSolved += example + infoString;
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
 		}
-
+		infoString = " nested lrtdp deadends to 0\n";
 		for (String example : examples3) {
 			for (int g : goalStates) {
 //with deadends
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = nestedLRTDP(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = nestedLRTDP(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
-				else {
-					goalsNotFound += example + " " + g + " nested lrtdp with deadends\n";
-					System.out.println(example + " " + g + " nested lrtdp with deadends - goal not found");
-				}
-				if (goalFoundAndSolved[1])
+				else
+					goalsNotFound += example + infoString;
+				if (rinfo.initialStateSolved)
 					solved++;
-				else {
-					notSolved += example + " " + g + " nested lrtdp with deadends\n";
-					System.out.println(example + " " + g + " nested lrtdp with deadends - not solved");
-				}
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+				else
+					notSolved += example + infoString;
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
 		}
 
+		infoString = " nested lrtdp deadends to 20 and avoid ";
 		for (String example : examples3) {
 			for (int g : goalStates) {
 //with deadends
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = nestedLRTDPAvoid(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = nestedLRTDPAvoid(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
 				else {
-					goalsNotFound += example + " " + g + " nested lrtdp with deadends and avoid\n";
-					System.out.println(example + " " + g + " nested lrtdp with deadends and avoid - goal not found");
+					goalsNotFound += example + infoString + "\n";
+					System.out.println(example + " " + g + infoString + "goal not found");
 				}
-				if (goalFoundAndSolved[1])
+				if (rinfo.initialStateSolved)
 					solved++;
 				else {
-					notSolved += example + " " + g + " nested lrtdp with deadends and avoid\n";
-					System.out.println(example + " " + g + " nested lrtdp with deadends and avoid - not solved");
+					notSolved += example + infoString + "\n";
+					System.out.println(example + " " + g + infoString + " not solved");
 				}
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
 		}
 
+		infoString = " nested lrtdp deadends to 0 and doors";
+
 		for (int g : goalStates2) {
 			// with deadends
 			System.out.println("Test " + currentTest++ + "/" + tests);
-			goalFoundAndSolved = nestedLRTDPDoors(g, debug);
-			if (goalFoundAndSolved[0])
+			THTSRunInfo rinfo = nestedLRTDPDoors(g, debug);
+			if (rinfo.goalFound)
 				goalFound++;
-			else
-				goalsNotFound += " " + g + " doors nested lrtdp with deadends\n";
-
-			if (goalFoundAndSolved[1])
+			else {
+				goalsNotFound += infoString + "\n";
+				System.out.println(+g + infoString + "goal not found");
+			}
+			if (rinfo.initialStateSolved)
 				solved++;
-			else
-				notSolved += " " + g + " doors nested lrtdp with deadends\n";
-
-			if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+			else {
+				notSolved += infoString + "\n";
+				System.out.println(g + infoString + " not solved");
+			}
+			if (rinfo.goalFoundAndSolved())
 				passed++;
 
 		}
+		infoString = " nested lrtdp deadends to 20 and doors and avoid";
+
 		for (int g : goalStates2) {
 			// with deadends
 			System.out.println("Test " + currentTest++ + "/" + tests);
-			goalFoundAndSolved = nestedLRTDPDoorsAvoid(g, debug);
-			if (goalFoundAndSolved[0])
+			THTSRunInfo rinfo= nestedLRTDPDoorsAvoid(g, debug);
+			if (rinfo.goalFound)
 				goalFound++;
-			else
-				goalsNotFound += " " + g + " doors nested lrtdp with deadends and avoid\n";
-
-			if (goalFoundAndSolved[1])
+			else {
+				goalsNotFound += infoString + "\n";
+				System.out.println(+g + infoString + "goal not found");
+			}
+			if (rinfo.initialStateSolved)
 				solved++;
-			else
-				notSolved += " " + g + " doors nested lrtdp with deadends and avoid\n";
-
-			if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+			else {
+				notSolved += infoString + "\n";
+				System.out.println(g + infoString + " not solved");
+			}
+			if (rinfo.goalFoundAndSolved())
 				passed++;
-
 		}
 
 		System.out.println("Passed " + passed + "/" + tests);
@@ -248,20 +261,21 @@ public class IncrementalLRTDPTests {
 		int solved = 0;
 		boolean debug = false;
 		int currentTest = 1;
+		String infoString = " lrtdp with deadends and avoid";
 		for (String example : examples2) {
 			for (int g : goalStates) {
 //with deadends	
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = simpleLRTDPAvoid(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = simpleLRTDPAvoid(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
 				else
-					goalsNotFound += example + " lrtdp with deadends\n";
-				if (goalFoundAndSolved[1])
+					goalsNotFound += example + infoString;
+				if (rinfo.initialStateSolved)
 					solved++;
 				else
-					notSolved += example + " lrtdp with deadends\n";
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+					notSolved += example + infoString;
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
@@ -288,20 +302,21 @@ public class IncrementalLRTDPTests {
 		int solved = 0;
 		boolean debug = false;
 		int currentTest = 1;
+		String infoString = " lrtdp with deadends";
 		for (String example : examples2) {
 			for (int g : goalStates) {
 //with deadends	
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = simpleLRTDP(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = simpleLRTDP(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
 				else
-					goalsNotFound += example + " lrtdp with deadends\n";
-				if (goalFoundAndSolved[1])
+					goalsNotFound += example + infoString;
+				if (rinfo.initialStateSolved)
 					solved++;
 				else
-					notSolved += example + " lrtdp with deadends\n";
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+					notSolved += example + infoString;
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
@@ -327,21 +342,67 @@ public class IncrementalLRTDPTests {
 		boolean debug = false;
 		int currentTest = 1;
 
+		String infoString = " nested lrtdp deadends to 0 and doors";
+
 		for (int g : goalStates2) {
 			// with deadends
 			System.out.println("Test " + currentTest++ + "/" + tests);
-			goalFoundAndSolved = nestedLRTDPDoors(g, debug);
-			if (goalFoundAndSolved[0])
+			THTSRunInfo rinfo = nestedLRTDPDoors(g, debug);
+			if (rinfo.goalFound)
 				goalFound++;
-			else
-				goalsNotFound += " " + g + " doors nested lrtdp with deadends\n";
-
-			if (goalFoundAndSolved[1])
+			else {
+				goalsNotFound += infoString + "\n";
+				System.out.println(+g + infoString + "goal not found");
+			}
+			if (rinfo.initialStateSolved)
 				solved++;
-			else
-				notSolved += " " + g + " doors nested lrtdp with deadends\n";
+			else {
+				notSolved += infoString + "\n";
+				System.out.println(g + infoString + " not solved");
+			}
+			if (rinfo.goalFoundAndSolved())
+				passed++;
 
-			if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+		}
+
+		System.out.println("Passed " + passed + "/" + tests);
+		System.out.println("Goals Found " + goalFound + "/" + tests
+				+ ((goalFound == tests) ? "" : "\nGoals Not Found:\n" + goalsNotFound));
+		System.out.println("Initial State Solved " + solved + "/" + tests
+				+ ((solved == tests) ? "" : "\nInitial State Not Solved:\n" + notSolved));
+
+	}
+
+	public void testNestedLRTDPDoorsAvoid() throws Exception {
+
+
+		String goalsNotFound = "";
+		String notSolved = "";
+		int[] goalStates2 = { 0, 4, 6 };
+		int tests = goalStates2.length;
+		int passed = 0;
+		int goalFound = 0;
+		int solved = 0;
+		boolean debug = false;
+		int currentTest = 1;
+		String infoString = " nested lrtdp deadends to 20 and doors and avoid";
+		for (int g : goalStates2) {
+			// with deadends
+			System.out.println("Test " + currentTest++ + "/" + tests);
+			THTSRunInfo rinfo = nestedLRTDPDoorsAvoid(g, debug);
+			if (rinfo.goalFound)
+				goalFound++;
+			else {
+				goalsNotFound += infoString + "\n";
+				System.out.println(+g + infoString + "goal not found");
+			}
+			if (rinfo.initialStateSolved)
+				solved++;
+			else {
+				notSolved += infoString + "\n";
+				System.out.println(g + infoString + " not solved");
+			}
+			if (rinfo.goalFoundAndSolved())
 				passed++;
 
 		}
@@ -353,42 +414,184 @@ public class IncrementalLRTDPTests {
 
 	}
 
-	public void testNestedLRTDPDoorsAvoid() throws Exception {
+	public void runNestedLRTDPWithDeadends20andDoorsAvoid() throws Exception {
 
-		boolean[] goalFoundAndSolved;
-		String goalsNotFound = "";
-		String notSolved = "";
-		int[] goalStates2 = { 0, 4, 6 };
-		int tests = goalStates2.length;
-		int passed = 0;
-		int goalFound = 0;
-		int solved = 0;
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
 		boolean debug = false;
-		int currentTest = 1;
+		int maxRuns = 10;
+		long duration, startTime, endTime;
 
-		for (int g : goalStates2) {
-			// with deadends
-			System.out.println("Test " + currentTest++ + "/" + tests);
-			goalFoundAndSolved = nestedLRTDPDoorsAvoid(g, debug);
-			if (goalFoundAndSolved[0])
-				goalFound++;
-			else
-				goalsNotFound += " " + g + " doors nested lrtdp with deadends\n";
+		String sep = ",";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
 
-			if (goalFoundAndSolved[1])
-				solved++;
-			else
-				notSolved += " " + g + " doors nested lrtdp with deadends\n";
+		int[] goalStates = { 3, 6 };
 
-			if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
-				passed++;
+//		for (String name : examples) {
+		String name = "unavoidable_doors";
+		for (int goal : goalStates) {
+			for (int run = 0; run < maxRuns; run++) {
+				String result = "\n";
+				result += name + sep + goal + sep + run;
+				startTime = System.currentTimeMillis();
+				// run things
+				THTSRunInfo rinfo = nestedLRTDPDoorsAvoid(goal, debug);
 
+				endTime = System.currentTimeMillis();
+				duration = endTime - startTime;
+				result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+						+ rinfo.numRolloutsTillSolved;
+				results += result;
+//System.in.read();
+			}
 		}
-		System.out.println("Passed " + passed + "/" + tests);
-		System.out.println("Goals Found " + goalFound + "/" + tests
-				+ ((goalFound == tests) ? "" : "\nGoals Not Found:\n" + goalsNotFound));
-		System.out.println("Initial State Solved " + solved + "/" + tests
-				+ ((solved == tests) ? "" : "\nInitial State Not Solved:\n" + notSolved));
+//		}
+		System.out.println(results);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "simpleLRTDP_ProbCost_20_Doors_Avoid.csv");
+		csvRes.println(results);
+		csvRes.close();
+
+	}
+	public void runNestedLRTDPWithDeadends0andDoors() throws Exception {
+
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+		boolean debug = false;
+		int maxRuns = 10;
+		long duration, startTime, endTime;
+
+		String sep = ",";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
+
+		int[] goalStates = { 3, 6 };
+
+//		for (String name : examples) {
+		String name = "unavoidable_doors";
+		for (int goal : goalStates) {
+			for (int run = 0; run < maxRuns; run++) {
+				String result = "\n";
+				result += name + sep + goal + sep + run;
+				startTime = System.currentTimeMillis();
+				// run things
+				THTSRunInfo rinfo = nestedLRTDPDoors(goal, debug);
+
+				endTime = System.currentTimeMillis();
+				duration = endTime - startTime;
+				result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+						+ rinfo.numRolloutsTillSolved;
+				results += result;
+//System.in.read();
+			}
+		}
+//		}
+		System.out.println(results);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "simpleLRTDP_ProbCost_0_Doors.csv");
+		csvRes.println(results);
+		csvRes.close();
+
+	}
+
+	public void runNestedLRTDPWithDeadends20AndAvoid() throws Exception {
+		// TODO: debug to understand why onefailaction and allfailpaths with g 3 doesnt
+		// always result in a solution!!!
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+		boolean debug = false;
+		int maxRuns = 10;
+		long duration, startTime, endTime;
+
+		String sep = ",";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
+
+		int[] goalStates = { 3, 6 };
+
+		String[] examples = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction",
+				"tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+
+		for (String name : examples) {
+			for (int goal : goalStates) {
+				for (int run = 0; run < maxRuns; run++) {
+					String result = "\n";
+					result += name + sep + goal + sep + run;
+					startTime = System.currentTimeMillis();
+					// run things
+					THTSRunInfo rinfo = nestedLRTDPAvoid(name, goal, debug);
+
+					endTime = System.currentTimeMillis();
+					duration = endTime - startTime;
+					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+							+ rinfo.numRolloutsTillSolved;
+					results += result;
+//System.in.read();
+				}
+			}
+		}
+		System.out.println(results);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "simpleLRTDP_ProbCost_20.csv");
+		csvRes.println(results);
+		csvRes.close();
+
+	}
+
+	public void runNestedLRTDPWithDeadends0() throws Exception {
+		// TODO: debug to understand why onefailaction with g 3 doesnt always result in
+		// a solution!!!
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+		boolean debug = false;
+		int maxRuns = 10;
+		long duration, startTime, endTime;
+
+		String sep = ",";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
+
+		int[] goalStates = { 3, 6 };
+
+		String[] examples = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction",
+				"tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+
+		for (String name : examples) {
+			for (int goal : goalStates) {
+				for (int run = 0; run < maxRuns; run++) {
+					String result = "\n";
+					result += name + sep + goal + sep + run;
+					startTime = System.currentTimeMillis();
+					// run things
+					THTSRunInfo rinfo = nestedLRTDP(name, goal, debug);
+
+					endTime = System.currentTimeMillis();
+					duration = endTime - startTime;
+					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+							+ rinfo.numRolloutsTillSolved;
+					results += result;
+					System.in.read();
+				}
+			}
+		}
+		System.out.println(results);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "simpleLRTDP_ProbCost.csv");
+		csvRes.println(results);
+		csvRes.close();
 
 	}
 
@@ -406,25 +609,26 @@ public class IncrementalLRTDPTests {
 		int solved = 0;
 		boolean debug = false;
 		int currentTest = 1;
-
+		String infoString = " nested lrtdp with deadends ";
 		for (String example : examples3) {
 			for (int g : goalStates) {
 //with deadends
+
 				System.out.println("Test " + currentTest++ + "/" + tests);
-				goalFoundAndSolved = nestedLRTDP(example, g, debug);
-				if (goalFoundAndSolved[0])
+				THTSRunInfo rinfo = nestedLRTDP(example, g, debug);
+				if (rinfo.goalFound)
 					goalFound++;
 				else {
-					goalsNotFound += example + " " + g + " nested lrtdp with deadends\n";
-					System.out.println(example + " " + g + " nested lrtdp with deadends - goal not found");
+					goalsNotFound += example + infoString + "\n";
+					System.out.println(example + " " + g + infoString + "goal not found");
 				}
-				if (goalFoundAndSolved[1])
+				if (rinfo.initialStateSolved)
 					solved++;
 				else {
-					notSolved += example + " " + g + " nested lrtdp with deadends\n";
-					System.out.println(example + " " + g + " nested lrtdp with deadends - not solved");
+					notSolved += example + infoString + "\n";
+					System.out.println(example + " " + g + infoString + " not solved");
 				}
-				if (goalFoundAndSolved[0] && goalFoundAndSolved[1])
+				if (rinfo.goalFoundAndSolved())
 					passed++;
 
 			}
@@ -480,8 +684,8 @@ public class IncrementalLRTDPTests {
 		String example = "tro_example_new_small_noprob";// "tro_example_new_small_allfailpaths";
 		int g = 4;// 3;//6;
 		boolean debug = true;
-		boolean[] goalFoundAndSolved = nestedLRTDPDoorsAvoid(g, debug);// nestedLRTDPAvoid(example, g, debug);
-		if (goalFoundAndSolved[1] == false)
+		THTSRunInfo rinfo = nestedLRTDPDoorsAvoid(g, debug);// nestedLRTDPAvoid(example, g, debug);
+		if (rinfo.initialStateSolved == false)
 			System.out.println("Not Solved");
 	}
 
@@ -491,13 +695,166 @@ public class IncrementalLRTDPTests {
 		boolean[] goalFoundAndSolved = nestedLRTDPDoorsAvoidProductNestedSingleAgentTaskCompletion(debug);
 	}
 
+	public void runSimpleLRTDP() throws Exception {
+
+		// we time each test
+		// we run it for atleast 5 times
+		// we check how many times the goal was found
+		// and how many times the intial state was solved
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+		boolean debug = false;
+		int maxRuns = 5;
+		long duration, startTime, endTime;
+
+		String sep = ",";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
+
+		int[] goalStates = { 3, 6 };
+
+		String[] examples = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction",
+				"tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+//			{ "tro_example_new_small_noprob", "tro_example_new_small_onefailaction" };
+
+		for (String name : examples) {
+			for (int goal : goalStates) {
+				for (int run = 0; run < maxRuns; run++) {
+					String result = "\n";
+					result += name + sep + goal + sep + run;
+					startTime = System.currentTimeMillis();
+					// run things
+					THTSRunInfo rinfo = /* simpleLRTDPNoDeadends */
+							simpleLRTDP(name, goal, debug);
+
+					endTime = System.currentTimeMillis();
+					duration = endTime - startTime;
+					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+							+ rinfo.numRolloutsTillSolved;
+					results += result;
+//System.in.read();
+				}
+			}
+		}
+		System.out.println(results);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "simpleLRTDP.csv");
+		csvRes.println(results);
+		csvRes.close();
+	}
+
+	public void runSimpleLRTDPNoDeadends() throws Exception {
+
+		// we time each test
+		// we run it for atleast 5 times
+		// we check how many times the goal was found
+		// and how many times the intial state was solved
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+		boolean debug = false;
+		int maxRuns = 5;
+		long duration, startTime, endTime;
+
+		String sep = ",";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
+
+		int[] goalStates = { 3, 6 };
+
+		String[] examples =
+//			{ "tro_example_new_small_noprob", "tro_example_new_small_onefailaction",
+//					"tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+				{ "tro_example_new_small_noprob", "tro_example_new_small_onefailaction" };
+
+		for (String name : examples) {
+			for (int goal : goalStates) {
+				for (int run = 0; run < maxRuns; run++) {
+					String result = "\n";
+					result += name + sep + goal + sep + run;
+					startTime = System.currentTimeMillis();
+					// run things
+					THTSRunInfo rinfo = simpleLRTDPNoDeadends(name, goal, debug);
+
+					endTime = System.currentTimeMillis();
+					duration = endTime - startTime;
+					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+							+ rinfo.numRolloutsTillSolved;
+					results += result;
+//					System.in.read();
+				}
+			}
+		}
+		System.out.println(results);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "simpleLRTDPNoDeadends.csv");
+		csvRes.println(results);
+		csvRes.close();
+	}
+
+	public void runSimpleLRTDPAvoid() throws Exception {
+
+		// we time each test
+		// we run it for atleast 5 times
+		// we check how many times the goal was found
+		// and how many times the intial state was solved
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+		boolean debug = false;
+		int maxRuns = 5;
+		long duration, startTime, endTime;
+
+		String sep = ",";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
+
+		int[] goalStates = { 3, 6 };
+
+		String[] examples = { "tro_example_new_small_noprob", "tro_example_new_small_onefailaction",
+				"tro_example_new_small_allfailpaths_nowait", "tro_example_new_small_allfailpaths" };
+//			{ "tro_example_new_small_noprob", "tro_example_new_small_onefailaction" };
+
+		for (String name : examples) {
+			for (int goal : goalStates) {
+				for (int run = 0; run < maxRuns; run++) {
+					String result = "\n";
+					result += name + sep + goal + sep + run;
+					startTime = System.currentTimeMillis();
+					// run things
+					THTSRunInfo rinfo = // simpleLRTDPNoDeadends
+							simpleLRTDPAvoid(name, goal, debug);
+
+					endTime = System.currentTimeMillis();
+					duration = endTime - startTime;
+					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+							+ rinfo.numRolloutsTillSolved;
+					results += result;
+
+				}
+			}
+		}
+		System.out.println(results);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "simpleLRTDPAvoid.csv");
+		csvRes.println(results);
+		csvRes.close();
+	}
+
 	public static void main(String[] args) {
 		try {
-			IncrementalLRTDPTests tester = new IncrementalLRTDPTests();
+			TestLRTDPSimple tester = new TestLRTDPSimple();
 			String options[] = { "all", "lrtdp_deadends", "nested_lrtdp_deadends_doors", "nested_lrtdp_deadends",
 					"help", "-h", "nested_lrtdp_deadends_doors_avoid", "debugInstance", "currentWIP",
-					"nested_lrtdp_deadends_doors_avoid_ltl" };
-			String option = "currentWIP";// "debugInstance";//"all";
+					"nested_lrtdp_deadends_doors_avoid_ltl", "runTests" };
+			String option = "runTests";// "all";//"runTests";//"currentWIP";// "debugInstance";//"all";
 			if (args.length > 1) {
 				System.out.println(Arrays.deepToString(args));
 				option = args[0];
@@ -523,6 +880,15 @@ public class IncrementalLRTDPTests {
 				tester.currentWIP();
 			} else if (option.contentEquals(options[9])) {
 				tester.testNestedLRTDPWithDeadendsAvoidLTLSpecs();
+			} else if (option.contentEquals(options[10])) {
+//				tester.runSimpleLRTDP();
+//				tester.runSimpleLRTDPNoDeadends();
+//				tester.runSimpleLRTDPAvoid();
+//				tester.runNestedLRTDPWithDeadends0();
+//				tester.runNestedLRTDPWithDeadends20AndAvoid();
+//				tester.runNestedLRTDPWithDeadends0andDoors();
+				tester.runNestedLRTDPWithDeadends20andDoorsAvoid();
+				
 			} else {
 				System.out
 						.println("Unimplemented option " + option + "\nAvailable options " + Arrays.toString(options));
@@ -533,7 +899,7 @@ public class IncrementalLRTDPTests {
 		}
 	}
 
-	boolean[] nestedLRTDPDoors(int stateVal, boolean debug) throws Exception {
+	THTSRunInfo nestedLRTDPDoors(int stateVal, boolean debug) throws Exception {
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
@@ -600,7 +966,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -634,14 +1000,29 @@ public class IncrementalLRTDPTests {
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run(false);
+
+		int numRolloutsTillSolved = thts.run(false);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 				resultsLocation);
-		return goalack;
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+
+		return rinfo;
+
+//		thts.run(false);
+//
+//		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//
+//		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+//				resultsLocation);
+//		return goalack;
 	}
 
 	public MultiAgentNestedProductModelGenerator createMAMG(Prism prism, PrismLog mainLog, ArrayList<String> filenames,
@@ -738,9 +1119,9 @@ public class IncrementalLRTDPTests {
 
 	boolean[] nestedLRTDPDoorsAvoidProductNestedSingleAgentTaskCompletion(boolean debug) throws Exception {
 		boolean goalFound = false;
-		double[] hvals = {  500,1000,2000,10000};
+		double[] hvals = { 500, 1000, 2000, 10000 };
 		int[] rollouts = { 1000, 2000, 5000, 10000 };
-		int[] trialLens = {  50, 100, 200, 500 };
+		int[] trialLens = { 50, 100, 200, 500 };
 		double hval = 20;// trialLen;//trialLen*maxRollouts;
 		boolean[] goalack = new boolean[2];
 
@@ -897,14 +1278,17 @@ public class IncrementalLRTDPTests {
 //		tieBreakingOrder.add(Objectives.Probability);
 					tieBreakingOrder.add(Objectives.TaskCompletion);
 					tieBreakingOrder.add(Objectives.Cost);
-
+					HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
+					minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
+					minMaxVals.put(Objectives.TaskCompletion,
+							new AbstractMap.SimpleEntry<Double, Double>(0., (double) saModelGen.numDAs));
 					mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 					fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 
 					mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 					fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-					ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+					ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																												// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 					mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -916,7 +1300,7 @@ public class IncrementalLRTDPTests {
 					fileLog.println("Initialising Full Bellman Backup Function");
 
 					BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection,
-							epsilon, hval);
+							epsilon, minMaxVals);
 
 					mainLog.println("Initialising Reward Helper Function");
 					fileLog.println("Initialising Reward Helper Function");
@@ -945,12 +1329,26 @@ public class IncrementalLRTDPTests {
 					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-					goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 							resultsLocation);
 					goalFound = goalack[0];
 					mainLog.println("Goal Found: " + goalack[0]);
 					mainLog.println("Initial State Solved: " + goalack[1]);
 					System.in.read();
+
+//					int numRolloutsTillSolved = thts.run(false);
+//
+//					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//
+//					boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+//							resultsLocation);
+//					THTSRunInfo rinfo = new THTSRunInfo(); 
+//					rinfo.numRolloutsTillSolved = numRolloutsTillSolved; 
+//					rinfo.goalFound = goalack[0];
+//					rinfo.initialStateSolved = goalack[1];
+//					
+//					return rinfo;
 
 				}
 				if (goalFound)
@@ -1067,7 +1465,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1106,14 +1504,29 @@ public class IncrementalLRTDPTests {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 				resultsLocation);
 		mainLog.println("Goal Found: " + goalack[0]);
 		mainLog.println("Initial State Solved: " + goalack[1]);
 		return goalack;
+
+//		int numRolloutsTillSolved = thts.run(false);
+//
+//		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//
+//		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+//				resultsLocation);
+//		THTSRunInfo rinfo = new THTSRunInfo(); 
+//		rinfo.numRolloutsTillSolved = numRolloutsTillSolved; 
+//		rinfo.goalFound = goalack[0];
+//		rinfo.initialStateSolved = goalack[1];
+//		
+//		return rinfo;
+
 	}
 
-	boolean[] nestedLRTDPDoorsAvoid(int stateVal, boolean debug) throws Exception {
+	THTSRunInfo nestedLRTDPDoorsAvoid(int stateVal, boolean debug) throws Exception {
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
@@ -1148,7 +1561,7 @@ public class IncrementalLRTDPTests {
 		MDPModelGenerator mdpModGen = new MDPModelGenerator(modGen);
 
 		int maxRollouts = 1000;
-		int trialLen = 50;
+		int trialLen = 100;
 		float epsilon = 0.0001f;
 
 		List<State> gs = new ArrayList<State>();
@@ -1182,7 +1595,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1216,29 +1629,42 @@ public class IncrementalLRTDPTests {
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run(false);
+//		thts.run(false);
+//
+//		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//
+//		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+//				resultsLocation);
+//		return goalack;
+
+		int numRolloutsTillSolved = thts.run(false);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 				resultsLocation);
-		return goalack;
+		THTSRunInfo rinfo = new THTSRunInfo(); 
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved; 
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+		
+		return rinfo;
+
 	}
 
-	boolean[] nestedLRTDP(String example, int stateVal, boolean debug) throws Exception {
+	THTSRunInfo nestedLRTDP(String example, int stateVal, boolean debug) throws Exception {
 
 //		if (example.contains("tro_example_new_small_allfailpaths") & stateVal == 6) {
 //			System.out.println("Debug");
 //			debug = true;
 //		}
-		boolean isSolved = false;
-		int maxRollouts = 5000;
 		int minRollouts = 1000;
 		boolean[] goalack = null;
 		int numRollouts = minRollouts;
 //		for (int numRollouts = minRollouts; numRollouts < maxRollouts; numRollouts += 1000) {
-		int trialLen = 50;
+		int trialLen = 100;
 		float epsilon = 0.0001f;
 
 		System.out.println(System.getProperty("user.dir"));
@@ -1295,7 +1721,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1329,34 +1755,28 @@ public class IncrementalLRTDPTests {
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run(false);
+		int numRolloutsTillSolved = thts.run(false);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true), resultsLocation);
-		isSolved = goalack[1];
-//			if (isSolved)
-//				break;
-//		}
-		return goalack;
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+
+		return rinfo;
 
 	}
 
-	boolean[] nestedLRTDPAvoid(String example, int stateVal, boolean debug) throws Exception {
+	THTSRunInfo nestedLRTDPAvoid(String example, int stateVal, boolean debug) throws Exception {
 
-//		if (example.contains("tro_example_new_small_allfailpaths") & stateVal == 6) {
-//			System.out.println("Debug");
-//			debug = true;
-//		}
-		debug = true;
-		boolean isSolved = false;
-		int maxRollouts = 5000;
 		int minRollouts = 1000;
 		boolean[] goalack = null;
 		int numRollouts = minRollouts;
 //		for (int numRollouts = minRollouts; numRollouts < maxRollouts; numRollouts += 1000) {
-		int trialLen = 50;
+		int trialLen = 100;
 		float epsilon = 0.0001f;
 
 		System.out.println(System.getProperty("user.dir"));
@@ -1417,7 +1837,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1451,21 +1871,34 @@ public class IncrementalLRTDPTests {
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run(false);
+//		thts.run(false);
+//
+//		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+//
+//		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+//		isSolved = goalack[1];
+////			if (isSolved)
+////				break;
+////		}
+//		return goalack;
+
+		int numRolloutsTillSolved = thts.run(false);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true), resultsLocation);
-		isSolved = goalack[1];
-//			if (isSolved)
-//				break;
-//		}
-		return goalack;
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+
+		return rinfo;
 
 	}
 
-	boolean[] simpleLRTDPNoDeadends(String example, int stateVal, boolean debug) throws Exception {
+	THTSRunInfo simpleLRTDPNoDeadends(String example, int stateVal, boolean debug) throws Exception {
 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
@@ -1518,7 +1951,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1552,18 +1985,23 @@ public class IncrementalLRTDPTests {
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run(false);
+		int numRolloutsTillSolved = thts.run(false);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 				resultsLocation);
-		return goalack;
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+
+		return rinfo;
 
 	}
 
-	boolean[] simpleLRTDP(String example, int stateVal, boolean debug) throws Exception {
+	THTSRunInfo simpleLRTDP(String example, int stateVal, boolean debug) throws Exception {
 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
@@ -1622,7 +2060,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1656,18 +2094,24 @@ public class IncrementalLRTDPTests {
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run(false);
+
+		int numRolloutsTillSolved = thts.run(false);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 				resultsLocation);
-		return goalack;
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+
+		return rinfo;
 
 	}
 
-	boolean[] simpleLRTDPAvoid(String example, int stateVal, boolean debug) throws Exception {
+	THTSRunInfo simpleLRTDPAvoid(String example, int stateVal, boolean debug) throws Exception {
 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
@@ -1732,7 +2176,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1766,14 +2210,19 @@ public class IncrementalLRTDPTests {
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + "g_" + stateVal + "_rtdp" + combString);
 		thts.setResultsLocation(resultsLocation);
-		thts.run(false);
+		int numRolloutsTillSolved = thts.run(false);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 				resultsLocation);
-		return goalack;
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+
+		return rinfo;
 
 	}
 
@@ -1830,7 +2279,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedyLowerBound(tieBreakingOrder, true);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1870,7 +2319,7 @@ public class IncrementalLRTDPTests {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedyLowerBound(tieBreakingOrder, true),
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
 				resultsLocation);
 		return goalack;
 

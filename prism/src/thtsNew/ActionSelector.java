@@ -8,5 +8,5 @@ public interface ActionSelector {
 	//the nodes children must exist 
 	//since this does no checking etc 
 	//the boolean doMin does min/max on bounds or whatever you'd like 
-	public ChanceNode selectAction(DecisionNode nd,boolean doMin);
+	public ChanceNode selectAction(DecisionNode nd,boolean doMin) throws Exception;
 }
