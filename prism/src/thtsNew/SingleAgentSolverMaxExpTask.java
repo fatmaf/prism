@@ -246,10 +246,6 @@ public class SingleAgentSolverMaxExpTask {
 				rewardsList, null, minRewards, null, 1, null, this.mainLog, resLoc,name);
 		// now this is possibly the MOST important bit
 		// we've got to go over all the states and save them
-		// cuz who the man ?
-		// you the man ? no no no no no iits hulk hogan
-		// in the corner
-		// i hate life
 		// the last one is the probability
 		// now this is really important to remember so don't mess it up
 		// the order is prob,maxtask,other rewards
