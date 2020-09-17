@@ -1,4 +1,4 @@
-package thtsNew;
+package thtsSCC;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +10,11 @@ import parser.State;
 import prism.PrismException;
 import thts.Bounds;
 import thts.Objectives;
+import thtsNew.ActionSelector;
+import thtsNew.ActionSelectorGreedySimpleLowerBound;
+import thtsNew.ChanceNode;
+import thtsNew.DecisionNode;
+import thtsNew.Node;
 
 //lets first create our own thing from the GSSP example 
 //then everything has 2 or 1 action 
@@ -123,7 +128,7 @@ public class SCCFinder {
 
 	}
 
-	void findSCCs(DecisionNode r, boolean fixSCCs) throws Exception {
+	public void findSCCs(DecisionNode r, boolean fixSCCs) throws Exception {
 		// helpers
 		ArrayList<DecisionNode> visitedList = new ArrayList<>();
 		Stack<DecisionNode> visitedStack = new Stack<>();
@@ -148,7 +153,7 @@ public class SCCFinder {
 			System.out.println(sccString);
 			ArrayList<ChanceNode> exitActions = new ArrayList<>();
 			ArrayList<ChanceNode> stayActions = new ArrayList<>();
-			SCCType scctype = sccAnalyser(sccs.get(i), exitActions, stayActions);
+			SCCType scctype = sccAnalyser2(sccs.get(i), exitActions, stayActions);
 			scctypes.add(scctype);
 			if (fixSCCs) {
 				anyFixed = anyFixed | fixSCC(sccs.get(i), scctype, exitActions, stayActions);
@@ -315,8 +320,11 @@ public class SCCFinder {
 				for (Object a : d.getChildren().keySet()) {
 					ChanceNode c = d.getChild(a);
 					boolean isExitAction = false;
+					boolean allExit = true;
 					for (DecisionNode dc : c.getChildren()) {
+						boolean dcExit = false;
 						if (!scc.contains(dc)) {
+							dcExit = true;
 							isExitAction = true;
 							exitFound = true;
 							if (!exitActions.contains(c))
@@ -338,7 +346,121 @@ public class SCCFinder {
 //								break;
 							}
 						}
+						allExit = allExit & dcExit;
 
+					}
+					if (!isExitAction) {
+						stayActions.add(c);
+					}
+				}
+			} else {
+				// is it a deadend or a goal ?
+				// if not then its neither
+				// there is a possibility of an exit
+				if (d.canHaveChildren()) {
+					unexplored = true;
+				}
+			}
+
+		}
+
+		// if you dont find an exit and you find a goal then the goal is in the scc
+		// so that scc is neither
+		// if you find an exit and the exit is on a non greedy action
+		// its a transient trap
+		// if you find an exit and the exit is on a greedy action
+		// its neither
+		// if you dont find an exit and you dont find a goal then its a permenant trap
+		if (!goalFound) {
+			if (!exitFound) // no exit
+			{
+				if (!unexplored)
+					toret = SCCType.Permanent;
+				else
+					toret = SCCType.Unexplored;
+			} else {
+				if (!exitOnGreedyAction) {
+					toret = SCCType.Transient;
+				}
+			}
+		}
+		// else goal found in scc so not a trap
+//		if (!goalFound & !exitFound) {
+//			toret = perm;
+//		}
+		System.out.println("SCC analysed: " + toret.toString());
+		return toret;
+
+	}
+
+	SCCType sccAnalyser2(ArrayList<DecisionNode> scc, ArrayList<ChanceNode> exitActions,
+			ArrayList<ChanceNode> stayActions) throws Exception {
+
+		// perm => no actions that lead to a state outside of the scc even without the
+		// greedy ones //and goal isnt include
+		// tran => some actions that lead to a state outside of the scc using greedy
+		// policy //goal isnt part of the scc
+		// neither => actions lead outside of the scc
+		SCCType toret = SCCType.Neither;
+		// does the scc have any actions that lead outside of the scc or to the goal?
+		// if no - perm
+		// if yes, are these actions actions on the greedy thing ?
+		// if no - tran
+		// if yes - neither
+
+		boolean exitFound = false;
+		boolean goalFound = false;
+		boolean exitOnGreedyAction = false;
+		boolean goalFoundOnExit = false;
+		boolean unexplored = false;
+		for (DecisionNode d : scc) {
+			if (d.isGoal) {
+				goalFound = true;
+
+			}
+			if (d.getChildren() != null) {
+				// greedy action
+				ChanceNode ga = null;
+				if (actSel != null) {
+					ga = actSel.selectAction(d, true);
+				}
+				for (Object a : d.getChildren().keySet()) {
+					ChanceNode c = d.getChild(a);
+					boolean isExitAction = false;
+					boolean allExit = true;
+					for (DecisionNode dc : c.getChildren()) {
+						boolean dcExit = false;
+						if (!scc.contains(dc)) {
+							dcExit = true;
+//							isExitAction = true;
+//							exitFound = true;
+//							if (!exitActions.contains(c))
+//								exitActions.add(c);
+							if (dc.isGoal)
+								goalFoundOnExit = true;
+
+//							else {
+//								break;
+//							}
+						} else {
+							if (dc.isGoal) {
+								goalFound = true;
+//								break;
+							}
+						}
+						allExit = allExit & dcExit;
+
+					}
+					if (allExit) {
+						exitFound = true;
+						isExitAction = true;
+						if (!exitActions.contains(c))
+							exitActions.add(c);
+						if (ga != null && c == ga) {
+//							toret = tran;
+							exitOnGreedyAction = true;
+//							break;
+						}
 					}
 					if (!isExitAction) {
 						stayActions.add(c);
@@ -387,6 +509,22 @@ public class SCCFinder {
 	void dfsTarjan(DecisionNode r, ArrayList<DecisionNode> visitedList, Stack<DecisionNode> visitedStack,
 			HashMap<DecisionNode, Integer> id, HashMap<DecisionNode, Integer> lowlink,
 			ArrayList<ArrayList<DecisionNode>> sccs) throws Exception {
+
+//for each unvisited vertex u
+//
+//  DFS(u), s.push(u), num[u] = low[u] = DFSCount
+//
+//    for each neighbor v of u
+//
+//      if v is unvisited, DFS(v)
+//
+//      low[u] = min(low[u], low[v])
+//
+//    if low[u] == num[u] // root of an SCC
+//
+//      pop from stack s until we get u
+//
+//      
 		if (!visitedList.contains(r)) {
 			visitedList.add(r);
 			visitedStack.push(r);

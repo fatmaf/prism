@@ -158,10 +158,10 @@ public class SingleAgentSolverMaxExpTask {
 		prism.buildModel();
 		// get the mdp
 		MDP mdp = (MDP) prism.getBuiltModelExplicit();
-		mdp.exportToDotFile(resLoc+"mdp.dot");
-		mainLog.println("Initial State: "+mdp.getFirstInitialState());
+//		mdp.exportToDotFile(resLoc+"mdp.dot");
+//		mainLog.println("Initial State: "+mdp.getFirstInitialState());
 
-		mainLog.println("Built model MDP\n"+mdp.infoStringTable());
+//		mainLog.println("Built model MDP\n"+mdp.infoStringTable());
 		// things we need
 		// some of this is probably superfluous and should be changed
 		// but alas i'm a bit of a loser
@@ -182,6 +182,7 @@ public class SingleAgentSolverMaxExpTask {
 		for(int exprnum = 0; exprnum<exprOthers.size(); exprnum++)
 		{
 			Expression exprHere = exprOthers.get(exprnum);
+//			
 			npMDP.constructProductModel(exprHere, ltlMC, pmc, allowedAcceptance, resLoc);
 			mainLog.println("Added "+exprHere.toString()+" to product \n"+npMDP.getProductModel().infoStringTable());
 		}
@@ -222,19 +223,22 @@ public class SingleAgentSolverMaxExpTask {
 		// we're so so close to doing nvi!!!
 		// haye haye!!!
 		// but furst v must get de target and remain
-		if (name != null) {
-			PrismLog out = new PrismFileLog(resLoc + "jointmdpstates" + name + ".sta");
-			for (int i = 0; i < npMDP.getProductModel().getStatesList().size(); i++) {
-				out.println(i + ":" + npMDP.getProductModel().getStatesList().get(i));
-			}
-			out.close();
-
-			npMDP.getProductModel().exportToPrismExplicitTra(resLoc + "jointmdpstates" + name + ".tra");
-		}
+//		if (name != null) {
+//			PrismLog out = new PrismFileLog(resLoc + "jointmdpstates" + name + ".sta");
+//			for (int i = 0; i < npMDP.getProductModel().getStatesList().size(); i++) {
+//				out.println(i + ":" + npMDP.getProductModel().getStatesList().get(i));
+//			}
+//			out.close();
+//
+//			npMDP.getProductModel().exportToPrismExplicitTra(resLoc + "jointmdpstates" + name + ".tra");
+//		}
 		mainLog.println("Getting acc states and states to avoid");
 		npMDP.createTargetStates();
 		BitSet remain = npMDP.getRemainStates();
 		BitSet target = npMDP.getTargetStates();
+		mainLog.println("Targets:"+target.cardinality()+" Remain:"+remain.cardinality());
+//		mainLog.println("Acc States: "+target.toString());
+//		mainLog.println("Remain States: "+remain.toString());
 		// now we're ready for WAR ? what is it good for absolutely nothing
 
 		MDPValIter vi = new MDPValIter();
@@ -250,11 +254,11 @@ public class SingleAgentSolverMaxExpTask {
 		// now this is really important to remember so don't mess it up
 		// the order is prob,maxtask,other rewards
 		// lets just draw the result to check what happens
-		if (name != null) {
-			PolicyCreator pc = new PolicyCreator();
-			pc.createPolicyAllStates(npMDP.getProductModel(), result.strat);
-			pc.savePolicy(resLoc, "nvipol" + name);
-		}
+//		if (name != null) {
+//			PolicyCreator pc = new PolicyCreator();
+//			pc.createPolicyAllStates(npMDP.getProductModel(), result.strat);
+//			pc.savePolicy(resLoc, "nvipol" + name);
+//		}
 		ArrayList<Objectives> objs = new ArrayList<Objectives>();
 		objs.add(Objectives.Probability);
 		objs.add(Objectives.TaskCompletion);

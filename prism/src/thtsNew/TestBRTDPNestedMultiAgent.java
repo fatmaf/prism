@@ -10,7 +10,6 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceType;
@@ -31,34 +30,31 @@ import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
 
-public class TestLRTDPNestedMultiAgentSAS {
+public class TestBRTDPNestedMultiAgent {
 
+	String subfolder="brtdp/";
 	// running this from the commandline
-	// PRISM_MAINCLASS=thtsNew.TestLRTDPNestedMultiAgentSAS prism/bin/prism
+	// PRISM_MAINCLASS=thtsNew.TestLRTDPNestedMultiAgent prism/bin/prism
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
-			TestLRTDPNestedMultiAgentSAS tester = new TestLRTDPNestedMultiAgentSAS();
-			String[] options = { "sas","sasgreedy" };
+			TestBRTDPNestedMultiAgent tester = new TestBRTDPNestedMultiAgent();
+			String[] options = { "warehouse" };
 
 			String option = options[0];// "currentWIP";
-			int maxRuns = 5;
-			if (args.length > 0) {
+			int maxRuns = 10;
+			if (args.length > 1) {
 				System.out.println(Arrays.deepToString(args));
 				option = args[0];
 				System.out.println("Running with argument: " + option);
 				System.in.read();
 			}
 
-		 if (option.contentEquals(options[0])) // unavoidable
+			if (option.contentEquals(options[0])) // unavoidable
 			{
+				THTSRunInfo rinfo = tester.avoidable(true);
+				System.out.println(rinfo.toString());
 
-				
-				tester.runMultipleRunsWarehouseSAS(maxRuns);
-
-			} else if (option.contentEquals(options[1])) // currentWIP
-			{
-				tester.runMultipleRunsWarehouseSASGreedy(maxRuns);
 			} else {
 				System.out
 						.println("Unimplemented option " + option + "\nAvailable options " + Arrays.toString(options));
@@ -70,8 +66,7 @@ public class TestLRTDPNestedMultiAgentSAS {
 
 	}
 
-	
-	public void runMultipleRunsWarehouseSAS(int maxRuns) throws Exception {
+	public void runMultipleRunsWarehous(int maxRuns) throws Exception {
 
 //		String[] options = { /* "deterministic", "deterministic_avoid", "avoidable", */ "unavoidable" };
 		// we time each test
@@ -86,149 +81,92 @@ public class TestLRTDPNestedMultiAgentSAS {
 		System.out.println("Results Location " + resultsLocation);
 		boolean debug = false;
 
-		String fn = "warehouse_fs_sas_.csv";
-		if(debug)
-			fn = "temp_"+fn;
 		long duration, startTime, endTime;
-		PrismLog csvRes = new PrismFileLog(resultsLocation + fn);
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "warehouse_fs_.csv");
 		String sep = ",";
-		String results = "\nName" + sep + "Failstates" + sep + "Run" + sep + "Duration" + sep + "Goal" +sep+"ProbableGoal"+ sep
-				+ "InitialStateSolved" + sep + "numRollouts"+sep+"TaskCompletion Upper"
-				+sep+"TaskCompletion Lower"+sep+"Cost Upper"+sep+"Cost Lower";
+		String results = "\nName" + sep + "Failstates" + sep + "Run" + sep + "Duration" + sep + "Goal" + sep
+				+ "ProbableGoal" + sep + "InitialStateSolved" + sep + "numRollouts";
 
 		csvRes.println(results);
 		csvRes.close();
 		String name = "Warehouse";
-		int[] fsNums = {0,10,20,30,40,50,60,70,80,90,100};
-		int maxTests = fsNums.length*maxRuns; 
-		int testNum = 0; 
-		long durestimate = 0; 
-		
-		for(int fsNum : fsNums/*= 10; fsNum<=100; fsNum+=30*/) {
-		for (int run = 0; run < maxRuns; run++) {
-			
-			String result = "\n";
-			result += name + sep + fsNum + sep + run;
-			testString(testNum,maxTests,durestimate);
-			startTime = System.currentTimeMillis();
-			// run things
-			THTSRunInfo rinfo = null;
-			rinfo=unavoidableWarehousefsSingleAgentSolH(debug,fsNum,0);
-			endTime = System.currentTimeMillis();
-			duration = endTime - startTime;
-			durestimate+=duration;
-			if (rinfo != null)
-			{	result += sep + duration + sep + rinfo.goalFound + sep+rinfo.goalOnProbablePath+sep + rinfo.initialStateSolved + sep 
-						+ rinfo.numRolloutsTillSolved+sep
-						+rinfo.getBoundsString(Objectives.TaskCompletion, sep)+sep
-						+rinfo.getBoundsString(Objectives.Cost, sep);
-			csvRes = new PrismFileLog(resultsLocation + fn,true);
-			csvRes.print(result);
-			csvRes.close();
-			}
-			results += result;
-			testNum++;
+		int[] fsNums = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
+		for (int fsNum : fsNums/* = 0; fsNum<=100; fsNum+=30 */) {
+			for (int run = 0; run < maxRuns; run++) {
+				String result = "\n";
+				result += name + sep + fsNum + sep + run;
+				startTime = System.currentTimeMillis();
+				// run things
+				THTSRunInfo rinfo = null;
+				rinfo = unavoidableWarehousefs(debug, fsNum, 0);
+				endTime = System.currentTimeMillis();
+				duration = endTime - startTime;
+				if (rinfo != null) {
+					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.goalOnProbablePath + sep
+							+ rinfo.initialStateSolved + sep + rinfo.numRolloutsTillSolved;
+					csvRes = new PrismFileLog(resultsLocation + "warehouse_fs_.csv", true);
+					csvRes.print(result);
+					csvRes.close();
+				}
+				results += result;
 
-		}
-		
+			}
 		}
 		System.out.println(results);
-		
+
 //		csvRes.println(results);
 //		csvRes.close();
 	}
-	
-	public void runMultipleRunsWarehouseSASGreedy(int maxRuns) throws Exception {
 
-//		String[] options = { /* "deterministic", "deterministic_avoid", "avoidable", */ "unavoidable" };
+
+
+	public void runMultipleRunsUnavoidable(int maxRuns) throws Exception {
+
+		String[] options = { /* "deterministic", "deterministic_avoid", "avoidable", */ "unavoidable" };
 		// we time each test
 		// we run it for atleast 5 times
 		// we check how many times the goal was found
 		// and how many times the intial state was solved
-		boolean debug = false;
-		
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
 		String resultsLocation = testsLocation + "results/csvs/";
 		// making sure resultsloc exits
-		if (debug)
-			resultsLocation+="debug/";
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
-	
+		boolean debug = false;
 
 		long duration, startTime, endTime;
-		String fn = "warehouse_fs_sas_greedy.csv"; 
-		if(debug)
-			fn = "debug_"+fn;
-		PrismLog csvRes = new PrismFileLog(resultsLocation +fn );
+
 		String sep = ",";
-		String results = "\nName" + sep + "Failstates" + sep + "Run" + sep + "Duration" + sep + "Goal" +sep+"ProbableGoal"+ sep
-				+ "InitialStateSolved" + sep + "numRollouts"+sep+"TaskCompletion Upper"+sep
-				+"TaskCompletion Lower"+sep+"Cost Upper"+sep+"Cost Lower";
+		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
+				+ "InitialStateSolved" + sep + "numRollouts";
 
+		for (String name : options) {
+			String option = name;
+			for (int run = 0; run < maxRuns; run++) {
+				String result = "\n";
+				result += name + sep + "ltlspec" + sep + run;
+				startTime = System.currentTimeMillis();
+				// run things
+				THTSRunInfo rinfo = null;
 
-		csvRes.println(results);
-		csvRes.close();
-		String name = "Warehouse";
-		int[] fsNums = {10,20,30,40,50,60,70,80,90,100,0};
-		int maxTests = fsNums.length*maxRuns; 
-		int testNum = 0; 
-		long durestimate = 0; 
-		for(int fsNum : fsNums/*= 10; fsNum<=100; fsNum+=30*/) {
-		for (int run = 0; run < maxRuns; run++) {
-			
-			String result = "\n";
-			result += name + sep + fsNum + sep + run;
-			testString(testNum,maxTests,durestimate);
-			startTime = System.currentTimeMillis();
-			// run things
-			THTSRunInfo rinfo = null;
-			rinfo=unavoidableWarehousefsSingleAgentSolHGreedyActSel(debug,fsNum,0);
-			endTime = System.currentTimeMillis();
-			duration = endTime - startTime;
-			durestimate+=duration;
-			if (rinfo != null)
-			{	result += sep + duration + sep + rinfo.goalFound + sep+rinfo.goalOnProbablePath+sep + rinfo.initialStateSolved + sep 
-						+ rinfo.numRolloutsTillSolved+sep
-						+rinfo.getBoundsString(Objectives.TaskCompletion, sep)+sep
-						+rinfo.getBoundsString(Objectives.Cost, sep);
-			csvRes = new PrismFileLog(resultsLocation + fn,true);
-			csvRes.print(result);
-			csvRes.close();
+				rinfo = unavoidable(debug, run);
+
+				endTime = System.currentTimeMillis();
+				duration = endTime - startTime;
+				if (rinfo != null)
+					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+							+ rinfo.numRolloutsTillSolved;
+				results += result;
+//System.in.read();
+
 			}
-			results += result;
-			testNum++;
-
-		}
-		
 		}
 		System.out.println(results);
-		
-//		csvRes.println(results);
-//		csvRes.close();
+		PrismLog csvRes = new PrismFileLog(resultsLocation + "MultiAgentLRTDP_unavoidable_ltlspecs.csv");
+		csvRes.println(results);
+		csvRes.close();
 	}
-	
-
-	
-private void testString(int testNum, int maxTests,long durMS)
-{
-	System.out.println("Test "+testNum+"/"+maxTests); 
-	long times = TimeUnit.SECONDS.convert(durMS, TimeUnit.MILLISECONDS);
-	long timeM = TimeUnit.MINUTES.convert(durMS, TimeUnit.MILLISECONDS);
-	long timeH = TimeUnit.HOURS.convert(durMS, TimeUnit.MILLISECONDS);
-	System.out.println("Time: "+times+"(s)/"+timeM+"(min)/"+timeH+"(h)");
-	
-	long avgTime = 0; 
-	if(testNum> 0)
-		avgTime=durMS/(testNum);
-	long estTime = avgTime*(maxTests-testNum);
-
-	long etimes = TimeUnit.SECONDS.convert(estTime, TimeUnit.MILLISECONDS);
-	long etimeM = TimeUnit.MINUTES.convert(estTime, TimeUnit.MILLISECONDS);
-	long etimeH = TimeUnit.HOURS.convert(estTime, TimeUnit.MILLISECONDS);
-	System.out.println("ET End: "+etimes+"(s)/"+etimeM+"(min)/"+etimeH+"(h)");
-}
 
 	public void createDirIfNotExist(String directoryName) {
 		File directory = new File(directoryName);
@@ -323,11 +261,11 @@ private void testString(int testNum, int maxTests,long durMS)
 			DA<BitSet, ? extends AcceptanceOmega> da = ltlMC.constructExpressionDAForLTLFormula(expr, labelExprs,
 					allowedAcceptance);
 			da.setDistancesToAcc();
-//			mainLog.println("Writing to " + resultsLocation + "da_" + i + ".dot");
-//			PrismLog out = new PrismFileLog(resultsLocation + "da_" + i + ".dot");
-//			// printing the da
-//			da.print(out, "dot");
-//			out.close();
+			mainLog.println("Writing to " + resultsLocation + "da_" + i + ".dot");
+			PrismLog out = new PrismFileLog(resultsLocation + "da_" + i + ".dot");
+			// printing the da
+			da.print(out, "dot");
+			out.close();
 			labelExprsList.add(labelExprs);
 			das.add(da);
 			mainLog.println("Created DA for " + expr.toString());
@@ -345,391 +283,41 @@ private void testString(int testNum, int maxTests,long durMS)
 
 
 
-	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
-			PrismLog mainLog, String resultsLocation, ArrayList<String> fns, String propFilename) throws Exception {
-		SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism, mainLog, resultsLocation);
-		// so now we can read in the model
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> results = new ArrayList<>();
-		for (String filename : fns) {
-			String[] nameval = filename.split("/");
-			sas.setName(nameval[nameval.length - 1].replaceAll(".prism", ""));
-			sas.loadModel(filename);
-			sas.loadProperties(propFilename);
-			HashMap<Objectives, HashMap<State, Double>> solution = sas.getSolution();
-			results.add(solution);
-		}
-		return results;
-	}
-
-	
-	
-	
-
-
-	THTSRunInfo unavoidableWarehousefsSingleAgentSolH(boolean debug,int fsNum,int rNum) throws Exception {
-		boolean goalFound = false;
+	THTSRunInfo unavoidableWarehousefs(boolean debug, int fsnum, int runNum) throws Exception {
+		int numModels = 4;
 		double[] hvals = { 1000 };
-		int[] rollouts = { 10000 };
-		int[] trialLens = { 50 };
+		int[] rollouts = { 5000 };
+		int[] trialLens = { 1000 };
 		double hval = 20;
 		boolean[] goalack = new boolean[2];
-		int numModels = 4;
-		boolean hasSharedState = false;
-
-		int hvalnum = 0;
-		hval = hvals[hvalnum];
-		int maxRollouts = rollouts[hvalnum];
-		int trialLen = trialLens[hvalnum];
-
-		int exampleNum = fsNum/10; 
-		String[] examples= {"depotShelf_r10_g10_fs0_fsp_0.0_0_","depotShelf_r10_g10_fs13_fsp_11.0_0_"
-				,"depotShelf_r10_g10_fs25_fsp_20.0_0_","shelfDepot_r10_g10_fs37_fsp_30.0_6_"
-				,"shelfDepot_r10_g10_fs50_fsp_41.0_8_","depotShelf_r10_g10_fs62_fsp_50.0_0_"
-				,"shelfDepot_r10_g10_fs74_fsp_60.0_7_","shelfDepot_r10_g10_fs87_fsp_71.0_0_"
-				,"shelfDepot_r10_g10_fs100_fsp_81.0_7_","shelfDepot_r10_g10_fs111_fsp_90.0_8_"
-				,"depotShelf_r10_g10_fs123_fsp_100_9_"};
-		
-
-		float epsilon = 0.0001f;
-
-		System.out.println(System.getProperty("user.dir"));
-		String currentDir = System.getProperty("user.dir");
-		String basetestsLocation = currentDir + "/tests/wkspace/warehouse_samples/";
-		String testsLocation = basetestsLocation+fsNum+"/";
-		String resultsLocation = basetestsLocation + "results/manp/sas/"+fsNum+"/";
-		if(debug)
-			resultsLocation+="debug/";
-		// making sure resultsloc exits
-		createDirIfNotExist(resultsLocation);
-		System.out.println("Results Location " + resultsLocation);
-
-		String example = examples[exampleNum];
-		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
-		tieBreakingOrder.add(Objectives.TaskCompletion);
-		tieBreakingOrder.add(Objectives.Cost);
-		String tieBreakingOrderStr = "_obj_";
-		for (Objectives obj : tieBreakingOrder) {
-			tieBreakingOrderStr += obj.toString() + "_";
-		}
-
-		PrismLog mainLog;
-		if (debug)
-			mainLog = new PrismFileLog("stdout");
-		else
-			mainLog = new PrismDevNullLog();
-
-		Prism prism = new Prism(mainLog);
-		String combString = "_multi_sash_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
-				+ "_rollouts_" + maxRollouts + "_out_skipsolved";
-		String algoIden = "_avoid_lrtdp" + combString + "_r" + numModels+"_run"+rNum;
-		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
-
-		prism.initialise();
-		prism.setEngine(Prism.EXPLICIT);
-
-		mainLog.println("Initialised Prism");
-
-		ArrayList<String> filenames = new ArrayList<>();
-
-		for (int numModel = 0; numModel < numModels; numModel++) {
-			String modelFileName = testsLocation + example + numModel + ".prism";
-			filenames.add(modelFileName);
-		}
-
-		String propertiesFileName = testsLocation + example + "mult.prop";
-
-		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(
-				prism, mainLog, resultsLocation, filenames, propertiesFileName);
-
-		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
-				propertiesFileName, resultsLocation, hasSharedState);
-
-		boolean tightBounds = true;
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval, tightBounds);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
-
-		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
-		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
-
-
-		double epsilonActSel = 0.8; 
-		ActionSelector baseActSel = new ActionSelectorGreedySimpleLowerUpperBound(tieBreakingOrder);// new
-
-		mainLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound epsilon="+epsilonActSel);
-		fileLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound epsilon="+epsilonActSel);
-		ActionSelector actionSelection = new ActionSelectorSoftmax(baseActSel,epsilonActSel);
-//				new ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound(tieBreakingOrder,epsilonActSel);
-		// new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
-		// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
-
-		mainLog.println("Initialising OutcomeSelectorRandomSkipSolved Function");
-		fileLog.println("Initialising OutcomeSelectorRandomSkipSolved Function");
-
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandomSkipSolved();// new
-																					// OutcomeSelectorRandom();
-
-		mainLog.println("Initialising BackupLabelledFullBelmanCap Function");
-		fileLog.println("Initialising BackupLabelledFullBelmanCap Function");
-		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
-		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
-		minMaxVals.put(Objectives.TaskCompletion,
-				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
-		mainLog.println("Caps: "+minMaxVals.toString());
-		fileLog.println("Caps: "+minMaxVals.toString());
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, 
-//				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), 
-				baseActSel,
-				epsilon,
-				minMaxVals);
-
-		mainLog.println("Initialising Reward Helper Function");
-		fileLog.println("Initialising Reward Helper Function");
-
-		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
-//							new RewardHelperNestedSingleAgent(saModelGen);
-
-		mainLog.println("Max Rollouts: " + maxRollouts);
-		mainLog.println("Max TrialLen: " + trialLen);
-		fileLog.println("Max Rollouts: " + maxRollouts);
-		fileLog.println("Max TrialLen: " + trialLen);
-
-		mainLog.println("\nInitialising THTS");
-		fileLog.println("\nInitialising THTS");
-		boolean doForwardBackup = true;
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
-				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
-				tieBreakingOrder, mainLog, fileLog);
-
-		mainLog.println("\nBeginning THTS");
-		fileLog.println("\nBeginning THTS");
-		thts.setName(example + algoIden);
-		thts.setResultsLocation(resultsLocation);
-		THTSRunInfo rinfo = new THTSRunInfo();
-		int numRolloutsTillSolved = thts.run(false,0,debug);
-
-		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		goalack=thts.runThroughMostProb(
-//				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-				baseActSel,
-				resultsLocation);
-		rinfo.goalOnProbablePath = goalack[0];
-		goalack = thts.runThrough(
-//				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), 
-				baseActSel,
-				resultsLocation);
-
-		mainLog.close();
-		fileLog.close();
-
-		rinfo.initialStateValues =thts.getInitialStateBounds();
-		
-		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
-		rinfo.initialStateSolved = goalack[1];
-		return rinfo;
-
-
-	}
-
-	THTSRunInfo unavoidableWarehousefsSingleAgentSolHGreedyActSel(boolean debug,int fsNum,int rNum) throws Exception {
-		boolean goalFound = false;
-		double[] hvals = { 1000 };
-		int[] rollouts = { 10000 };
-		int[] trialLens = { 50 };
-		double hval = 20;
-		boolean[] goalack = new boolean[2];
-		int numModels = 4;
-		boolean hasSharedState = false;
-
-		int hvalnum = 0;
-		hval = hvals[hvalnum];
-		int maxRollouts = rollouts[hvalnum];
-		int trialLen = trialLens[hvalnum];
-
-		int exampleNum = fsNum/10; 
-		String[] examples= {"depotShelf_r10_g10_fs0_fsp_0.0_0_","depotShelf_r10_g10_fs13_fsp_11.0_0_"
-				,"depotShelf_r10_g10_fs25_fsp_20.0_0_","shelfDepot_r10_g10_fs37_fsp_30.0_6_"
-				,"shelfDepot_r10_g10_fs50_fsp_41.0_8_","depotShelf_r10_g10_fs62_fsp_50.0_0_"
-				,"shelfDepot_r10_g10_fs74_fsp_60.0_7_","shelfDepot_r10_g10_fs87_fsp_71.0_0_"
-				,"shelfDepot_r10_g10_fs100_fsp_81.0_7_","shelfDepot_r10_g10_fs111_fsp_90.0_8_"
-				,"depotShelf_r10_g10_fs123_fsp_100_9_"};
-		
-
-		float epsilon = 0.0001f;
-
-		System.out.println(System.getProperty("user.dir"));
-		String currentDir = System.getProperty("user.dir");
-		String basetestsLocation = currentDir + "/tests/wkspace/warehouse_samples/";
-		String testsLocation = basetestsLocation+fsNum+"/";
-		String resultsLocation = basetestsLocation + "results/manp/sas/"+fsNum+"/greedy/";
-		// making sure resultsloc exits
-		if(debug)
-			resultsLocation+="debug/";
-		createDirIfNotExist(resultsLocation);
-		System.out.println("Results Location " + resultsLocation);
-
-		String example = examples[exampleNum];
-		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
-		tieBreakingOrder.add(Objectives.TaskCompletion);
-		tieBreakingOrder.add(Objectives.Cost);
-		String tieBreakingOrderStr = "_obj_";
-		for (Objectives obj : tieBreakingOrder) {
-			tieBreakingOrderStr += obj.toString() + "_";
-		}
-
-		PrismLog mainLog;
-		if (debug)
-			mainLog = new PrismFileLog("stdout");
-		else
-			mainLog = new PrismDevNullLog();
-
-		PrismLog backupFunctionLog=null;
-
-		Prism prism = new Prism(mainLog);
-		String combString = "_multi_sash_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
-				+ "_rollouts_" + maxRollouts + "_out_skipsolved";
-		String algoIden = "_avoid_lrtdp" + combString + "_r" + numModels+"_run"+rNum;
-		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
-
-		if(debug)
-			 backupFunctionLog = new PrismFileLog(resultsLocation+"log_" + example + algoIden + "_backups" + ".txt");
-		
-		prism.initialise();
-		prism.setEngine(Prism.EXPLICIT);
-
-		mainLog.println("Initialised Prism");
-
-		ArrayList<String> filenames = new ArrayList<>();
-
-		for (int numModel = 0; numModel < numModels; numModel++) {
-			String modelFileName = testsLocation + example + numModel + ".prism";
-			filenames.add(modelFileName);
-		}
-
-		String propertiesFileName = testsLocation + example + "mult.prop";
-
-		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(
-				prism, mainLog, resultsLocation, filenames, propertiesFileName);
-
-		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
-				propertiesFileName, resultsLocation, hasSharedState);
-
-		boolean tightBounds = true;
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval, tightBounds);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
-
-		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
-		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
-
-		mainLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound Action Selector Function");
-		fileLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound Action Selector Function");
-
-		ActionSelector actionSelection =  new ActionSelectorGreedySimpleLowerUpperBound(tieBreakingOrder);// new
-		// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
-
-		mainLog.println("Initialising OutcomeSelectorRandomSkipSolved Function");
-		fileLog.println("Initialising OutcomeSelectorRandomSkipSolved Function");
-
-		OutcomeSelector outcomeSelection = new OutcomeSelectorProbSkipSolved();//OutcomeSelectorRandomSkipSolved();// new
-																					// OutcomeSelectorRandom();
-
-		mainLog.println("Initialising BackupLabelledFullBelmanCap Function");
-		fileLog.println("Initialising BackupLabelledFullBelmanCap Function");
-		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
-		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
-		minMaxVals.put(Objectives.TaskCompletion,
-				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
-		mainLog.println("Caps: "+minMaxVals.toString());
-		fileLog.println("Caps: "+minMaxVals.toString());
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, 
-//				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), 
-				actionSelection,
-				epsilon,
-				minMaxVals,
-				backupFunctionLog);
-
-		mainLog.println("Initialising Reward Helper Function");
-		fileLog.println("Initialising Reward Helper Function");
-
-		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
-//							new RewardHelperNestedSingleAgent(saModelGen);
-
-		mainLog.println("Max Rollouts: " + maxRollouts);
-		mainLog.println("Max TrialLen: " + trialLen);
-		fileLog.println("Max Rollouts: " + maxRollouts);
-		fileLog.println("Max TrialLen: " + trialLen);
-
-		mainLog.println("\nInitialising THTS");
-		fileLog.println("\nInitialising THTS");
-		boolean doForwardBackup = true;
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
-				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
-				tieBreakingOrder, mainLog, fileLog);
-
-		mainLog.println("\nBeginning THTS");
-		fileLog.println("\nBeginning THTS");
-		thts.setName(example + algoIden);
-		thts.setResultsLocation(resultsLocation);
-		THTSRunInfo rinfo = new THTSRunInfo();
-		int numRolloutsTillSolved = thts.run(false,0,debug);
-
-		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		goalack=thts.runThroughMostProb(
-//				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-				actionSelection,
-				resultsLocation);
-		rinfo.goalOnProbablePath = goalack[0];
-		goalack = thts.runThrough(
-//				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-				actionSelection,
-				resultsLocation);
-
-		mainLog.close();
-		fileLog.close();
-
-		rinfo.initialStateValues =thts.getInitialStateBounds();
-		
-		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
-		rinfo.initialStateSolved = goalack[1];
-		return rinfo;
-
-
-	}
-	
-	THTSRunInfo avoidableSingleAgentSolH(boolean debug) throws Exception {
-		boolean goalFound = false;
-		double[] hvals = { 50 };
-		int[] rollouts = { 100 };
-		int[] trialLens = { 50 };
-
-		int hvalnum = 0;
 		THTSRunInfo rinfo = null;
-		double hval = hvals[hvalnum];
+		int exampleNum = fsnum / 10;
+		String[] examples = { "depotShelf_r10_g10_fs0_fsp_0.0_0_", "depotShelf_r10_g10_fs13_fsp_11.0_0_",
+				"depotShelf_r10_g10_fs25_fsp_20.0_0_", "shelfDepot_r10_g10_fs37_fsp_30.0_6_",
+				"shelfDepot_r10_g10_fs50_fsp_41.0_8_", "depotShelf_r10_g10_fs62_fsp_50.0_0_",
+				"shelfDepot_r10_g10_fs74_fsp_60.0_7_", "shelfDepot_r10_g10_fs87_fsp_71.0_0_",
+				"shelfDepot_r10_g10_fs100_fsp_81.0_7_", "shelfDepot_r10_g10_fs111_fsp_90.0_8_",
+				"depotShelf_r10_g10_fs123_fsp_100_9_" };
+
+		int hvalnum = 0;
+		hval = hvals[hvalnum];
 		int maxRollouts = rollouts[hvalnum];
 		boolean hasSharedState = false;
 		int trialLen = trialLens[hvalnum];
 
-
 		float epsilon = 0.0001f;
+		double tau = 10; 
 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
-		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/manp/";
+		String testsLocationBase = currentDir + "/tests/wkspace/warehouse_samples/";
+		String testsLocation = testsLocationBase + fsnum + "/";
+		String resultsLocation = testsLocationBase + "results/manp/" + fsnum + "/";
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
+		String example = examples[exampleNum];
 
-		String example = "tro_example_new_small_onefailaction";
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.TaskCompletion);
 		tieBreakingOrder.add(Objectives.Cost);
@@ -745,9 +333,9 @@ private void testString(int testNum, int maxTests,long durMS)
 			mainLog = new PrismDevNullLog();
 
 		Prism prism = new Prism(mainLog);
-		String combString = "_multi_sash_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
+		String combString = "_multi_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
 				+ "_rollouts_" + maxRollouts;
-		String algoIden = "_avoid_lrtdp" + combString;
+		String algoIden = "_avoid_lrtdp" + combString + "_r" + numModels + "_run" + runNum;
 		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
 
 		prism.initialise();
@@ -755,7 +343,6 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		mainLog.println("Initialised Prism");
 
-		int numModels = 2;
 		ArrayList<String> filenames = new ArrayList<>();
 
 		for (int numModel = 0; numModel < numModels; numModel++) {
@@ -763,13 +350,7 @@ private void testString(int testNum, int maxTests,long durMS)
 			filenames.add(modelFileName);
 		}
 
-		String propertiesFileName = testsLocation + example + "_mult.prop";
-
-		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(
-				prism, mainLog, resultsLocation, filenames, propertiesFileName);
+		String propertiesFileName = testsLocation + example + "mult.prop";
 
 		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
@@ -778,8 +359,7 @@ private void testString(int testNum, int maxTests,long durMS)
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristic(maModelGen, null, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -790,15 +370,15 @@ private void testString(int testNum, int maxTests,long durMS)
 		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
-		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
-		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
 
-		mainLog.println("Initialising Full Bellman Backup Function");
-		fileLog.println("Initialising Full Bellman Backup Function");
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
 
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection, epsilon,
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
 				minMaxVals);
 
 		mainLog.println("Initialising Reward Helper Function");
@@ -823,211 +403,46 @@ private void testString(int testNum, int maxTests,long durMS)
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + algoIden);
 		thts.setResultsLocation(resultsLocation);
-
-		int numRolloutsTillSolved = thts.run(false);
-
-		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-				resultsLocation);
-
-		mainLog.close();
-		fileLog.close();
-
 		rinfo = new THTSRunInfo();
-		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
-		rinfo.initialStateSolved = goalack[1];
-		return rinfo;
-
-//					thts.run(false);
-//
-//					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-//					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-//
-//					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-//							resultsLocation);
-//					goalFound = goalack[0];
-//					fileLog.println("Goal Found: " + goalack[0]);
-//					fileLog.println("Initial State Solved: " + goalack[1]);
-//
-//					mainLog.println("Goal Found: " + goalack[0]);
-//					mainLog.println("Initial State Solved: " + goalack[1]);
-////					System.in.read();
-//
-//					mainLog.close();
-//					fileLog.close();
-//
-//				}
-//				if (goalFound)
-//					break;
-//			}
-//			if (goalFound)
-//				break;
-//		}
-//		return goalack;
-	}
-
-	THTSRunInfo noprobabilitiesSingleAgentSolH(boolean debug) throws Exception {
-		boolean goalFound = false;
-		double[] hvals = { 50 };
-		int[] rollouts = { 100 };
-		int[] trialLens = { 50 };
-		double hval = 20;
-		boolean[] goalack = new boolean[2];
-		int hvalnum = 0;
-		THTSRunInfo rinfo = null;
-		hval = hvals[hvalnum];
-		int maxRollouts = rollouts[hvalnum];
-		boolean hasSharedState = false;
-		int trialLen = trialLens[hvalnum];
-
-
-		float epsilon = 0.0001f;
-
-		System.out.println(System.getProperty("user.dir"));
-		String currentDir = System.getProperty("user.dir");
-		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/manp/";
-		// making sure resultsloc exits
-		createDirIfNotExist(resultsLocation);
-		System.out.println("Results Location " + resultsLocation);
-
-		String example = "tro_example_new_small_noprob";
-		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
-		tieBreakingOrder.add(Objectives.TaskCompletion);
-		tieBreakingOrder.add(Objectives.Cost);
-		String tieBreakingOrderStr = "_obj_";
-		for (Objectives obj : tieBreakingOrder) {
-			tieBreakingOrderStr += obj.toString() + "_";
-		}
-
-		PrismLog mainLog;
-		if (debug)
-			mainLog = new PrismFileLog("stdout");
-		else
-			mainLog = new PrismDevNullLog();
-
-		Prism prism = new Prism(mainLog);
-		String combString = "_multi_sash_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
-				+ "_rollouts_" + maxRollouts;
-		String algoIden = "_avoid_lrtdp" + combString;
-		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
-
-		prism.initialise();
-		prism.setEngine(Prism.EXPLICIT);
-
-		mainLog.println("Initialised Prism");
-
-		int numModels = 2;
-		ArrayList<String> filenames = new ArrayList<>();
-
-		for (int numModel = 0; numModel < numModels; numModel++) {
-			String modelFileName = testsLocation + example + numModel + ".prism";
-			filenames.add(modelFileName);
-		}
-
-		String propertiesFileName = testsLocation + example + "_mult.prop";
-
-		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(
-				prism, mainLog, resultsLocation, filenames, propertiesFileName);
-
-		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
-				propertiesFileName, resultsLocation, hasSharedState);
-		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
-		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
-		minMaxVals.put(Objectives.TaskCompletion,
-				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
-
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
-
-		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
-		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
-
-		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
-		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
-
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
-																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
-
-		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
-		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
-
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
-
-		mainLog.println("Initialising Full Bellman Backup Function");
-		fileLog.println("Initialising Full Bellman Backup Function");
-
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection, epsilon,
-				minMaxVals);
-
-		mainLog.println("Initialising Reward Helper Function");
-		fileLog.println("Initialising Reward Helper Function");
-
-		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
-//							new RewardHelperNestedSingleAgent(saModelGen);
-
-		mainLog.println("Max Rollouts: " + maxRollouts);
-		mainLog.println("Max TrialLen: " + trialLen);
-		fileLog.println("Max Rollouts: " + maxRollouts);
-		fileLog.println("Max TrialLen: " + trialLen);
-
-		mainLog.println("\nInitialising THTS");
-		fileLog.println("\nInitialising THTS");
-		boolean doForwardBackup = true;
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
-				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
-				tieBreakingOrder, mainLog, fileLog);
-
-		mainLog.println("\nBeginning THTS");
-		fileLog.println("\nBeginning THTS");
-		thts.setName(example + algoIden);
-		thts.setResultsLocation(resultsLocation);
-
-		int numRolloutsTillSolved = thts.run(false);
+		int numRolloutsTillSolved = thts.run(false, debug);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		rinfo.goalOnProbablePath = goalack[0];
 		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
 
-		rinfo = new THTSRunInfo();
 		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
 		rinfo.goalFound = goalack[0];
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
-
 	}
-	THTSRunInfo unavoidableSingleAgentSolH(boolean debug) throws Exception {
+
+	THTSRunInfo unavoidable(boolean debug, int numRun) throws Exception {
 		boolean goalFound = false;
-		double[] hvals = { 50 };
+		double[] hvals = { 100 };
 		int[] rollouts = { 1000 };
-		int[] trialLens = { 50 };
+		int[] trialLens = { 100 };
 		double hval = 20;
-		THTSRunInfo rinfo = null;
 		boolean[] goalack = new boolean[2];
+
 		int hvalnum = 0;
+
 		hval = hvals[hvalnum];
 		int maxRollouts = rollouts[hvalnum];
-		boolean hasSharedState = true;
+		boolean hasSharedState = false;
 		int trialLen = trialLens[hvalnum];
 
-
 		float epsilon = 0.0001f;
-
+		double tau = 10; 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/manp/";
+		String resultsLocation = testsLocation + "results/"+subfolder;
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
@@ -1048,9 +463,9 @@ private void testString(int testNum, int maxTests,long durMS)
 			mainLog = new PrismDevNullLog();
 
 		Prism prism = new Prism(mainLog);
-		String combString = "_multi_sash_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
+		String combString = "_multi_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
 				+ "_rollouts_" + maxRollouts;
-		String algoIden = "_avoid_lrtdp" + combString;
+		String algoIden = "_avoid_lrtdp" + combString + "_run" + numRun + "_";
 		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
 
 		prism.initialise();
@@ -1068,22 +483,38 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		String propertiesFileName = testsLocation + example + "_mult.prop";
 
-		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
-
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(
-				prism, mainLog, resultsLocation, filenames, propertiesFileName);
-
 		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
+
+		List<State> gs = new ArrayList<State>();
+		List<State> deadend = new ArrayList<State>();
+
+		int[] deadendvals = { -1 };
+
+		for (int a1 : deadendvals) {
+			for (int a2 : deadendvals) {
+				for (int i1 = 0; i1 < 2; i1++) {
+					for (int i2 = 0; i2 < 2; i2++) {
+						for (int i3 = 0; i3 < 2; i3++) {
+							State de1 = new State(5);
+							de1.setValue(0, a1);
+							de1.setValue(1, a2);
+							de1.setValue(2, i1);
+							de1.setValue(3, i2);
+							de1.setValue(4, i3);
+							deadend.add(de1);
+						}
+					}
+				}
+			}
+		}
 
 		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
 		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristic(maModelGen, null, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -1094,16 +525,17 @@ private void testString(int testNum, int maxTests,long durMS)
 		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
-		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
-		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
 
-		mainLog.println("Initialising Full Bellman Backup Function");
-		fileLog.println("Initialising Full Bellman Backup Function");
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
 
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection, epsilon,
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
 				minMaxVals);
+
 
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
@@ -1132,18 +564,503 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+
 		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
 
-		rinfo = new THTSRunInfo();
+		THTSRunInfo rinfo = new THTSRunInfo();
 		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
 		rinfo.goalFound = goalack[0];
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
+	}
+
+	THTSRunInfo avoidable(boolean debug) throws Exception {
+		boolean goalFound = false;
+		double[] hvals = { 100 };
+		int[] rollouts = { 1000 };
+		int[] trialLens = { 100 };
+		double hval = 20;
+		boolean[] goalack = new boolean[2];
+
+		boolean useUpperBoundFirst = true; 
+		int hvalnum = 0;
+
+		hval = hvals[hvalnum];
+		int maxRollouts = rollouts[hvalnum];
+		boolean hasSharedState = false;
+		int trialLen = trialLens[hvalnum];
+
+		float epsilon = 0.0001f;
+		double tau = 10; 
+		System.out.println(System.getProperty("user.dir"));
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/"+subfolder;
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+
+		String example = "tro_example_new_small_onefailaction";
+		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+		tieBreakingOrder.add(Objectives.TaskCompletion);
+		tieBreakingOrder.add(Objectives.Cost);
+		String tieBreakingOrderStr = "_obj_";
+		for (Objectives obj : tieBreakingOrder) {
+			tieBreakingOrderStr += obj.toString() + "_";
+		}
+
+		PrismLog mainLog;
+		if (debug)
+			mainLog = new PrismFileLog("stdout");
+		else
+			mainLog = new PrismDevNullLog();
+
+		Prism prism = new Prism(mainLog);
+		String combString = "_multi_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
+				+ "_rollouts_" + maxRollouts;
+		String algoIden = "_avoid_lrtdp" + combString+"_actSel_"+(useUpperBoundFirst?"upper":"lower")+"b";
+		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
+
+		prism.initialise();
+		prism.setEngine(Prism.EXPLICIT);
+
+		mainLog.println("Initialised Prism");
+
+		int numModels = 2;
+		ArrayList<String> filenames = new ArrayList<>();
+
+		for (int numModel = 0; numModel < numModels; numModel++) {
+			String modelFileName = testsLocation + example + numModel + ".prism";
+			filenames.add(modelFileName);
+		}
+
+		String propertiesFileName = testsLocation + example + "_mult.prop";
+
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+				propertiesFileName, resultsLocation, hasSharedState);
+
+		List<State> gs = new ArrayList<State>();
+		List<State> deadend = new ArrayList<State>();
+
+		int[] deadendvals = { -1 };
+
+		for (int a1 : deadendvals) {
+			for (int a2 : deadendvals) {
+				for (int i1 = 0; i1 < 2; i1++) {
+					for (int i2 = 0; i2 < 2; i2++) {
+						for (int i3 = 0; i3 < 2; i3++) {
+							State de1 = new State(5);
+							de1.setValue(0, a1);
+							de1.setValue(1, a2);
+							de1.setValue(2, i1);
+							de1.setValue(3, i2);
+							de1.setValue(4, i3);
+							deadend.add(de1);
+						}
+					}
+				}
+			}
+		}
+
+		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+
+		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleBounds(tieBreakingOrder,useUpperBoundFirst);// new
+																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
+
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
+
+		
+		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
+		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
+		minMaxVals.put(Objectives.TaskCompletion,
+				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+
+		
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
+				minMaxVals);
+
+	
+		
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristicBounds(maModelGen, null, null, minMaxVals,backupFunction);
+
+
+		mainLog.println("Initialising Reward Helper Function");
+		fileLog.println("Initialising Reward Helper Function");
+
+		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
+//							new RewardHelperNestedSingleAgent(saModelGen);
+
+		mainLog.println("Max Rollouts: " + maxRollouts);
+		mainLog.println("Max TrialLen: " + trialLen);
+		fileLog.println("Max Rollouts: " + maxRollouts);
+		fileLog.println("Max TrialLen: " + trialLen);
+
+		mainLog.println("\nInitialising THTS");
+		fileLog.println("\nInitialising THTS");
+		boolean doForwardBackup = true;
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
+				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
+				tieBreakingOrder, mainLog, fileLog);
+
+		mainLog.println("\nBeginning THTS");
+		fileLog.println("\nBeginning THTS");
+		thts.setName(example + algoIden);
+		thts.setResultsLocation(resultsLocation);
+
+		int numRolloutsTillSolved = thts.run(false,0,debug);
+
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+
+		goalack = thts.runThrough(actionSelection, resultsLocation);
+		// we can just trim things where task completion is 0 ?
+
+		mainLog.close();
+		fileLog.close();
+
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+		return rinfo;
 
 	}
+
+	THTSRunInfo noprobabilities(boolean debug) throws Exception {
+		boolean goalFound = false;
+		double[] hvals = { 100 };
+		int[] rollouts = { 1000 };
+		int[] trialLens = { 100 };
+		double hval = 20;
+		boolean[] goalack = new boolean[2];
+
+		int hvalnum = 0;
+
+		hval = hvals[hvalnum];
+		int maxRollouts = rollouts[hvalnum];
+		boolean hasSharedState = false;
+		int trialLen = trialLens[hvalnum];
+
+		float epsilon = 0.0001f;
+		double tau = 10; 
+		System.out.println(System.getProperty("user.dir"));
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/brtdp/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+
+		String example = "tro_example_new_small_noprob";
+		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+		tieBreakingOrder.add(Objectives.TaskCompletion);
+		tieBreakingOrder.add(Objectives.Cost);
+		String tieBreakingOrderStr = "_obj_";
+		for (Objectives obj : tieBreakingOrder) {
+			tieBreakingOrderStr += obj.toString() + "_";
+		}
+
+		PrismLog mainLog;
+		if (debug)
+			mainLog = new PrismFileLog("stdout");
+		else
+			mainLog = new PrismDevNullLog();
+
+		Prism prism = new Prism(mainLog);
+		String combString = "_multi_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
+				+ "_rollouts_" + maxRollouts;
+		String algoIden = "_avoid_lrtdp" + combString;
+		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
+
+		prism.initialise();
+		prism.setEngine(Prism.EXPLICIT);
+
+		mainLog.println("Initialised Prism");
+
+		int numModels = 2;
+		ArrayList<String> filenames = new ArrayList<>();
+
+		for (int numModel = 0; numModel < numModels; numModel++) {
+			String modelFileName = testsLocation + example + numModel + ".prism";
+			filenames.add(modelFileName);
+		}
+
+		String propertiesFileName = testsLocation + example + "_mult.prop";
+
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+				propertiesFileName, resultsLocation, hasSharedState);
+
+		List<State> gs = new ArrayList<State>();
+		List<State> deadend = new ArrayList<State>();
+
+		int[] deadendvals = { -1 };
+
+		for (int a1 : deadendvals) {
+			for (int a2 : deadendvals) {
+				for (int i1 = 0; i1 < 2; i1++) {
+					for (int i2 = 0; i2 < 2; i2++) {
+						for (int i3 = 0; i3 < 2; i3++) {
+							State de1 = new State(5);
+							de1.setValue(0, a1);
+							de1.setValue(1, a2);
+							de1.setValue(2, i1);
+							de1.setValue(3, i2);
+							de1.setValue(4, i3);
+							deadend.add(de1);
+						}
+					}
+				}
+			}
+		}
+
+		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+
+		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleBounds(tieBreakingOrder,false);// new
+																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
+
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
+
+		
+		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
+		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
+		minMaxVals.put(Objectives.TaskCompletion,
+				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+
+		
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
+				minMaxVals);
+
+	
+		
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristicBounds(maModelGen, null, null, minMaxVals,backupFunction);
+
+
+		mainLog.println("Initialising Reward Helper Function");
+		fileLog.println("Initialising Reward Helper Function");
+
+		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
+//							new RewardHelperNestedSingleAgent(saModelGen);
+
+		mainLog.println("Max Rollouts: " + maxRollouts);
+		mainLog.println("Max TrialLen: " + trialLen);
+		fileLog.println("Max Rollouts: " + maxRollouts);
+		fileLog.println("Max TrialLen: " + trialLen);
+
+		mainLog.println("\nInitialising THTS");
+		fileLog.println("\nInitialising THTS");
+		boolean doForwardBackup = true;
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
+				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
+				tieBreakingOrder, mainLog, fileLog);
+
+		mainLog.println("\nBeginning THTS");
+		fileLog.println("\nBeginning THTS");
+		thts.setName(example + algoIden);
+		thts.setResultsLocation(resultsLocation);
+
+		int numRolloutsTillSolved = thts.run(false,0,debug);
+
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+
+		mainLog.close();
+		fileLog.close();
+
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+		return rinfo;
+
+	}
+
+	THTSRunInfo noprobabilities_noavoid(boolean debug) throws Exception {
+		boolean goalFound = false;
+		double[] hvals = { 100 };
+		int[] rollouts = { 1000 };
+		int[] trialLens = { 100 };
+		double hval = 20;
+		boolean[] goalack = new boolean[2];
+
+		int hvalnum = 0;
+
+		hval = hvals[hvalnum];
+
+		int maxRollouts = rollouts[hvalnum];
+
+		boolean hasSharedState = false;
+		int trialLen = trialLens[hvalnum];
+
+		float epsilon = 0.0001f;
+		double tau = 100; 
+		System.out.println(System.getProperty("user.dir"));
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/brtdp/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+
+		String example = "tro_example_new_small_noprob";
+		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+		tieBreakingOrder.add(Objectives.TaskCompletion);
+		tieBreakingOrder.add(Objectives.Cost);
+		String tieBreakingOrderStr = "_obj_";
+		for (Objectives obj : tieBreakingOrder) {
+			tieBreakingOrderStr += obj.toString() + "_";
+		}
+
+		PrismLog mainLog;
+		if (debug)
+			mainLog = new PrismFileLog("stdout");
+		else
+			mainLog = new PrismDevNullLog();
+
+		Prism prism = new Prism(mainLog);
+		String combString = "_multi_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
+				+ "_rollouts_" + maxRollouts;
+		String algoIden = "_noavoid_lrtdp" + combString;
+		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
+
+		prism.initialise();
+		prism.setEngine(Prism.EXPLICIT);
+
+		mainLog.println("Initialised Prism");
+
+		int numModels = 2;
+		ArrayList<String> filenames = new ArrayList<>();
+
+		for (int numModel = 0; numModel < numModels; numModel++) {
+			String modelFileName = testsLocation + example + numModel + ".prism";
+			filenames.add(modelFileName);
+		}
+
+		String propertiesFileName = testsLocation + example + "_mult_noavoid.prop";
+
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+				propertiesFileName, resultsLocation, hasSharedState);
+
+		List<State> gs = new ArrayList<State>();
+		List<State> deadend = new ArrayList<State>();
+
+		int[] deadendvals = { -1 };
+
+		for (int a1 : deadendvals) {
+			for (int a2 : deadendvals) {
+				for (int i1 = 0; i1 < 2; i1++) {
+					for (int i2 = 0; i2 < 2; i2++) {
+
+						State de1 = new State(4);
+						de1.setValue(0, a1);
+						de1.setValue(1, a2);
+						de1.setValue(2, i1);
+						de1.setValue(3, i2);
+
+						deadend.add(de1);
+
+					}
+				}
+			}
+		}
+
+
+		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+
+		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
+
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleBounds(tieBreakingOrder,false);// new
+																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
+
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
+
+		
+		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
+		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
+		minMaxVals.put(Objectives.TaskCompletion,
+				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+
+		
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
+				minMaxVals);
+
+	
+		
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristicBounds(maModelGen, null, null, minMaxVals,backupFunction);
+
+
+		mainLog.println("Initialising Reward Helper Function");
+		fileLog.println("Initialising Reward Helper Function");
+
+		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
+//							new RewardHelperNestedSingleAgent(saModelGen);
+
+		mainLog.println("Max Rollouts: " + maxRollouts);
+		mainLog.println("Max TrialLen: " + trialLen);
+		fileLog.println("Max Rollouts: " + maxRollouts);
+		fileLog.println("Max TrialLen: " + trialLen);
+
+		mainLog.println("\nInitialising THTS");
+		fileLog.println("\nInitialising THTS");
+		boolean doForwardBackup = true;
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
+				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
+				tieBreakingOrder, mainLog, fileLog);
+
+		mainLog.println("\nBeginning THTS");
+		fileLog.println("\nBeginning THTS");
+		thts.setName(example + algoIden);
+		thts.setResultsLocation(resultsLocation);
+
+		int numRolloutsTillSolved = thts.run(false,0,debug);
+
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+
+		goalack = thts.runThrough(actionSelection, resultsLocation);
+
+		mainLog.close();
+		fileLog.close();
+
+		THTSRunInfo rinfo = new THTSRunInfo();
+		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
+		rinfo.goalFound = goalack[0];
+		rinfo.initialStateSolved = goalack[1];
+		return rinfo;
+
+	}
+
 }

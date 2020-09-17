@@ -1,5 +1,5 @@
 package thtsNew;
 
 public enum NodeType {
-Chance,Decision
+Chance,Decision,ChanceSCC,DecisionSCC
 }

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Stack;
 
+import prism.PrismLog;
 import thts.Bounds;
 import thts.Objectives;
 
@@ -15,6 +16,17 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 	ActionSelector actSel;
 	HashMap<Objectives, Entry<Double, Double>> minMaxVals; 
 
+	PrismLog debugLog=null;
+	public BackupLabelledFullBelmanCap(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
+			HashMap<Objectives,Entry<Double,Double>> minMaxVals,PrismLog backUpLog) {
+//		this.tieBreakingOrder = tieBreakingOrder;
+		super(tieBreakingOrder);
+		this.epsilon = epsilon;
+		this.actSel = actSel;
+		this.minMaxVals = minMaxVals;
+		this.debugLog=backUpLog;
+	}
+
 	public BackupLabelledFullBelmanCap(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
 			HashMap<Objectives,Entry<Double,Double>> minMaxVals) {
 //		this.tieBreakingOrder = tieBreakingOrder;
@@ -24,25 +36,20 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 		this.minMaxVals = minMaxVals;
 	}
 
+	
 	boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds) {
 		return boundsLessThanEpsilon(bounds, epsilon, tieBreakingOrder);
-//		boolean toret = true;
-//		for(Objectives obj:tieBreakingOrder)
-//		{
-//			Bounds b = bounds.get(obj); 
-//			if(b.getLower()>epsilon)
-//			{
-//				toret = false; 
-//				break; 
-//			}
-//		}
-//		return toret; 
+
 
 	}
 
 	@Override
 	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) {
+		if(debugLog!=null)
+			debugLog.println("Backing Up: "+cn.toString());
 		updateChanceNode(cn);
+		if(debugLog!=null)
+			debugLog.println("Backed Up: "+cn.toString());
 		return doBackup;
 	}
 
@@ -51,6 +58,8 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 		boolean backupToRet = false;
 		if (doBackup) {
 
+			if(debugLog!=null)
+				debugLog.println("LRTDP Backup: "+dn.toString());
 			boolean toret = true;
 			Stack<DecisionNode> open = new Stack<DecisionNode>();
 			Stack<DecisionNode> closed = new Stack<DecisionNode>();
@@ -68,10 +77,7 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 							updateChanceNode(cn);
 						}
 					}
-//					else
-//					{
-//						System.out.println("bug");
-//					}
+
 				}
 				HashMap<Objectives, Bounds> bounds = residualDecision((DecisionNode) s);
 
@@ -93,18 +99,25 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 			}
 			if (toret) {
 				while (!closed.isEmpty()) {
+
 					DecisionNode dns = closed.pop();
 					ChanceNode cn = actSel.selectAction(dns, false);
+					if(debugLog!=null)
+						debugLog.println("Solved: "+dns.toString());
 					cn.setSolved();
+					if(debugLog!=null)
+						debugLog.println("Best Action: "+cn.toString());
 					dns.setSolved();
 
 				}
 			} else {
 				while (!closed.isEmpty()) {
 					DecisionNode dns = closed.pop();
-//					ChanceNode cn = actSel.selectAction(dns, false);
-//					updateChanceNode(cn);
+					if(debugLog!=null)
+						debugLog.println("Backing Up: "+dns.toString());
 					updateDecisionNode(dns);
+					if(debugLog!=null)
+						debugLog.println("Backed Up: "+dns.toString());
 				}
 			}
 			backupToRet = toret;
@@ -139,21 +152,15 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 				cn.leadToDeadend = allChildrenAreDeadends;
 				if (allChildrenSolved || allChildrenAreDeadends)
 					cn.setSolved();
-//				if (!cn.leadToDeadend) // Ignore the reward if its a deadend
+
 				sumHere = sumHere.add(rewHere);
 				
 				sumHere = sumHere.min(minMaxVals.get(obj).getValue());
-//				if (obj == Objectives.Cost) {
 
-//					sumHere = sumHere.min(maxCost);
-//					if (sumHere.getLower() >= maxCost)
-//						cn.leadToDeadend = true;
-
-//				}
 				cn.setBounds(obj, sumHere);
 			}
 		}
-		// return true;
+
 	}
 
 	public void updateDecisionNode(DecisionNode dn) {
@@ -259,16 +266,10 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 				}
 				dn.setBounds(bestBoundsH);
 				
-//				if (tieBreakingOrder.contains(Objectives.Cost)) {
-//					Bounds cbounds = dn.getBounds(Objectives.Cost);
-//					if (cbounds.getLower() == maxCost) {
-//						dn.isDeadend = true;
-//					}
-//				}
+
 			}
 		}
 
-//		return true;
 	}
 
 	@Override

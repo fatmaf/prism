@@ -458,7 +458,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
-		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,HelperClass.RewardCalculation.SUM);
+		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,RewardCalculation.SUM);
 		
 
 		mainLog.println("Max Rollouts: "+maxRollouts);
@@ -550,7 +550,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
-		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,HelperClass.RewardCalculation.SUM);
+		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,RewardCalculation.SUM);
 		
 		int maxRollouts = 10;
 		int trialLen = 30;
@@ -629,7 +629,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
 		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder);
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,10);
 		
 		mainLog.println("Initialising Full Bellman Backup Function");
 		fileLog.println("Initialising Full Bellman Backup Function");
@@ -639,7 +639,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
-		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,HelperClass.RewardCalculation.SUM);
+		RewardHelper rewardH = new RewardHelperMultiAgent(mapmg,RewardCalculation.SUM);
 		
 		int maxRollouts = 10;
 		int trialLen = 30;

@@ -14,9 +14,10 @@ public class VisualiserLog {
 	ArrayList<Objectives> boundsOrder;
 	String currentStep;
 	String currentRollout;
+	boolean donull = false;
 
 	public enum THTSStep {
-		visitDecisionNode, ActionSelection, visitChanceNode, outcomeSelection
+		visitDecisionNode, ActSel, visitChanceNode, OutSel, Heuristic,PolRun
 	}
 
 	THTSStep curr = THTSStep.visitDecisionNode;
@@ -24,9 +25,18 @@ public class VisualiserLog {
 	public VisualiserLog(String logName, ArrayList<Objectives> boundsOrder) {
 		mainLog = new PrismFileLog(logName);
 		this.boundsOrder = boundsOrder;
+
 	}
 
+	public VisualiserLog(String logName, ArrayList<Objectives> boundsOrder,boolean append) {
+		mainLog = new PrismFileLog(logName,append);
+		this.boundsOrder = boundsOrder;
+
+	}
+
+	
 	public VisualiserLog(ArrayList<Objectives> boundsOrder, boolean donull) {
+		this.donull = donull;
 		if (donull)
 			mainLog = new PrismDevNullLog();
 		else
@@ -47,146 +57,231 @@ public class VisualiserLog {
 	// so a json thing would look like an array of size numt
 
 	public String createKeyValueString(String key, Object value) {
+
 		return "'" + key + "':" + value.toString();
 	}
 
+
 	public void newRollout(int rNum) {
-		currentRollout = "[beginRollout]{" + createKeyValueString("rollout", rNum) + "\n";
+		if (!donull) {
+			currentRollout = "[beginRollout]{" + createKeyValueString("rollout", rNum) + "\n";
+		}
 	}
 
 	public void endRollout() {
-		currentRollout += currentStep + "}[endRollout]\n\n\n";
-		mainLog.println(currentRollout);
-		currentRollout = "";
+		if (!donull) {
+			currentRollout += currentStep + "}[endRollout]\n\n\n";
+			mainLog.println(currentRollout);
+			currentRollout = "";
+		}
 	}
 
 	public void newStep(int trialNum) {
-		currentStep = "\n\t[beginStep]{\n" + createKeyValueString("step", trialNum);
-
+		if (!donull) {
+			currentStep = "\n\t[beginStep]{\n" + createKeyValueString("step", trialNum);
+		}
 	}
 
 	public void endStep() {
-		currentStep += "}[endStep]\n";
-		currentRollout += currentStep;
-		currentStep = "";
+		if (!donull) {
+			currentStep += "}[endStep]\n";
+			currentRollout += currentStep;
+			currentStep = "";
+		}
 	}
 
 	public void addStateBit(DecisionNode d) {
-		currentStep += "\t\tstate:{" + decisionNodeString(d) + "}\n";
+		if (!donull) {
+			currentStep += "\t\tstate:{" + decisionNodeString(d) + "}\n";
+		}
+	}
+
+	private void begin(THTSStep t) {
+		if (!donull)
+			currentStep += "\n\t\t[begin" + t.toString() + "]{";
+	}
+
+	public void beginPolRun()
+	{
+		begin(THTSStep.PolRun);
+	}
+	public void endPolRun()
+	{
+		end(THTSStep.PolRun);
+	}
+	public void beginOutcomeSelection() {
+		begin(THTSStep.OutSel);
+//		if(!donull) {
+//		currentStep += "\n\t\t[beginOutSel]{";
+//		}
 	}
 
 	public void beginActionSelection() {
-		currentStep += "\n\t\t[beginActSel]{";
+//		if(!donull) {
+//		currentStep += "\n\t\t[beginActSel]{";}
+		begin(THTSStep.ActSel);
 
+	}
+
+	public void beginHeuristicAssignment() {
+		begin(THTSStep.Heuristic);
+	}
+
+	private void end(THTSStep t) {
+		if (!donull) {
+			currentStep += "}[end" + t.toString() + "]\n";
+		}
 	}
 
 	public void endActionSelectin() {
-		currentStep += "}[endActSel]\n";
+//		if(!donull) {
+//		currentStep += "}[endActSel]\n";}
+		end(THTSStep.ActSel);
 	}
 
 	public void endOutcomeSelection() {
-		currentStep += "}[endOutSel]\n";
+//		if(!donull) {
+//		currentStep += "}[endOutSel]\n";}
+		end(THTSStep.OutSel);
 	}
 
+	public void endHeuristicAssignment() {
+		end(THTSStep.Heuristic);
+	}
+
+	public void writeAssignedHeuristic(Node d)
+	{
+		if (d instanceof DecisionNode)
+			writeAssignedHeuristic((DecisionNode)d); 
+		else if(d instanceof ChanceNode)
+			writeAssignedHeuristic((ChanceNode)d);
+	}
+	private void writeAssignedHeuristic(ChanceNode d)
+	{
+		if(!donull) {
+			currentStep+="\n\t\t"+chanceNodeString(d);
+		}
+	}
+	private void writeAssignedHeuristic(DecisionNode d)
+	{
+		if(!donull) {
+			currentStep+="\n\t\t"+decisionNodeString(d);
+		}
+	}
 	public void writeSelectedAction(ChanceNode d) {
-		currentStep += "\n\t\tselected:{" + chanceNodeString(d) + "}";
+		if (!donull) {
+			currentStep += "\n\t\tselected:{" + chanceNodeString(d) + "}";
+		}
 	}
 
 	public void writeSelectedOutcome(ArrayList<DecisionNode> ds) {
-		currentStep += "\n\t\tselected:{";
-		boolean hasmore = false;
-		for (DecisionNode d : ds) {
-			if (hasmore)
-				currentStep += "\n\t\t";
-			if (d != null) {
-				currentStep += decisionNodeString(d);
-				hasmore = true;
+		if (!donull) {
+			currentStep += "\n\t\tselected:{";
+			boolean hasmore = false;
+			for (DecisionNode d : ds) {
+				if (hasmore)
+					currentStep += "\n\t\t";
+				if (d != null) {
+					currentStep += decisionNodeString(d);
+					hasmore = true;
+				}
 			}
+			currentStep += "}";
 		}
-		currentStep += "}";
-	}
-
-	public void beginOutcomeSelection() {
-		currentStep += "\n\t\t[beginOutSel]{";
 	}
 
 	public void writeoutSelChoices(ChanceNode d) {
-		currentStep += "\tnode:{" + chanceNodeString(d) + "}";
-		currentStep += "\n\t\t\tchildren:{\n";
-		if (d.getChildren() != null) {
+		if (!donull) {
+			currentStep += "\tnode:{" + chanceNodeString(d) + "}";
+			currentStep += "\n\t\t\tchildren:{\n";
+			if (d.getChildren() != null) {
 
-			boolean addSep = false;
-			for (DecisionNode dn : d.getChildren()) {
-				if (addSep)
-					currentStep += "\n";
+				boolean addSep = false;
+				for (DecisionNode dn : d.getChildren()) {
+					if (addSep)
+						currentStep += "\n";
 
-				currentStep += "\t\t\t{" + decisionNodeString(dn) + "}";
-				addSep = true;
+					currentStep += "\t\t\t{" + decisionNodeString(dn) + "}";
+					addSep = true;
 
+				}
 			}
+			currentStep += "}\n";
 		}
-		currentStep += "}\n";
 	}
 
 	public void writeActSelChoices(DecisionNode d) {
-		currentStep += "\tnode:{" + decisionNodeString(d) + "}";
-		currentStep += "\n\t\t\tchildren:{\n";
-		if (d.getChildren() != null) {
+		if (!donull) {
+			currentStep += "\tnode:{" + decisionNodeString(d) + "}";
+			currentStep += "\n\t\t\tchildren:{\n";
+			if (d.getChildren() != null) {
 
-			boolean addSep = false;
-			for (Object a : d.getChildren().keySet()) {
-				if (addSep)
-					currentStep += "\n";
-				if (d.getChild(a) != null) {
-					currentStep += "\t\t\t{" + chanceNodeString(d.getChild(a)) + "}";
-					addSep = true;
+				boolean addSep = false;
+				for (Object a : d.getChildren().keySet()) {
+					if (addSep)
+						currentStep += "\n";
+					if (d.getChild(a) != null) {
+						currentStep += "\t\t\t{" + chanceNodeString(d.getChild(a)) + "}";
+						addSep = true;
+					}
 				}
 			}
+			currentStep += "}\n";
 		}
-		currentStep += "}\n";
+
 	}
 
 	public String decisionNodeString(DecisionNode d) {
-		String towrite = "state:";
-		towrite += d.getState();
-		towrite += " bounds:" + getBoundsString(d);
-		if(d.isSolved())
-			towrite += " solved ";
-		return towrite;
+		if (!donull) {
+			String towrite = "state:";
+			towrite += d.getState();
+			towrite += " bounds:" + getBoundsString(d);
+			if (d.isSolved())
+				towrite += " solved ";
+			return towrite;
+		}
+		return "";
 
 	}
 
 	public String chanceNodeString(ChanceNode d) {
-		String towrite = "state:";
-		if (d != null) {
-			towrite += d.getState();
-			towrite += " action:";
+		if (!donull) {
+			String towrite = "state:";
+			if (d != null) {
+				towrite += d.getState();
+				towrite += " action:";
 
-			towrite += d.getAction() != null ? d.getAction().toString() : "null";
-			towrite += " bounds:" + getBoundsString(d);
-			if(d.isSolved())
-				towrite += " solved ";
+				towrite += d.getAction() != null ? d.getAction().toString() : "null";
+				towrite += " bounds:" + getBoundsString(d);
+				if (d.isSolved())
+					towrite += " solved ";
+			}
+			return towrite;
 		}
-		return towrite;
+		return "";
 
 	}
 
 	public String getBoundsString(Node d) {
-		String toret = "{";
-		boolean addcomma = false;
-		if (d.boundsInitialised()) {
-			for (Objectives obj : boundsOrder) {
-				if (addcomma)
-					toret += ",";
-				toret += obj.name() + ":" + d.getBounds(obj);
-				addcomma = true;
+		if (!donull) {
+			String toret = "{";
+			boolean addcomma = false;
+			if (d.boundsInitialised()) {
+				for (Objectives obj : boundsOrder) {
+					if (addcomma)
+						toret += ",";
+					toret += obj.name() + ":" + d.getBounds(obj);
+					addcomma = true;
+				}
 			}
+
+			return toret + "}";
 		}
-		
-		return toret + "}";
+		return "";
 	}
 
 	public void closeLog() {
+
 		this.mainLog.close();
 	}
 }

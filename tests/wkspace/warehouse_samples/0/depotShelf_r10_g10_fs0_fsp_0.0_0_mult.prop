@@ -1,6 +1,6 @@
-R{"time"}max=? [ (F (s=55) ) ]
+R{"time"}min=? [ (F (s=23) ) ]
 //Pmax=? [(F (s=75) )]
-Pmax=? [ (F (s=23) ) ]
+Pmax=? [ (F (s=55) ) ]
 //Pmax=? [ (F (s=76) )]
 // Pmax=? [ (F (s=81) )] 
 Pmax=? [ (F (s=4) )]

@@ -1,25 +1,23 @@
-package thtsNew;
+package thtsSCC;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import parser.State;
 import prism.PrismException;
 import thts.Bounds;
 import thts.Objectives;
+import thtsNew.BaseActionInfo;
+import thtsNew.ChanceNode;
+import thtsNew.DecisionNode;
+import thtsNew.Node;
+import thtsNew.NodeType;
 
+public class DecisionNodeSCC extends DecisionNode {
+	protected HashMap<Object, ChanceNodeSCC> children;
+	int sccID = -1; 
+	SCCNodeType sccType = null;
 
-public class DecisionNode extends Node {
-	protected HashMap<Object, ChanceNode> children;
-	protected HashMap<Node, Double> transitionProbability;
-	public int numActions;
-	protected boolean isDeadend=false;
-	public boolean isGoal=false;
-	protected int numChildrenInitialised = 0; 
-	//a list of the base actions - their value and count for each robot 
-	//count = how many actions this base action is in 
-	//this is not going to be used unless we have multiple robots 
-	//and honestly even then if we use a specific heuristic and action selection function 
-	protected ArrayList<HashMap<Object,BaseActionInfo>> baseActionsForRobot = null; 
 	
 	public void reset()
 	{
@@ -31,12 +29,12 @@ public class DecisionNode extends Node {
 		this.bounds = null; 
 		
 	}
-	public DecisionNode(Node parent, State s, double tprob, HashMap<Objectives, Bounds> bounds, ArrayList<Bounds> cost,
+	public DecisionNodeSCC(Node parent, State s, double tprob, HashMap<Objectives, Bounds> bounds, ArrayList<Bounds> cost,
 			boolean deadend, boolean goal) {
-		this.setState(s);
-		this.setBounds(bounds);
-//		for (int i = 0; i < cost.size(); i++)
-//			setRew(cost.get(i), i);
+	super(parent,s,tprob,bounds,cost,deadend,goal);
+		setState(s);
+		setBounds(bounds);
+
 		boundsInitialised = true; 
 		if (parent != null) {
 			addParent(parent);
@@ -61,7 +59,8 @@ public class DecisionNode extends Node {
 
 	}
 
-	public DecisionNode(Node ps, State s, double tprob) {
+	public DecisionNodeSCC(Node ps, State s, double tprob) {
+		super(ps,s,tprob);
 		this.setState(s);
 		children = null;
 		numActions = 0;
@@ -105,11 +104,12 @@ public class DecisionNode extends Node {
 			return this.getBounds(obj).multiply(1.0);
 	}
 
-	public void addChild(Object a, ChanceNode child) throws PrismException {
+	public void addChild(Object a, ChanceNodeSCC child) throws PrismException {
 
+		super.addChild(a, child);
 		if (isLeafNode())
 
-			children = new HashMap<Object, ChanceNode>();
+			children = new HashMap<Object, ChanceNodeSCC>();
 
 		// check if this action exists in the children
 		if (!children.containsKey(a)) {
@@ -118,7 +118,7 @@ public class DecisionNode extends Node {
 
 	}
 
-	public ChanceNode getChild(Object a) {
+	public ChanceNodeSCC getChild(Object a) {
 		if (isLeafNode())
 			return null;
 		if (!children.containsKey(a))
@@ -126,7 +126,8 @@ public class DecisionNode extends Node {
 		return children.get(a);
 	}
 
-	public HashMap<Object, ChanceNode> getChildren() {
+
+	public HashMap<Object, ChanceNodeSCC> getChildrenSCC() {
 		return children;
 	}
 

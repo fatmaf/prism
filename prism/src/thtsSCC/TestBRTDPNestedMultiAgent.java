@@ -1,7 +1,6 @@
-package thtsNew;
+package thtsSCC;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import explicit.LTLModelChecker;
 import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionQuant;
-import parser.ast.ExpressionReward;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import prism.DefaultModelGenerator;
@@ -29,20 +27,35 @@ import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
+import thtsNew.ActionSelector;
+import thtsNew.ActionSelectorGreedySimpleBounds;
+import thtsNew.ActionSelectorGreedySimpleLowerBound;
+import thtsNew.BackupFullBellmanCap;
+import thtsNew.BackupNVI;
+import thtsNew.EmptyNestedMultiAgentHeuristic;
+import thtsNew.EmptyNestedMultiAgentHeuristicBounds;
+import thtsNew.Heuristic;
+import thtsNew.MultiAgentNestedProductModelGenerator;
+import thtsNew.OutcomeSelector;
+import thtsNew.OutcomeSelectorBoundsGreedyBRTDP;
+import thtsNew.RewardCalculation;
+import thtsNew.RewardHelper;
+import thtsNew.RewardHelperMultiAgent;
+import thtsNew.THTSRunInfo;
 
-public class TestLRTDPNestedMASubGoals {
+public class TestBRTDPNestedMultiAgent {
 
+	String subfolder="brtdp/";
 	// running this from the commandline
 	// PRISM_MAINCLASS=thtsNew.TestLRTDPNestedMultiAgent prism/bin/prism
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
-			TestLRTDPNestedMASubGoals tester = new TestLRTDPNestedMASubGoals();
-			String[] options = { "all", "noprobnoavoid", "noprobavoid", "avoidable", "unavoidable", "currentWIP",
-					"unavoidable_sas_h", "noprobavoid_sas_h", "unavoidable_warehouse", "multruns" };
+			TestBRTDPNestedMultiAgent tester = new TestBRTDPNestedMultiAgent();
+			String[] options = { "warehouse" };
 
-			String option = "currentWIP";
-
+			String option = options[0];// "currentWIP";
+			int maxRuns = 10;
 			if (args.length > 1) {
 				System.out.println(Arrays.deepToString(args));
 				option = args[0];
@@ -50,107 +63,11 @@ public class TestLRTDPNestedMASubGoals {
 				System.in.read();
 			}
 
-			if (option.contentEquals(options[0])) // all
+			if (option.contentEquals(options[0])) // unavoidable
 			{
+				THTSRunInfo rinfo = tester.avoidable(true);
+				System.out.println(rinfo.toString());
 
-				THTSRunInfo rinfo = null;
-				int numGoalFound = 0;
-				int numSolved = 0;
-				int numTests = 0;
-				String labelString = "";
-				ArrayList<String> noGoals = new ArrayList<>();
-				ArrayList<String> noSolved = new ArrayList<>();
-
-				rinfo = tester.noprobabilities_noavoid(false);
-				numTests++;
-				labelString = "noprobsnoavoid";
-				if (rinfo.goalFound) {
-					numGoalFound++;
-
-				} else {
-					noGoals.add(labelString);
-				}
-				if (rinfo.initialStateSolved) {
-					numSolved++;
-				} else {
-					noSolved.add(labelString);
-				}
-
-				rinfo = tester.noprobabilities(false);
-				numTests++;
-				labelString = "noprobs";
-				if (rinfo.goalFound) {
-					numGoalFound++;
-
-				} else {
-					noGoals.add(labelString);
-				}
-				if (rinfo.initialStateSolved) {
-					numSolved++;
-				} else {
-					noSolved.add(labelString);
-				}
-
-				rinfo = tester.avoidable(false);
-				numTests++;
-				labelString = "avoidable";
-				if (rinfo.goalFound) {
-					numGoalFound++;
-
-				} else {
-					noGoals.add(labelString);
-				}
-				if (rinfo.initialStateSolved) {
-					numSolved++;
-				} else {
-					noSolved.add(labelString);
-				}
-
-				rinfo = tester.unavoidable(false, 0);
-				numTests++;
-				labelString = "unavoidable";
-				if (rinfo.goalFound) {
-					numGoalFound++;
-
-				} else {
-					noGoals.add(labelString);
-				}
-				if (rinfo.initialStateSolved) {
-					numSolved++;
-				} else {
-					noSolved.add(labelString);
-				}
-
-				System.out.println(
-						"NumTests: " + numTests + "\nNumSolved:" + numSolved + "\nNumGoalFound:" + numGoalFound);
-				System.out.println("No Goals:");
-				System.out.println(noGoals.toString());
-				System.out.println("Not Solved:");
-				System.out.println(noSolved.toString());
-
-			} else if (option.contentEquals(options[1])) // noprob
-			{
-
-				tester.noprobabilities_noavoid(false);
-
-			} else if (option.contentEquals(options[2])) // avoidable
-			{
-
-				tester.noprobabilities(false);
-
-			} else if (option.contentEquals(options[3])) // unavoidable
-			{
-
-				tester.avoidable(false);
-
-			} else if (option.contentEquals(options[4])) // unavoidable
-			{
-				tester.runMultipleRunsUnavoidable(10);
-//				tester.unavoidable(false);
-
-			} else if (option.contentEquals(options[5])) // currentWIP
-			{
-				tester.currentWIP();
 			} else {
 				System.out
 						.println("Unimplemented option " + option + "\nAvailable options " + Arrays.toString(options));
@@ -162,72 +79,7 @@ public class TestLRTDPNestedMASubGoals {
 
 	}
 
-	public void runMultipleRunsUnavoidable(int maxRuns) throws Exception {
-
-		String[] options = { /* "deterministic", "deterministic_avoid", "avoidable", */ "unavoidable" };
-		// we time each test
-		// we run it for atleast 5 times
-		// we check how many times the goal was found
-		// and how many times the intial state was solved
-		String currentDir = System.getProperty("user.dir");
-		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/csvs/";
-		// making sure resultsloc exits
-		createDirIfNotExist(resultsLocation);
-		System.out.println("Results Location " + resultsLocation);
-		boolean debug = false;
-
-		long duration, startTime, endTime;
-
-		String sep = ",";
-		String results = "\nName" + sep + "Goal" + sep + "Run" + sep + "Duration" + sep + "GoalFound" + sep
-				+ "InitialStateSolved" + sep + "numRollouts";
-
-		for (String name : options) {
-			String option = name;
-			for (int run = 0; run < maxRuns; run++) {
-				String result = "\n";
-				result += name + sep + "ltlspec" + sep + run;
-				startTime = System.currentTimeMillis();
-				// run things
-				THTSRunInfo rinfo = null;
-//				if (option.contentEquals(options[0])) // noprob
-//				{
-//					rinfo = noprobabilities_noavoid(debug);
-//
-//				} else if (option.contentEquals(options[1])) // avoidable
-//				{
-//					rinfo = noprobabilities(debug);
-//
-//				} else if (option.contentEquals(options[2])) // unavoidable
-//				{
-//					rinfo = avoidable(debug);
-//
-//				} else if (option.contentEquals(options[3])) // unavoidable
-//				{
-				rinfo = unavoidable(debug, run);
-
-//				} else {
-//					System.out.println(
-//							"Unimplemented option " + option + "\nAvailable options " + Arrays.toString(options));
-//				}
-
-				endTime = System.currentTimeMillis();
-				duration = endTime - startTime;
-				if (rinfo != null)
-					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
-							+ rinfo.numRolloutsTillSolved;
-				results += result;
-//System.in.read();
-
-			}
-		}
-		System.out.println(results);
-		PrismLog csvRes = new PrismFileLog(resultsLocation + "MultiAgentLRTDP_ltlspecs.csv");
-		csvRes.println(results);
-		csvRes.close();
-	}
-
+	
 	public void createDirIfNotExist(String directoryName) {
 		File directory = new File(directoryName);
 		if (!directory.exists()) {
@@ -239,7 +91,7 @@ public class TestLRTDPNestedMASubGoals {
 
 	}
 
-	public MANestedProductModelGeneratorSubGoals createNestedMultiAgentModelGen(Prism prism, PrismLog mainLog,
+	public MultiAgentNestedProductModelGenerator createNestedMultiAgentModelGen(Prism prism, PrismLog mainLog,
 			ArrayList<String> filenames, String propertiesFileName, String resultsLocation, boolean hasSharedState)
 			throws PrismException, IOException {
 
@@ -335,44 +187,19 @@ public class TestLRTDPNestedMASubGoals {
 		if (hasSharedState)
 			sharedStateVars.add("door0");
 //		sharedStateVars = null;
-		MANestedProductModelGeneratorSubGoals mapmg = new MANestedProductModelGeneratorSubGoals(mfmodgens, das,
+		MultiAgentNestedProductModelGenerator mapmg = new MultiAgentNestedProductModelGenerator(mfmodgens, das,
 				labelExprsList, safetydaind, sharedStateVars);
 
 		return mapmg;
 	}
 
-	public void currentWIP() throws Exception {
-		boolean debug = true;
-		unavoidable(debug, 0);
-//		unavoidableSingleAgentSolH(debug);
-//		unavoidableWarehouseNoProb(debug);
-//		unavoidableWarehouse90Prob(debug);
-//		unavoidableWarehouse90ProbBaseActions(debug);
-//		unavoidableWarehouseVariableProb(debug);
-//		unavoidableWarehouse90ProbSingleAgentSolH(debug);
-	}
 
-	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
-			PrismLog mainLog, String resultsLocation, ArrayList<String> fns, String propFilename) throws Exception {
-		SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism, mainLog, resultsLocation);
-		// so now we can read in the model
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> results = new ArrayList<>();
-		for (String filename : fns) {
-			String[] nameval = filename.split("/");
-			sas.setName(nameval[nameval.length - 1].replaceAll(".prism", ""));
-			sas.loadModel(filename);
-			sas.loadProperties(propFilename);
-			HashMap<Objectives, HashMap<State, Double>> solution = sas.getSolution();
-			results.add(solution);
-		}
-		return results;
-	}
 
 	THTSRunInfo unavoidable(boolean debug, int numRun) throws Exception {
 		boolean goalFound = false;
 		double[] hvals = { 100 };
-		int[] rollouts = { 1000 };
-		int[] trialLens = { 100 };
+		int[] rollouts = { 100 };
+		int[] trialLens = { 10 };
 		double hval = 20;
 		boolean[] goalack = new boolean[2];
 
@@ -383,20 +210,12 @@ public class TestLRTDPNestedMASubGoals {
 		boolean hasSharedState = false;
 		int trialLen = trialLens[hvalnum];
 
-//		for (int hvalnum = 0; hvalnum < hvals.length; hvalnum++) {
-//			hval = hvals[hvalnum];
-//			for (int rolloutnum = 0; rolloutnum < rollouts.length; rolloutnum++) {
-//				int maxRollouts = rollouts[rolloutnum];
-//				for (int trialLennum = 0; trialLennum < trialLens.length; trialLennum++) {
-//					boolean hasSharedState = true;
-//					int trialLen = trialLens[trialLennum];
-
 		float epsilon = 0.0001f;
-
+		double tau = 10; 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/manp/subgoals/";
+		String resultsLocation = testsLocation + "results/"+subfolder;
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
@@ -437,7 +256,7 @@ public class TestLRTDPNestedMASubGoals {
 
 		String propertiesFileName = testsLocation + example + "_mult.prop";
 
-		MANestedProductModelGeneratorSubGoals maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
 
 		List<State> gs = new ArrayList<State>();
@@ -463,8 +282,12 @@ public class TestLRTDPNestedMASubGoals {
 			}
 		}
 
-		EmptyNestedMAHeuristicSubGoals heuristicFunction = new EmptyNestedMAHeuristicSubGoals(maModelGen, gs, null,
-				hval);
+		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
+		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
+		minMaxVals.put(Objectives.TaskCompletion,
+				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristic(maModelGen, null, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -475,25 +298,22 @@ public class TestLRTDPNestedMASubGoals {
 		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
-		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
-		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
 
-		mainLog.println("Initialising Full Bellman Backup Function");
-		fileLog.println("Initialising Full Bellman Backup Function");
-		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
-		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
-		minMaxVals.put(Objectives.TaskCompletion,
-				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
 
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection, epsilon,
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
 				minMaxVals);
+
 
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
-		RewardHelper rewardH = new RewardHelperMASubGoals(maModelGen, RewardCalculation.SUM);
+		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
 //							new RewardHelperNestedSingleAgent(saModelGen);
 
 		mainLog.println("Max Rollouts: " + maxRollouts);
@@ -504,61 +324,22 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
-				(Heuristic) heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction,
-				doForwardBackup, tieBreakingOrder, mainLog, fileLog);
+		TrialBasedTreeSearchSCC thts = new TrialBasedTreeSearchSCC((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
+				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
+				tieBreakingOrder, mainLog, fileLog);
 
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + algoIden);
 		thts.setResultsLocation(resultsLocation);
 
-		// simple idea, you run thts to the first subgoal,
-		// then for all the subgoals you found, you run it using those as the initial
-		// state
-		// to the next subgoal
-		// and keep doing this till you reach the acc number
-		int numRolloutsTillSolved = 0;
-		while (!heuristicFunction.reachedAcc()) {
-			heuristicFunction.incSubGoal();
-			if (maModelGen.initialStateList == null)
-				numRolloutsTillSolved += thts.run(false, 0,debug);
-			else {
-				for (int rnNum = 0; rnNum < maModelGen.initialStateList.size(); rnNum++) {
-					numRolloutsTillSolved += thts.run(false, rnNum,debug);
-				}
-			}
+		int numRolloutsTillSolved = thts.run(false,0,debug);
 
-			mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-			ArrayList<State> res;
-			if (maModelGen.initialStateList == null) {
-				res = thts.runThroughRetFinalStatesList(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-						resultsLocation, 0, heuristicFunction.subGoalNum);
-				if (res.size() > 0)
-					maModelGen.initialStateList = res;
-			} else {
-				res = new ArrayList<>();
-				for (int rnNum = 0; rnNum < maModelGen.initialStateList.size(); rnNum++) {
-					ArrayList<State> tres = thts.runThroughRetFinalStatesList(
-							new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation, rnNum,
-							heuristicFunction.subGoalNum);
-					res.addAll(tres);
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-				}
-				if (res.size() > 0) {
-					maModelGen.initialStateList = res;
-				}
-			}
-			if(res == null)
-				break;
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
 
-		}
-		// one last time
-		maModelGen.initialStateList = null;
-		ArrayList<State> tres = thts.runThroughRetFinalStatesList(
-				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation, 0,
-				heuristicFunction.subGoalNum + 1);
 		mainLog.close();
 		fileLog.close();
 
@@ -571,13 +352,14 @@ public class TestLRTDPNestedMASubGoals {
 	}
 
 	THTSRunInfo avoidable(boolean debug) throws Exception {
-		boolean goalFound = false;
+
 		double[] hvals = { 100 };
-		int[] rollouts = { 1000 };
-		int[] trialLens = { 100 };
+		int[] rollouts = { 5 };
+		int[] trialLens = { 10 };
 		double hval = 20;
 		boolean[] goalack = new boolean[2];
 
+		boolean useUpperBoundFirst = true; 
 		int hvalnum = 0;
 
 		hval = hvals[hvalnum];
@@ -585,20 +367,12 @@ public class TestLRTDPNestedMASubGoals {
 		boolean hasSharedState = false;
 		int trialLen = trialLens[hvalnum];
 
-//		for (int hvalnum = 0; hvalnum < hvals.length; hvalnum++) {
-//			hval = hvals[hvalnum];
-//			for (int rolloutnum = 0; rolloutnum < rollouts.length; rolloutnum++) {
-//				int maxRollouts = rollouts[rolloutnum];
-//				for (int trialLennum = 0; trialLennum < trialLens.length; trialLennum++) {
-//					boolean hasSharedState = false;
-//					int trialLen = trialLens[trialLennum];
-
 		float epsilon = 0.0001f;
-
+		double tau = 10; 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/manp/subgoals/";
+		String resultsLocation = testsLocation + "results/"+subfolder;
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
@@ -621,7 +395,7 @@ public class TestLRTDPNestedMASubGoals {
 		Prism prism = new Prism(mainLog);
 		String combString = "_multi_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
 				+ "_rollouts_" + maxRollouts;
-		String algoIden = "_avoid_lrtdp" + combString;
+		String algoIden = "_avoid_lrtdp" + combString+"_actSel_"+(useUpperBoundFirst?"upper":"lower")+"b";
 		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
 
 		prism.initialise();
@@ -639,7 +413,7 @@ public class TestLRTDPNestedMASubGoals {
 
 		String propertiesFileName = testsLocation + example + "_mult.prop";
 
-		MANestedProductModelGeneratorSubGoals maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
 
 		List<State> gs = new ArrayList<State>();
@@ -665,37 +439,42 @@ public class TestLRTDPNestedMASubGoals {
 			}
 		}
 
-		EmptyNestedMAHeuristicSubGoals heuristicFunction = new EmptyNestedMAHeuristicSubGoals(maModelGen, gs, deadend,
-				hval);
-
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleBounds(tieBreakingOrder,useUpperBoundFirst);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
-		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
-		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
 
-		mainLog.println("Initialising Full Bellman Backup Function");
-		fileLog.println("Initialising Full Bellman Backup Function");
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
+
+		
 		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
 		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection, epsilon,
+		
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
 				minMaxVals);
+
+	
+		
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristicBounds(maModelGen, null, null, minMaxVals,backupFunction);
+
 
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
-		RewardHelper rewardH = new RewardHelperMASubGoals(maModelGen, RewardCalculation.SUM);
+		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
 //							new RewardHelperNestedSingleAgent(saModelGen);
 
 		mainLog.println("Max Rollouts: " + maxRollouts);
@@ -706,35 +485,23 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
-
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
-				(Heuristic) heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction,
-				doForwardBackup, tieBreakingOrder, mainLog, fileLog);
+		TrialBasedTreeSearchSCC thts = new TrialBasedTreeSearchSCC((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
+				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
+				tieBreakingOrder, mainLog, fileLog);
 
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
 		thts.setName(example + algoIden);
 		thts.setResultsLocation(resultsLocation);
 
-		// simple idea, you run thts to the first subgoal,
-		// then for all the subgoals you found, you run it using those as the initial
-		// state
-		// to the next subgoal
-		// and keep doing this till you reach the acc number
-		int numRolloutsTillSolved = 0;
-		while (!heuristicFunction.reachedAcc()) {
-			heuristicFunction.incSubGoal();
-			numRolloutsTillSolved += thts.run(false);
+		int numRolloutsTillSolved = thts.run(true,0,debug);
 
-			mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
+		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-			ArrayList<State> res = thts.runThroughRetFinalStatesList(
-					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation, 0,
-					heuristicFunction.subGoalNum);
-			maModelGen.initialStateList = res;
+		goalack = thts.runThrough(actionSelection, resultsLocation);
+		// we can just trim things where task completion is 0 ?
 
-		}
 		mainLog.close();
 		fileLog.close();
 
@@ -754,11 +521,6 @@ public class TestLRTDPNestedMASubGoals {
 		double hval = 20;
 		boolean[] goalack = new boolean[2];
 
-//		for (int hvalnum = 0; hvalnum < hvals.length; hvalnum++) {
-//			hval = hvals[hvalnum];
-//			for (int rolloutnum = 0; rolloutnum < rollouts.length; rolloutnum++) {
-//				int maxRollouts = rollouts[rolloutnum];
-//				for (int trialLennum = 0; trialLennum < trialLens.length; trialLennum++) {
 		int hvalnum = 0;
 
 		hval = hvals[hvalnum];
@@ -767,11 +529,11 @@ public class TestLRTDPNestedMASubGoals {
 		int trialLen = trialLens[hvalnum];
 
 		float epsilon = 0.0001f;
-
+		double tau = 10; 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/manp/";
+		String resultsLocation = testsLocation + "results/brtdp/";
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
@@ -812,7 +574,7 @@ public class TestLRTDPNestedMASubGoals {
 
 		String propertiesFileName = testsLocation + example + "_mult.prop";
 
-		MANestedProductModelGeneratorSubGoals maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
 
 		List<State> gs = new ArrayList<State>();
@@ -838,36 +600,42 @@ public class TestLRTDPNestedMASubGoals {
 			}
 		}
 
-		Heuristic heuristicFunction = new EmptyNestedMAHeuristicSubGoals(maModelGen, gs, deadend, hval);
-
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleBounds(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
-		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
-		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
 
-		mainLog.println("Initialising Full Bellman Backup Function");
-		fileLog.println("Initialising Full Bellman Backup Function");
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
+
+		
 		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
 		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection, epsilon,
+		
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
 				minMaxVals);
+
+	
+		
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristicBounds(maModelGen, null, null, minMaxVals,backupFunction);
+
 
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
-		RewardHelper rewardH = new RewardHelperMASubGoals(maModelGen, RewardCalculation.SUM);
+		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
 //							new RewardHelperNestedSingleAgent(saModelGen);
 
 		mainLog.println("Max Rollouts: " + maxRollouts);
@@ -878,7 +646,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
+		TrialBasedTreeSearchSCC thts = new TrialBasedTreeSearchSCC((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
 				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
 				tieBreakingOrder, mainLog, fileLog);
 
@@ -887,7 +655,7 @@ public class TestLRTDPNestedMASubGoals {
 		thts.setName(example + algoIden);
 		thts.setResultsLocation(resultsLocation);
 
-		int numRolloutsTillSolved = thts.run(false);
+		int numRolloutsTillSolved = thts.run(false,0,debug);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
@@ -903,32 +671,6 @@ public class TestLRTDPNestedMASubGoals {
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
-//					thts.run(false);
-//
-//					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-//					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-//
-//					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-//							resultsLocation);
-//					goalFound = goalack[0];
-//					fileLog.println("Goal Found: " + goalack[0]);
-//					fileLog.println("Initial State Solved: " + goalack[1]);
-//
-//					mainLog.println("Goal Found: " + goalack[0]);
-//					mainLog.println("Initial State Solved: " + goalack[1]);
-////					System.in.read();
-//
-//					mainLog.close();
-//					fileLog.close();
-//
-//				}
-//				if (goalFound)
-//					break;
-//			}
-//			if (goalFound)
-//				break;
-//		}
-//		return goalack;
 	}
 
 	THTSRunInfo noprobabilities_noavoid(boolean debug) throws Exception {
@@ -939,22 +681,21 @@ public class TestLRTDPNestedMASubGoals {
 		double hval = 20;
 		boolean[] goalack = new boolean[2];
 
-//		for (
 		int hvalnum = 0;
-//		hvalnum < hvals.length; hvalnum++) {
+
 		hval = hvals[hvalnum];
-//			for (int rolloutnum = 0; rolloutnum < rollouts.length; rolloutnum++) {
+
 		int maxRollouts = rollouts[hvalnum];
-//				for (int trialLennum = 0; trialLennum < trialLens.length; trialLennum++) {
+
 		boolean hasSharedState = false;
 		int trialLen = trialLens[hvalnum];
 
 		float epsilon = 0.0001f;
-
+		double tau = 100; 
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/manp/";
+		String resultsLocation = testsLocation + "results/brtdp/";
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
@@ -995,7 +736,7 @@ public class TestLRTDPNestedMASubGoals {
 
 		String propertiesFileName = testsLocation + example + "_mult_noavoid.prop";
 
-		MANestedProductModelGeneratorSubGoals maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
 
 		List<State> gs = new ArrayList<State>();
@@ -1021,7 +762,6 @@ public class TestLRTDPNestedMASubGoals {
 			}
 		}
 
-		Heuristic heuristicFunction = new EmptyNestedMAHeuristicSubGoals(maModelGen, gs, deadend, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -1029,28 +769,36 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleBounds(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
-		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
-		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
+		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
+		fileLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
 
-		OutcomeSelector outcomeSelection = new OutcomeSelectorRandom();
+		OutcomeSelector outcomeSelection = new OutcomeSelectorBoundsGreedyBRTDP(tieBreakingOrder,tau);//new OutcomeSelectorRandomSkipSolved();
 
-		mainLog.println("Initialising Full Bellman Backup Function");
-		fileLog.println("Initialising Full Bellman Backup Function");
+		mainLog.println("Initialising BackupFullBellmanCap Function");
+		fileLog.println("Initialising BackupFullBellmanCap Function");
+
+		
 		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
 		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, actionSelection, epsilon,
+		
+		BackupNVI backupFunction = new BackupFullBellmanCap(tieBreakingOrder, actionSelection, epsilon,
 				minMaxVals);
+
+	
+		
+		Heuristic heuristicFunction = new EmptyNestedMultiAgentHeuristicBounds(maModelGen, null, null, minMaxVals,backupFunction);
+
 
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
-		RewardHelper rewardH = new RewardHelperMASubGoals(maModelGen, RewardCalculation.SUM);
+		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
 //							new RewardHelperNestedSingleAgent(saModelGen);
 
 		mainLog.println("Max Rollouts: " + maxRollouts);
@@ -1061,7 +809,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
-		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
+		TrialBasedTreeSearchSCC thts = new TrialBasedTreeSearchSCC((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
 				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
 				tieBreakingOrder, mainLog, fileLog);
 
@@ -1070,12 +818,12 @@ public class TestLRTDPNestedMASubGoals {
 		thts.setName(example + algoIden);
 		thts.setResultsLocation(resultsLocation);
 
-		int numRolloutsTillSolved = thts.run(false);
+		int numRolloutsTillSolved = thts.run(false,0,debug);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThrough(actionSelection, resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
@@ -1086,35 +834,6 @@ public class TestLRTDPNestedMASubGoals {
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
-//					
-//					
-//					thts.run(false);
-//
-//					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-//					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-//
-//					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
-//							resultsLocation);
-//					goalFound = goalack[0];
-//					fileLog.println("Goal Found: " + goalack[0]);
-//					fileLog.println("Initial State Solved: " + goalack[1]);
-//
-//					mainLog.println("Goal Found: " + goalack[0]);
-//					mainLog.println("Initial State Solved: " + goalack[1]);
-////					System.in.read();
-//
-//					mainLog.close();
-//					fileLog.close();
-
-//				}
-//				if (goalFound)
-//					break;
-//			}
-//			if (goalFound)
-//				break;
-//		}
-
-//		return goalack;
 	}
 
 }

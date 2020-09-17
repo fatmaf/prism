@@ -84,6 +84,8 @@ public class MultiAgentHeuristic implements Heuristic {
 		n.isDeadend = isAvoid | isDeadend;
 
 		toret = this.getStateBounds(objs, s);
+		if(!n.canHaveChildren())
+			n.setSolved();
 		return toret;
 	}
 

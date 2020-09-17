@@ -7,10 +7,10 @@ import thts.Objectives;
 public class RewardHelperMASubGoals implements RewardHelper {
 
 	MANestedProductModelGeneratorSubGoals mapmg;
-	HelperClass.RewardCalculation rewCalc;
+	RewardCalculation rewCalc;
 
 
-	public RewardHelperMASubGoals(MANestedProductModelGeneratorSubGoals mapmg, HelperClass.RewardCalculation rewCalc) {
+	public RewardHelperMASubGoals(MANestedProductModelGeneratorSubGoals mapmg, RewardCalculation rewCalc) {
 		this.mapmg = mapmg;
 		this.rewCalc = rewCalc;
 

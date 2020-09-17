@@ -268,12 +268,19 @@ public class MDPValIter {
 							}
 						}
 						if (updateVals) {
+//							String updateString = i+"[P:"+solnProb[i]+"->"+currentProbVal;
 							solnProb[i] = currentProbVal;
 							for (int rews = 0; rews < numRewards; rews++) {
+//								updateString+=", R"+rews+":"+solnReward.get(rews)[i]+"->"+currentCostVal.get(rews);
 								solnReward.get(rews)[i] = currentCostVal.get(rews);
 							}
+//							updateString += "]";
 							strat[i] = j;
 							done = false;
+//							if (iters > 9000) {
+//								mainLog.println(updateString);
+////								mainLog.println(i);
+//							}
 						}
 
 					}
@@ -303,15 +310,15 @@ public class MDPValIter {
 		res = new ModelCheckerMultipleResult();
 		// Store strategy
 		res.strat = new MDStrategyArray(mdp, strat);
-		PrismFileLog out;
-		// }
-		if (resLoc != null) {
-			if(name!=null) {
-			out = new PrismFileLog(resLoc + "nviadv" + name);
-			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
-			out.close();
-			}
-		}
+//		PrismFileLog out;
+//		// }
+//		if (resLoc != null) {
+//			if(name!=null) {
+//			out = new PrismFileLog(resLoc + "nviadv" + name);
+//			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
+//			out.close();
+//			}
+//		}
 		// Export adversary
 		// Prune strategy
 		// restrictStrategyToReachableStates(trimProdMdp, strat);

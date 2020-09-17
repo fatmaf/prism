@@ -1,27 +1,33 @@
-package thtsNew;
+package thtsSCC;
 
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import parser.State;
+import prism.DefaultModelGenerator;
 import prism.PrismException;
 import prism.PrismLog;
-import prism.DefaultModelGenerator;
-import prism.PrismDevNullLog;
 import thts.Bounds;
 import thts.MDPCreator;
 import thts.Objectives;
-import thtsSCC.SCCFinder;
+import thtsNew.ActionSelector;
+import thtsNew.ActionSelectorGreedySimpleLowerBound;
+import thtsNew.BackupNVI;
+import thtsNew.ChanceNode;
+import thtsNew.DecisionNode;
+import thtsNew.Heuristic;
+import thtsNew.Node;
+import thtsNew.OutcomeSelector;
+import thtsNew.RewardHelper;
+import thtsNew.TrialBasedTreeSearch;
+import thtsNew.VisualiserLog;
 
-public class TrialBasedTreeSearch {
+public class TrialBasedTreeSearchSCC {
 
 	DefaultModelGenerator productModelGen;
 	protected int maxRollouts;
@@ -35,8 +41,8 @@ public class TrialBasedTreeSearch {
 	protected PrismLog fileLog;
 
 	protected HashMap<String, Node> nodesAddedSoFar;
-	private int decisionNodesExplored;
-	private int chanceNodesExplored;
+	private int DecisionNodeSCCsExplored;
+	private int ChanceNodeSCCsExplored;
 	protected int numRollouts;
 	protected int trialLen;
 	private boolean doForwardBackup;
@@ -47,7 +53,9 @@ public class TrialBasedTreeSearch {
 	protected MDPCreator trialMDP;
 	protected VisualiserLog vl;
 
-	public TrialBasedTreeSearch(DefaultModelGenerator pmg, int maxRollouts, int maxTrialLen,
+	public HashMap<Integer, SCCContainer> sccs;
+
+	public TrialBasedTreeSearchSCC(DefaultModelGenerator pmg, int maxRollouts, int maxTrialLen,
 			Heuristic heuristicFunction, ActionSelector actionSelection, OutcomeSelector outcomeSelection,
 			RewardHelper rewardHelper, BackupNVI backupFunction, boolean doForwardBackup,
 			ArrayList<Objectives> tieBreakingOrder, PrismLog ml, PrismLog fileLog) {
@@ -60,8 +68,8 @@ public class TrialBasedTreeSearch {
 		outSel = outcomeSelection;
 		rewH = rewardHelper;
 		backup = backupFunction;
-		decisionNodesExplored = 0;
-		chanceNodesExplored = 0;
+		DecisionNodeSCCsExplored = 0;
+		ChanceNodeSCCsExplored = 0;
 		this.tieBreakingOrder = tieBreakingOrder;
 		this.fileLog = fileLog;
 		this.doForwardBackup = doForwardBackup;
@@ -78,7 +86,7 @@ public class TrialBasedTreeSearch {
 			s = initialStates.get(rootNodeNum);
 		}
 
-		return createDecisionNode(null, s, 1.0);
+		return createDecisionNodeSCC(null, s, 1.0);
 
 	}
 
@@ -99,18 +107,18 @@ public class TrialBasedTreeSearch {
 			return nodesAddedSoFar.get(k);
 	}
 
-	DecisionNode createDecisionNode(Node ps, State s, double tprob) throws PrismException {
+	DecisionNodeSCC createDecisionNodeSCC(Node ps, State s, double tprob) throws PrismException {
 
-		DecisionNode dn = null;
+		DecisionNodeSCC dn = null;
 		// check if this node exists
 		String k = s.toString();
 		if (checkNodeInHash(k)) {
-			dn = (DecisionNode) getNodeFromHash(k);
+			dn = (DecisionNodeSCC) getNodeFromHash(k);
 			dn.addParent(ps, tprob);
 			return dn;
 
 		}
-		dn = new DecisionNode(ps, s, tprob);
+		dn = new DecisionNodeSCC(ps, s, tprob);
 
 		addNodeToHash(dn);
 		return dn;
@@ -141,40 +149,60 @@ public class TrialBasedTreeSearch {
 	public Node addNodeToHash(Node n, String k) {
 		Node nodeInMap = n;
 		if (!nodesAddedSoFar.containsKey(k)) {
-			if (n instanceof DecisionNode)
-				this.decisionNodesExplored++;
+			if (n instanceof DecisionNodeSCC)
+				this.DecisionNodeSCCsExplored++;
 			else
-				this.chanceNodesExplored++;
+				this.ChanceNodeSCCsExplored++;
 			nodesAddedSoFar.put(k, n);
 		} else {
 			nodeInMap = nodesAddedSoFar.get(k);
 		}
 		return nodeInMap;
 	}
-	public int run(boolean fixSCCs) throws Exception {
-		return run(fixSCCs, 0,false);
-	}
-	public int run(boolean fixSCCs,boolean debug) throws Exception {
-		return run(fixSCCs, 0,debug);
-	}
 
-	public HashMap<Objectives,Bounds> getInitialStateBounds() throws PrismException
-	{
+	public HashMap<Objectives, Bounds> getInitialStateBounds() throws PrismException {
 		Node n0 = getRootNode(0);
 		return n0.bounds;
-		
+
 	}
-	public int run(boolean fixSCCs, int rootNodeNum,boolean debug) throws Exception {
+
+	public int run(boolean fixSCCs, int rootNodeNum, boolean debug) throws Exception {
+		Node n0 = getRootNode(rootNodeNum);
+		int c = 0;
+		int res = -1;
+		while (!n0.isSolved()) {
+			c++;
+			if (c > 5)
+				break;
+			numRollouts=0;
+			res = runTHTS(fixSCCs, n0, debug);
+			fileLog.flush();
+			mainLog.flush();
+			runThrough(actSel, resultsLocation, "attempt" + c + "pre");
+
+			if (fixSCCs) {
+				SCCFinder sccfinder = new SCCFinder(actSel);
+//			
+				sccfinder.findSCCs((DecisionNodeSCC) n0, fixSCCs);
+			}
+			runThrough(actSel, resultsLocation, "attempt" + c + "post");
+
+		}
+		return res;
+
+	}
+
+	public int runTHTS(boolean fixSCCs, Node n0, boolean debug) throws Exception {
 
 		boolean donullvl = false;// true;
-		if(!debug) {
-			donullvl=true;
+		if (!debug) {
+			donullvl = true;
 		}
 		if (donullvl)
 			vl = new VisualiserLog(/* resultsLocation + name + ".vl", */ this.tieBreakingOrder, donullvl);
 		else
-			vl = new VisualiserLog(resultsLocation + name + ".vl", this.tieBreakingOrder);
-		
+			vl = new VisualiserLog(resultsLocation + name + ".vl", this.tieBreakingOrder,true);
+
 		Vector<Integer> trialLenHist = new Vector<>();
 		int binsize = 10;
 		for (int bin = 0; bin < maxTrialLen; bin += binsize) {
@@ -190,25 +218,20 @@ public class TrialBasedTreeSearch {
 			fileLog.println("Rollout: " + numRollouts);
 			vl.newRollout(numRollouts);
 
-			Node n0 = getRootNode(rootNodeNum);
 //			while (!n0.isSolved() || notTimedOut()) {
 
 			trialMDP = null;//
 //			if(debug)
 //				trialMDP=new MDPCreator();
-			//new MDPCreator();
-			visitDecisionNode((DecisionNode) n0);
+			// new MDPCreator();
+			visitDecisionNodeSCC((DecisionNodeSCC) n0);
 
 			if (resultsLocation != null) {
 				if (trialMDP != null)
 					trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
 
 			}
-			if (fixSCCs) {
-				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder));
-//				
-				sccfinder.findSCCs((DecisionNode) n0, fixSCCs);
-			}
+
 			mainLog.println("Trial Ended with steps:" + trialLen);
 			fileLog.println("Trial Ended with steps:" + trialLen);
 			avgTrialLen = (avgTrialLen * numRollouts + trialLen) / (numRollouts + 1);
@@ -229,12 +252,11 @@ public class TrialBasedTreeSearch {
 			numRollouts++;
 			trialLen = 0;
 		}
-		Node n0 = getRootNode(rootNodeNum);
-		if(!n0.isSolved())
-		{
-			//just checking 
+
+		if (!n0.isSolved()) {
+			// just checking
 			vl.beginActionSelection();
-			vl.writeActSelChoices((DecisionNode)n0);
+			vl.writeActSelChoices((DecisionNodeSCC) n0);
 			vl.endActionSelectin();
 		}
 		vl.closeLog();
@@ -250,7 +272,7 @@ public class TrialBasedTreeSearch {
 		return numRollouts;
 	}
 
-	protected boolean visitDecisionNode(DecisionNode n) throws Exception {
+	protected boolean visitDecisionNodeSCC(DecisionNodeSCC n) throws Exception {
 
 		int prevTrialLen = trialLen;
 		boolean doBackup = true;
@@ -277,13 +299,13 @@ public class TrialBasedTreeSearch {
 				// so we've got to check all the actions associated with this node
 				// and randomly select one
 
-				ChanceNode selectedAction = selectAction(n);
+				ChanceNodeSCC selectedAction = selectAction(n);
 				// lrtdp has a forward backup
-//				backup.backupDecisionNode(n);
+//				backup.backupDecisionNodeSCC(n);
 
-				doBackup = visitChanceNode(selectedAction);
-				// backupDecisionNode(n)
-//				doBackup = backup.backupDecisionNode(n, doBackup);
+				doBackup = visitChanceNodeSCC(selectedAction);
+				// backupDecisionNodeSCC(n)
+//				doBackup = backup.backupDecisionNodeSCC(n, doBackup);
 //				mainLog.println("BackupStep:" + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
 //				fileLog.println("BackupStep:" + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
 
@@ -298,7 +320,7 @@ public class TrialBasedTreeSearch {
 //				mainLog.println("debugHere");
 //			if(n.getState().toString().contains("3,1,0,0"))
 //				System.out.print("debughere");
-			doBackup = backup.backupDecisionNode(n, doBackup);
+			doBackup = backup.backupDecisionNode((DecisionNode) n, doBackup);
 //			mainLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
 //					+ n.getBoundsString());
 			fileLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
@@ -315,12 +337,12 @@ public class TrialBasedTreeSearch {
 		return doBackup;
 	}
 
-	boolean visitChanceNode(ChanceNode n) throws Exception {
+	boolean visitChanceNodeSCC(ChanceNodeSCC n) throws Exception {
 
 		int prevTrialLen = trialLen; // just for book keeping
 		boolean doBackup = true;
 		if (!n.isSolved() & notTimedOut()) {
-			vl.chanceNodeString(n);
+			vl.chanceNodeString((ChanceNode) n);
 			doBackup = true;
 			n.numVisits++;
 //			mainLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
@@ -336,7 +358,7 @@ public class TrialBasedTreeSearch {
 			// but we still need to know how many children it has
 			// and then we've got to select one of them
 			// and in prism that means going over all of them
-//			backup.backupChanceNode(n);
+//			backup.backupChanceNodeSCC(n);
 			if (doForwardBackup) {
 				backup.forwardbackupChanceNode(n);
 //				mainLog.println("ForwardBackupStep:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + ","
@@ -353,14 +375,14 @@ public class TrialBasedTreeSearch {
 					if (trialMDP != null) {
 						trialMDP.addActionSingleSuccessor(n.parents.get(0).getState(), n.action, nd.getState(), 1.0);
 					}
-					doBackup = doBackup & visitDecisionNode(nd);
+					doBackup = doBackup & visitDecisionNodeSCC((DecisionNodeSCC) nd);
 
 				} else {
 					fileLog.println("No outcome selected.");
 				}
 			}
-			// visitDecisionNode(nd)
-			// backupChanceNode(n)
+			// visitDecisionNodeSCC(nd)
+			// backupChanceNodeSCC(n)
 //			if (n.getShortName().contains("2,-1,0,0,0"))
 //				mainLog.println("debughere");
 			backup.backupChanceNode(n, doBackup);
@@ -382,29 +404,28 @@ public class TrialBasedTreeSearch {
 	}
 
 	void setNodeHeuristics(Node n0) throws PrismException {
-		if(!n0.boundsInitialised()) {
-		vl.beginHeuristicAssignment();
+		if (!n0.boundsInitialised()) {
+			vl.beginHeuristicAssignment();
 
-		if (n0 instanceof DecisionNode) {
+			if (n0 instanceof DecisionNodeSCC) {
 
-			
-			HashMap<Objectives, Bounds> nodehs = hf.getStateBounds(tieBreakingOrder, (DecisionNode) n0);
+				HashMap<Objectives, Bounds> nodehs = hf.getStateBounds(tieBreakingOrder, (DecisionNodeSCC) n0);
 //			mainLog.println(n0.getShortName()+" Set Node H: "+nodehs.toString());
 //			fileLog.println(n0.getShortName()+" Set Node H: "+nodehs.toString());
-			
-			((DecisionNode) n0).setBounds(nodehs);
-			
-		} else if (n0 instanceof ChanceNode) {
-			hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNode) n0);
+
+				((DecisionNodeSCC) n0).setBounds(nodehs);
+
+			} else if (n0 instanceof ChanceNodeSCC) {
+				hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNodeSCC) n0);
 //			mainLog.println(n0.getShortName()+" Set Node H: "+n0.getBoundsString());
 //			fileLog.println(n0.getShortName()+" Set Node H: "+n0.getBoundsString());
-		}
-		vl.writeAssignedHeuristic(n0);
-		vl.endHeuristicAssignment();
+			}
+			vl.writeAssignedHeuristic(n0);
+			vl.endHeuristicAssignment();
 		}
 	}
 
-	ChanceNode selectAction(DecisionNode n0) throws Exception {
+	ChanceNodeSCC selectAction(DecisionNodeSCC n0) throws Exception {
 		boolean doMin = false;
 		// we set the children and their bounds
 		// it would be interesting to do this on the fly
@@ -416,7 +437,7 @@ public class TrialBasedTreeSearch {
 //		if (actSel instanceof ActionSelectorGreedyBoundsDiff) {
 		// so first we've got to see if it has no children
 		if (backup instanceof BackupNVI)
-			generateChildrenDecisionNode(n0);
+			generateChildrenDecisionNodeSCC(n0);
 		// then we've got to make sure we initialise
 		// the bounds for all children
 
@@ -434,7 +455,7 @@ public class TrialBasedTreeSearch {
 
 		vl.beginActionSelection();
 		vl.writeActSelChoices(n0);
-		ChanceNode selected = actSel.selectAction(n0, doMin);
+		ChanceNodeSCC selected = (ChanceNodeSCC) actSel.selectAction(n0, doMin);
 
 		vl.writeSelectedAction(selected);
 		vl.endActionSelectin();
@@ -443,9 +464,9 @@ public class TrialBasedTreeSearch {
 		return selected;
 	}
 
-	ArrayList<DecisionNode> selectOutcome(ChanceNode n) throws Exception {
+	ArrayList<DecisionNode> selectOutcome(ChanceNodeSCC n) throws Exception {
 
-		generateChildrenChanceNode(n);
+		generateChildrenChanceNodeSCC(n);
 
 		ArrayList<DecisionNode> res = outSel.selectOutcome(n);
 		vl.beginOutcomeSelection();
@@ -455,7 +476,7 @@ public class TrialBasedTreeSearch {
 		return res;
 	}
 
-	void generateChildrenChanceNode(ChanceNode n0) throws PrismException {
+	void generateChildrenChanceNodeSCC(ChanceNodeSCC n0) throws PrismException {
 		if (n0.getChildren() == null) {
 			// we need its children
 			productModelGen.exploreState(n0.getState());
@@ -466,7 +487,7 @@ public class TrialBasedTreeSearch {
 			for (int t = 0; t < numtransitions; t++) {
 				double prob = productModelGen.getTransitionProbability(c, t);
 				State ns = productModelGen.computeTransitionTarget(c, t);
-				DecisionNode child = createDecisionNode(n0, ns, prob);
+				DecisionNodeSCC child = createDecisionNodeSCC(n0, ns, prob);
 
 				n0.addChild(child);
 
@@ -474,7 +495,7 @@ public class TrialBasedTreeSearch {
 			// TODO: double check if we need this???
 			// I dont think we do // cuz we do two levels
 			if (backup instanceof BackupNVI) {
-				for (DecisionNode child : n0.getChildren()) {
+				for (DecisionNodeSCC child : n0.getChildrenSCC()) {
 					setNodeHeuristics(child);
 				}
 			}
@@ -483,13 +504,13 @@ public class TrialBasedTreeSearch {
 
 	}
 
-	ChanceNode createChanceNode(DecisionNode p, Object a, int actionIndex) throws PrismException {
+	ChanceNodeSCC createChanceNodeSCC(DecisionNodeSCC p, Object a, int actionIndex) throws PrismException {
 		String k = p.getState().toString() + a.toString();
-		ChanceNode cn;
+		ChanceNodeSCC cn;
 		if (checkNodeInHash(k)) {
-			cn = (ChanceNode) getNodeFromHash(k);
+			cn = (ChanceNodeSCC) getNodeFromHash(k);
 		} else {
-			cn = new ChanceNode(p, p.s, a, actionIndex);
+			cn = new ChanceNodeSCC(p, p.s, a, actionIndex);
 			for (Objectives obj : tieBreakingOrder) {
 				double rew = rewH.getReward(obj, cn);
 
@@ -502,7 +523,7 @@ public class TrialBasedTreeSearch {
 		return cn;
 	}
 
-	void generateChildrenDecisionNode(DecisionNode n0) throws PrismException {
+	void generateChildrenDecisionNodeSCC(DecisionNodeSCC n0) throws PrismException {
 		// generate the children of a decision node
 		if (n0.canHaveChildren()) {
 			if (n0.numActions == 0) {
@@ -521,15 +542,15 @@ public class TrialBasedTreeSearch {
 				for (int i = 0; i < numActions; i++) {
 					// we can get the name and choice index
 					Object action = productModelGen.getChoiceAction(i);
-					ChanceNode cn = createChanceNode(n0, action, i);
+					ChanceNodeSCC cn = createChanceNodeSCC(n0, action, i);
 					n0.addChild(action, cn);
 
 				}
 				if (backup instanceof BackupNVI) {
-					for (Object a : n0.getChildren().keySet()) {
-						ChanceNode cn = n0.getChild(a);
+					for (Object a : n0.getChildrenSCC().keySet()) {
+						ChanceNodeSCC cn = n0.getChild(a);
 						// got to do this for full bellman backups
-						generateChildrenChanceNode(cn);
+						generateChildrenChanceNodeSCC(cn);
 						setNodeHeuristics(cn);
 					}
 				}
@@ -550,11 +571,11 @@ public class TrialBasedTreeSearch {
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
 		fileLog.println("Running through");
-		Stack<DecisionNode> q = new Stack<DecisionNode>();
-		ArrayList<DecisionNode> seen = new ArrayList<>();
-		q.push((DecisionNode) n0);
+		Stack<DecisionNodeSCC> q = new Stack<DecisionNodeSCC>();
+		ArrayList<DecisionNodeSCC> seen = new ArrayList<>();
+		q.push((DecisionNodeSCC) n0);
 		while (!q.isEmpty()) {
-			DecisionNode d = q.pop();
+			DecisionNodeSCC d = q.pop();
 			if (d.isGoal)
 				goalFound = true;
 			if (seen.contains(d))
@@ -567,7 +588,7 @@ public class TrialBasedTreeSearch {
 			if (d.canHaveChildren() && !d.isLeafNode()) {
 				if (d.getChildren().size() < 5)
 					mainLog.println(d.getChildren());
-				ChanceNode a = actSelrt.selectAction(d, false);
+				ChanceNodeSCC a = (ChanceNodeSCC) actSelrt.selectAction(d, false);
 				// get these children
 				if (a != null) {
 
@@ -577,11 +598,11 @@ public class TrialBasedTreeSearch {
 
 					if (a.getChildren() != null) {
 						double maxProb = 0;
-						DecisionNode mostProbdn = null;
+						DecisionNodeSCC mostProbdn = null;
 						for (DecisionNode dnc : a.getChildren()) {
 							double dncProb = dnc.getTranProb(a);
 							if (dncProb > maxProb) {
-								mostProbdn = dnc;
+								mostProbdn = (DecisionNodeSCC) dnc;
 								maxProb = dncProb;
 							}
 //							q.push(dnc);
@@ -603,8 +624,16 @@ public class TrialBasedTreeSearch {
 		return runThrough(actSelrt, resultsLocation, 0);
 	}
 
-	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation, int rnNum) throws Exception {
-		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder,true);
+	private boolean[] runThrough(ActionSelector actSelrt, String resultsLocation, int i) throws Exception {
+		return runThrough(actSelrt, resultsLocation, 0, "");
+	}
+
+	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation, String extra) throws Exception {
+		return runThrough(actSelrt, resultsLocation, 0, extra);
+	}
+
+	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation, int rnNum, String extra) throws Exception {
+		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
 		vl.beginPolRun();
 		boolean goalFound = false;
 		Node n0 = getRootNode(rnNum);
@@ -612,11 +641,11 @@ public class TrialBasedTreeSearch {
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
 		fileLog.println("Running through");
-		Stack<DecisionNode> q = new Stack<DecisionNode>();
-		ArrayList<DecisionNode> seen = new ArrayList<>();
-		q.push((DecisionNode) n0);
+		Stack<DecisionNodeSCC> q = new Stack<DecisionNodeSCC>();
+		ArrayList<DecisionNodeSCC> seen = new ArrayList<>();
+		q.push((DecisionNodeSCC) n0);
 		while (!q.isEmpty()) {
-			DecisionNode d = q.pop();
+			DecisionNodeSCC d = q.pop();
 			if (d.isGoal)
 				goalFound = true;
 			if (seen.contains(d))
@@ -629,13 +658,13 @@ public class TrialBasedTreeSearch {
 			if (d.canHaveChildren() && !d.isLeafNode()) {
 				if (d.getChildren().size() < 5)
 					mainLog.println(d.getChildren());
-				ChanceNode a = actSelrt.selectAction(d, false);
-		
+				ChanceNodeSCC a = (ChanceNodeSCC) actSelrt.selectAction(d, false);
+
 				vl.beginActionSelection();
 				vl.writeActSelChoices(d);
 				vl.writeSelectedAction(a);
 				vl.endActionSelectin();
-				
+
 				// get these children
 				if (a != null) {
 
@@ -643,7 +672,7 @@ public class TrialBasedTreeSearch {
 					fileLog.println(a);
 					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
 					if (a.getChildren() != null) {
-						for (DecisionNode dnc : a.getChildren()) {
+						for (DecisionNodeSCC dnc : a.getChildrenSCC()) {
 							q.push(dnc);
 							successors.add(
 									new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
@@ -659,7 +688,7 @@ public class TrialBasedTreeSearch {
 						: " is a goal or deadend"));
 			}
 		}
-		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
+		tempMDP.saveMDP(resultsLocation, getName() + extra + "_runthru.dot");
 		boolean[] toRet = { goalFound, n0.isSolved() };
 		vl.endRollout();
 		vl.closeLog();
@@ -669,18 +698,18 @@ public class TrialBasedTreeSearch {
 	ArrayList<State> runThroughRetFinalStatesList(ActionSelector actSelrt, String resultsLocation, int rnNum,
 			int subGoal) throws Exception {
 		ArrayList<State> finalStatesList = new ArrayList<>();
-		ArrayList<DecisionNode> finalDNs = new ArrayList<>();
+		ArrayList<DecisionNodeSCC> finalDNs = new ArrayList<>();
 		boolean goalFound = false;
 		Node n0 = getRootNode(rnNum);
 		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
 		fileLog.println("Running through");
-		Stack<DecisionNode> q = new Stack<DecisionNode>();
-		ArrayList<DecisionNode> seen = new ArrayList<>();
-		q.push((DecisionNode) n0);
+		Stack<DecisionNodeSCC> q = new Stack<DecisionNodeSCC>();
+		ArrayList<DecisionNodeSCC> seen = new ArrayList<>();
+		q.push((DecisionNodeSCC) n0);
 		while (!q.isEmpty()) {
-			DecisionNode d = q.pop();
+			DecisionNodeSCC d = q.pop();
 			if (d.isGoal) {
 				goalFound = true;
 
@@ -695,7 +724,7 @@ public class TrialBasedTreeSearch {
 			if (d.canHaveChildren() && !d.isLeafNode()) {
 				if (d.getChildren().size() < 5)
 					mainLog.println(d.getChildren());
-				ChanceNode a = actSelrt.selectAction(d, false);
+				ChanceNodeSCC a = (ChanceNodeSCC) actSelrt.selectAction(d, false);
 				// get these children
 				if (a != null) {
 
@@ -703,7 +732,7 @@ public class TrialBasedTreeSearch {
 					fileLog.println(a);
 					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
 					if (a.getChildren() != null) {
-						for (DecisionNode dnc : a.getChildren()) {
+						for (DecisionNodeSCC dnc : a.getChildrenSCC()) {
 							q.push(dnc);
 							successors.add(
 									new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
@@ -721,7 +750,7 @@ public class TrialBasedTreeSearch {
 				finalDNs.add(d);
 			}
 		}
-		for (DecisionNode d : finalDNs) {
+		for (DecisionNodeSCC d : finalDNs) {
 			if (d.isGoal) {
 				finalStatesList.add(d.getState());
 
@@ -735,10 +764,11 @@ public class TrialBasedTreeSearch {
 		boolean[] toRet = { goalFound, n0.isSolved() };
 		return finalStatesList;
 	}
-	
-	ArrayList<State> runThroughRetFinalStatesList(ActionSelector actSelrt, String resultsLocation, int rnNum) throws Exception {
+
+	ArrayList<State> runThroughRetFinalStatesList(ActionSelector actSelrt, String resultsLocation, int rnNum)
+			throws Exception {
 		ArrayList<State> finalStatesList = new ArrayList<>();
-		ArrayList<DecisionNode> finalDNs = new ArrayList<>();
+		ArrayList<DecisionNodeSCC> finalDNs = new ArrayList<>();
 		boolean goalFound = false;
 		Node n0 = getRootNode(rnNum);
 		String sString = n0.getState().toString();
@@ -746,11 +776,11 @@ public class TrialBasedTreeSearch {
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
 		fileLog.println("Running through");
-		Stack<DecisionNode> q = new Stack<DecisionNode>();
-		ArrayList<DecisionNode> seen = new ArrayList<>();
-		q.push((DecisionNode) n0);
+		Stack<DecisionNodeSCC> q = new Stack<DecisionNodeSCC>();
+		ArrayList<DecisionNodeSCC> seen = new ArrayList<>();
+		q.push((DecisionNodeSCC) n0);
 		while (!q.isEmpty()) {
-			DecisionNode d = q.pop();
+			DecisionNodeSCC d = q.pop();
 			if (d.isGoal) {
 				goalFound = true;
 
@@ -765,7 +795,7 @@ public class TrialBasedTreeSearch {
 			if (d.canHaveChildren() && !d.isLeafNode()) {
 				if (d.getChildren().size() < 5)
 					mainLog.println(d.getChildren());
-				ChanceNode a = actSelrt.selectAction(d, false);
+				ChanceNodeSCC a = (ChanceNodeSCC) actSelrt.selectAction(d, false);
 				// get these children
 				if (a != null) {
 
@@ -773,7 +803,7 @@ public class TrialBasedTreeSearch {
 					fileLog.println(a);
 					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
 					if (a.getChildren() != null) {
-						for (DecisionNode dnc : a.getChildren()) {
+						for (DecisionNodeSCC dnc : a.getChildrenSCC()) {
 							q.push(dnc);
 							successors.add(
 									new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
@@ -791,7 +821,7 @@ public class TrialBasedTreeSearch {
 				finalDNs.add(d);
 			}
 		}
-		for (DecisionNode d : finalDNs) {
+		for (DecisionNodeSCC d : finalDNs) {
 			if (d.canHaveChildren()) {
 				finalStatesList.add(d.getState());
 
@@ -801,7 +831,7 @@ public class TrialBasedTreeSearch {
 				d.setSolved();
 
 		}
-		tempMDP.saveMDP(resultsLocation, getName() +"_"+sString+  "_rn" + rnNum + "_runthru.dot");
+		tempMDP.saveMDP(resultsLocation, getName() + "_" + sString + "_rn" + rnNum + "_runthru.dot");
 //		boolean[] toRet = { goalFound, n0.isSolved() };
 		return finalStatesList;
 	}

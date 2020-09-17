@@ -22,6 +22,7 @@ import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.Expression;
 import parser.ast.ExpressionQuant;
+import parser.type.Type;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
@@ -68,8 +69,21 @@ public class NestedProductMDP extends Product<MDP> {
 		if (getProductModel() == null)
 			oldproduct = getOriginalModel();
 		else
-			oldproduct = getProductModel();
-
+		{	oldproduct = getProductModel();
+		//updating the variables 
+		VarList pvarlist = oldproduct.getVarList(); 
+		ArrayList<String> varNames = new ArrayList<>();
+		ArrayList<Type> varTypes = new ArrayList<>();
+		for(int i = 0; i<pvarlist.getNumVars(); i++)
+		{
+			varNames.add(pvarlist.getName(i)); 
+//			Type t = pvarlist.getType(i);
+			
+		varTypes.add(pvarlist.getType(i));
+		}
+		
+		exprHere = (Expression) exprHere.findAllVars(varNames, varTypes);
+		}
 		if (daMap == null)
 			daMap = new HashMap<Expression, Integer>();
 		int daIndex = daMap.size();
@@ -91,12 +105,13 @@ public class NestedProductMDP extends Product<MDP> {
 			daExpr = Expression.Not(daExpr);
 			daHere = ltlMC.constructDAForLTLFormula(pmc, oldproduct, daExpr, labelBS, allowedAcceptance);
 		} else {
+		
 			daHere = ltlMC.constructDAForLTLFormula(pmc, oldproduct, daExpr, labelBS, allowedAcceptance);
 		}
 		das.add(daHere);
 
 		LTLProduct<MDP> product = ltlMC.constructProductModel(daHere, oldproduct, labelBS, null);
-		VarList pvarlist = product.getProductModel().getVarList();
+//		VarList pvarlist = product.getProductModel().getVarList();
 
 //		int davarlistindex = pvarlist.getIndex("_da");
 //		VarList newvarlist = new VarList(); 
@@ -162,25 +177,25 @@ public class NestedProductMDP extends Product<MDP> {
 		productStateToDAStateMap = productStateToDAStateMapTemp;
 //		BitSet daHereAccStates = daHere.getAccStates();
 
-		printDA(resLoc, exprHere, daHere);
+//		printDA(resLoc, exprHere, daHere);
 
 		this.productModel = product.getProductModel();
 
-		printProduct(resLoc);
-		// lets just print everything else too
-		PrismLog out = new PrismFileLog(resLoc + "_prodmiscs_" + (das.size() - 1) + ".txt");
-		out.println("Product State to Original MDP State Map");
-		out.println(productStateToOriginalModelStateMap.toString());
-		out.println("Product State to Each DA State Map");
-		for (int i = 0; i < productStateToDAStateMap.size(); i++) {
-			out.println("DA " + i);
-			out.println(productStateToDAStateMap.get(i).toString());
-		}
-		out.println("Product State States List");
-		for (int i = 0; i < productModel.getStatesList().size(); i++)
-			out.print(i + ":" + productModel.getStatesList().get(i)+"\t");
-//		out.println(productStateToDAStateMap.toString());
-		out.close();
+//		printProduct(resLoc);
+//		// lets just print everything else too
+//		PrismLog out = new PrismFileLog(resLoc + "_prodmiscs_" + (das.size() - 1) + ".txt");
+//		out.println("Product State to Original MDP State Map");
+//		out.println(productStateToOriginalModelStateMap.toString());
+//		out.println("Product State to Each DA State Map");
+//		for (int i = 0; i < productStateToDAStateMap.size(); i++) {
+//			out.println("DA " + i);
+//			out.println(productStateToDAStateMap.get(i).toString());
+//		}
+//		out.println("Product State States List");
+//		for (int i = 0; i < productModel.getStatesList().size(); i++)
+//			out.print(i + ":" + productModel.getStatesList().get(i)+"\t");
+////		out.println(productStateToDAStateMap.toString());
+//		out.close();
 	}
 
 	public void createTargetStates() {
@@ -218,6 +233,8 @@ public class NestedProductMDP extends Product<MDP> {
 		}
 		this.avoid = avoid;
 		this.acc = target;
+//		System.out.println("Acc States: "+target.toString());
+//		System.out.println("Avoid States: "+avoid.toString());
 	}
 
 	public BitSet getTargetStates() {

@@ -1,4 +1,4 @@
-package thtsNew;
+package thtsSCC;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,23 +6,22 @@ import java.util.HashMap;
 import parser.State;
 import prism.PrismException;
 import thts.Bounds;
-
 import thts.Objectives;
+import thtsNew.ChanceNode;
+import thtsNew.DecisionNode;
+import thtsNew.Node;
+import thtsNew.NodeType;
 
+public class ChanceNodeSCC extends ChanceNode {
 
+	public ArrayList<DecisionNodeSCC> children;
 
-public class ChanceNode extends Node {
-
-	public Object action;
-	public int actionChoice; 
-	public ArrayList<DecisionNode> children;
-	public boolean leadToDeadend =false; 
-	public int numChildren = 0; 
-	public HashMap<Objectives,Double> rewards;
-	public boolean ignoreAction = false;
-
+	int sccID = -1; 
+	SCCNodeType sccType =null;
 	
-	public ChanceNode(Node parent, State s, Object a, int actionChoice,HashMap<Objectives, Bounds> bounds, ArrayList<Bounds> cost) {
+	public ChanceNodeSCC(Node parent, State s, Object a, int actionChoice,HashMap<Objectives, Bounds> bounds, 
+			ArrayList<Bounds> cost) {
+		super(parent,s,a,actionChoice,bounds,cost);
 		this.setState(s);
 		this.setBounds(bounds);
 //		for (int i = 0; i < cost.size(); i++)
@@ -36,7 +35,8 @@ public class ChanceNode extends Node {
 		boundsInitialised = true; 
 		rewards = null; 
 	}
-	public ChanceNode(Node parent, State s, Object a,int actionChoice) {
+	public ChanceNodeSCC(Node parent, State s, Object a,int actionChoice) {
+		super(parent, s, a, actionChoice);
 		this.setState(s);
 		addParent(parent);
 		action = a;
@@ -59,10 +59,11 @@ public class ChanceNode extends Node {
 			throw new PrismException("Children have incorrenct probabilities");
 		return prob;
 	}
-	public void addChild(DecisionNode child)
+	public void addChild(DecisionNodeSCC child)
 	{
+		super.addChild((DecisionNode)child);
 		if(children == null)
-			children = new ArrayList<DecisionNode>();
+			children = new ArrayList<DecisionNodeSCC>();
 		children.add(child);
 	}
 	@Override
@@ -118,14 +119,17 @@ public class ChanceNode extends Node {
 		return toret;
 	}
 
-	public void setChildren(ArrayList<DecisionNode> children) {
+
+	public void setChildrenSCC(ArrayList<DecisionNodeSCC> children) {
 		this.children = children;
 	}
+	
 
-	public ArrayList<DecisionNode> getChildren() {
+	public ArrayList<DecisionNodeSCC> getChildrenSCC() {
 		return this.children;
 	}
 
+	
 	public Object getAction() {
 		// TODO Auto-generated method stub
 		return action;
@@ -150,7 +154,7 @@ public class ChanceNode extends Node {
 
 	@Override
 	public NodeType nodeType() {
-		return NodeType.Chance;
+		return NodeType.ChanceSCC;
 	}
 
 	@Override

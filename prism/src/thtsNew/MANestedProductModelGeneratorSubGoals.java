@@ -1013,10 +1013,10 @@ public class MANestedProductModelGeneratorSubGoals extends DefaultModelGenerator
 
 	@Override
 	public double getStateActionReward(int r, State state, Object action) throws PrismException {
-		return getStateActionReward(r, state, action, HelperClass.RewardCalculation.SUM);
+		return getStateActionReward(r, state, action, RewardCalculation.SUM);
 	}
 
-	public double getStateActionReward(int r, State state, Object action, HelperClass.RewardCalculation rewCalc)
+	public double getStateActionReward(int r, State state, Object action, RewardCalculation rewCalc)
 			throws PrismException {
 		ArrayList<State> robotStates;
 		if (state.compareTo(exploreState) == 0)
@@ -1059,7 +1059,7 @@ public class MANestedProductModelGeneratorSubGoals extends DefaultModelGenerator
 		return toret;
 	}
 
-	private double calculateReward(ArrayList<Double> allrews, HelperClass.RewardCalculation rewCalc) {
+	private double calculateReward(ArrayList<Double> allrews, RewardCalculation rewCalc) {
 		double fullrew = 0;
 		switch (rewCalc) {
 		case SUM: {
@@ -1093,7 +1093,7 @@ public class MANestedProductModelGeneratorSubGoals extends DefaultModelGenerator
 	}
 
 	private double getStateActionReward(int ri, ArrayList<State> robotstates, ArrayList<String> robotactions,
-			HelperClass.RewardCalculation rewCalc) {
+			RewardCalculation rewCalc) {
 
 		ArrayList<Double> allrews = new ArrayList<>();
 		double rew;

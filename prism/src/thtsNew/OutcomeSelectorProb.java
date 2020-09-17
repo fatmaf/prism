@@ -3,7 +3,7 @@ package thtsNew;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class OutcomeSelectorRandom implements OutcomeSelector {
+public class OutcomeSelectorProb implements OutcomeSelector {
 
 	Random rgen;
 
@@ -13,15 +13,21 @@ public class OutcomeSelectorRandom implements OutcomeSelector {
 		// so now we just do this thing that was in the brtdp paper
 		DecisionNode selectedDecisionNode = null;
 
-	
 		rgen = new Random();
 		ArrayList<DecisionNode> initChildren = cn.getChildren();
-		
 
-		
-		int chosenChild = rgen.nextInt(initChildren.size());
-		selectedDecisionNode = initChildren.get(chosenChild);
-		
+		double prob = rgen.nextDouble();
+		double psum = 0;
+		for (DecisionNode d : initChildren) {
+			double phere = d.getTranProb(cn);
+			psum += phere;
+			if (psum > prob) {
+				selectedDecisionNode = d;
+				break;
+			}
+
+		}
+
 		selectedDNs.add(selectedDecisionNode);
 		return selectedDNs;
 

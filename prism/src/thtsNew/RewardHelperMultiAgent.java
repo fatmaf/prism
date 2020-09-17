@@ -7,10 +7,10 @@ import thts.Objectives;
 public class RewardHelperMultiAgent implements RewardHelper {
 
 	MultiAgentNestedProductModelGenerator mapmg;
-	HelperClass.RewardCalculation rewCalc;
+	RewardCalculation rewCalc;
 
 
-	public RewardHelperMultiAgent(MultiAgentNestedProductModelGenerator mapmg, HelperClass.RewardCalculation rewCalc) {
+	public RewardHelperMultiAgent(MultiAgentNestedProductModelGenerator mapmg, RewardCalculation rewCalc) {
 		this.mapmg = mapmg;
 		this.rewCalc = rewCalc;
 

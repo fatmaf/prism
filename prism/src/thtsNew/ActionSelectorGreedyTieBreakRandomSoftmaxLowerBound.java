@@ -11,9 +11,10 @@ public class ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound implements Acti
 
 	Random rgen;
 	ArrayList<Objectives> tieBreakingOrder;
-
-	public ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound(ArrayList<Objectives> tieBreakingOrder) {
+	double epsilon = 0.5; 
+	public ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound(ArrayList<Objectives> tieBreakingOrder,double epsilon) {
 		this.tieBreakingOrder = tieBreakingOrder;
+		this.epsilon = epsilon; 
 	}
 
 	public ChanceNode selectActionSimple(DecisionNode nd) {
@@ -57,7 +58,7 @@ public class ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound implements Acti
 
 			// randomly choose this action or another
 			rgen = new Random();
-			if (rgen.nextDouble() > 0.5) {
+			if (rgen.nextDouble() > epsilon) {
 				rgen = new Random();
 				ArrayList<ChanceNode> initChildren = nd.childrenWithInitialisedBounds();
 

@@ -10,13 +10,13 @@ import thts.Objectives;
 
 public abstract class Node {
 
-	protected State s;
-	protected HashMap<Objectives, Bounds> bounds;
+	public State s;
+	public HashMap<Objectives, Bounds> bounds;
 //	protected HashMap<Integer, Bounds> rewsBounds;
-	protected List<Node> parents;
-	protected int numVisits;
-	protected boolean solved;
-	protected boolean boundsInitialised;
+	public List<Node> parents;
+	public int numVisits;
+	public boolean solved;
+	public boolean boundsInitialised;
 
 	public abstract boolean equals(Node n);
 
