@@ -65,7 +65,7 @@ public class TestBRTDPNestedMultiAgent {
 
 			if (option.contentEquals(options[0])) // unavoidable
 			{
-				THTSRunInfo rinfo = tester.avoidable(true);
+				THTSRunInfo rinfo = tester.noprobabilities_noavoid(true);//avoidable(true);
 				System.out.println(rinfo.toString());
 
 			} else {
@@ -675,8 +675,8 @@ public class TestBRTDPNestedMultiAgent {
 
 	THTSRunInfo noprobabilities_noavoid(boolean debug) throws Exception {
 		boolean goalFound = false;
-		double[] hvals = { 100 };
-		int[] rollouts = { 1000 };
+		double[] hvals = { 10 };
+		int[] rollouts = { 10 };
 		int[] trialLens = { 100 };
 		double hval = 20;
 		boolean[] goalack = new boolean[2];
@@ -818,7 +818,7 @@ public class TestBRTDPNestedMultiAgent {
 		thts.setName(example + algoIden);
 		thts.setResultsLocation(resultsLocation);
 
-		int numRolloutsTillSolved = thts.run(false,0,debug);
+		int numRolloutsTillSolved = thts.run(true,0,debug);
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
