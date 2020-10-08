@@ -26,6 +26,7 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.RewardGenerator;
+import prism.RewardGenerator.RewardLookup;
 import simulator.ModulesFileModelGenerator;
 
 public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator {// ModelGenerator, RewardGenerator {
@@ -471,13 +472,12 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 	}
 
 	public boolean isAvoidState(State state) {
-		if(safetyDAIndex!=-1) {
-		BitSet daAccs = getDAAccsForState(state);
-		return daAccs.get(safetyDAIndex);
+		if (safetyDAIndex != -1) {
+			BitSet daAccs = getDAAccsForState(state);
+			return daAccs.get(safetyDAIndex);
 		}
 		return false;
 	}
-	
 
 	public boolean isDeadend(State state) throws PrismException {
 		boolean resetState = false;
@@ -889,6 +889,32 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 
 	}
 
+	public double getStateActionTaskRewardAction(Object action) throws PrismException {
+		ArrayList<ArrayList<Entry<State, Double>>> combs;
+
+		if (exploreStateChoiceTransitionCombs == null) {
+			if (exploreStateChoiceCombs == null)
+				generateChoiceCombs();
+//			combs = computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(choice));
+		}
+
+//		else
+//			combs = exploreStateChoiceTransitionCombs;
+		// find the choice that matches this action
+		int choice = -1;
+		for (int i = 0; i < exploreStateChoiceCombs.size(); i++) {
+			if (action.toString().contentEquals(this.getChoiceActionString(i))) {
+				choice = i;
+				break;
+			}
+
+		}
+		if (choice == -1)
+			return 0.0;
+		else
+			return getStateActionTaskReward(choice);
+	}
+
 	// for the current state and current choice okay
 	public double getStateActionTaskReward(int choice) throws PrismException {
 		ArrayList<ArrayList<Entry<State, Double>>> combs;
@@ -983,12 +1009,47 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 	// get the reward for the current state
 	public double getStateActionReward(int r, Object action) throws PrismException {
 
-		return getStateActionReward(r, exploreState, action);
+		if (r == -1)
+			return getStateActionTaskRewardAction(action);
+
+		else
+			return getStateActionReward(r, exploreState, action);
 	}
 
 	@Override
 	public double getStateActionReward(int r, State state, Object action) throws PrismException {
-		return getStateActionReward(r, state, action, RewardCalculation.SUM);
+		if (r == -1) {
+			boolean resetState = false;
+			State currentES = getExploreState();
+			if (currentES == null) {
+				exploreState(state);
+			} else {
+				if (state.compareTo(currentES) != 0) {
+					exploreState(state);
+					resetState = true;
+				}
+			}
+			double val = getStateActionTaskRewardAction(action);
+			if (resetState) {
+				exploreState(currentES);
+			}
+			return val;
+
+		} else
+			return getStateActionReward(r, state, action, RewardCalculation.SUM);
+	}
+
+	@Override
+	public double getStateReward(int r, State state) throws PrismException {
+		// Default implementation: error if not supported, or bad index
+		if (!isRewardLookupSupported(RewardLookup.BY_STATE)) {
+			throw new PrismException("Reward lookup by State not supported");
+		}
+		if (r < -1 || r >= getNumRewardStructs()) {
+			throw new PrismException("Invalid reward index " + r);
+		}
+		// Otherwise default reward to 0
+		return 0.0;
 	}
 
 	public double getStateActionReward(int r, State state, Object action, RewardCalculation rewCalc)

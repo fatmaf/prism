@@ -17,23 +17,23 @@ public class MultiAgentHeuristicTC implements Heuristic {
 	MultiAgentNestedProductModelGenerator mapmg;
 	ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns;
 
-	boolean tightBounds = false; 
+	boolean tightBounds = false;
 	HashMap<Objectives, Entry<Double, Double>> minMaxVals;
-	
+
 	public MultiAgentHeuristicTC(MultiAgentNestedProductModelGenerator mapmg,
-			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns, 
+			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns,
 			HashMap<Objectives, Entry<Double, Double>> minMaxVals) {
 		this.mapmg = mapmg;
 		this.singleAgentSolns = singleAgentSolns;
-		this.minMaxVals=minMaxVals;
+		this.minMaxVals = minMaxVals;
 	}
+
 	public MultiAgentHeuristicTC(MultiAgentNestedProductModelGenerator mapmg,
-			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns, 
-			HashMap<Objectives, Entry<Double, Double>> minMaxVals
-			,boolean tightBounds) {
+			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns,
+			HashMap<Objectives, Entry<Double, Double>> minMaxVals, boolean tightBounds) {
 		this.mapmg = mapmg;
 		this.singleAgentSolns = singleAgentSolns;
-		this.minMaxVals=minMaxVals;
+		this.minMaxVals = minMaxVals;
 		this.tightBounds = tightBounds;
 	}
 
@@ -60,10 +60,8 @@ public class MultiAgentHeuristicTC implements Heuristic {
 				if (obj == Objectives.TaskCompletion) {
 					// not sure if this is the smartest
 					sumHere.setUpper(Math.min(sumHere.getUpper(), minMaxVals.get(obj).getValue()));
-				}
-				else if(obj == Objectives.Cost)
-				{
-					sumHere=sumHere.min(minMaxVals.get(obj).getValue());
+				} else if (obj == Objectives.Cost) {
+					sumHere = sumHere.min(minMaxVals.get(obj).getValue());
 				}
 				n.setBounds(obj, sumHere);
 			}
@@ -84,11 +82,26 @@ public class MultiAgentHeuristicTC implements Heuristic {
 		n.isDeadend = isAvoid | isDeadend;
 
 		toret = this.getStateBounds(objs, s);
-		if(!n.canHaveChildren())
+		boolean noTCRewards = noMoreTCRewards(s); 
+		n.isDeadend = n.isDeadend | noTCRewards; 
+		
+		if (!n.canHaveChildren())
 			n.setSolved();
 		return toret;
 	}
 
+	public boolean noMoreTCRewards(State s)
+	{
+		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
+		ArrayList<Double> vals = getSingleAgentStateVals(robotStates, Objectives.TaskCompletion);
+		double tcsum = getSum(vals); 
+		if(tcsum == 0)
+			return true; 
+		else 
+			return false; 
+
+
+	}
 	ArrayList<Double> getSingleAgentStateVals(ArrayList<State> rs, Objectives obj) {
 		ArrayList<Double> valstoret = new ArrayList<>();
 		for (int i = 0; i < rs.size(); i++) {
@@ -104,7 +117,7 @@ public class MultiAgentHeuristicTC implements Heuristic {
 					case Probability:
 					case Progression:
 					case TaskCompletion:
-						toadd = 0;
+						toadd = minMaxVals.get(obj).getKey();
 						break;
 					case Cost:
 						toadd = minMaxVals.get(obj).getValue();
@@ -115,7 +128,19 @@ public class MultiAgentHeuristicTC implements Heuristic {
 				}
 			} else {
 				System.out.println("No such objective in single agent sol " + obj.toString());
-				valstoret.add(Double.NaN);
+				double toadd = Double.NaN;
+				switch (obj) {
+				case Probability:
+				case Progression:
+				case TaskCompletion:
+					toadd = minMaxVals.get(obj).getKey();
+					break;
+				case Cost:
+					toadd = minMaxVals.get(obj).getValue();
+					break;
+
+				}
+				valstoret.add(toadd);
 			}
 		}
 		return valstoret;
@@ -194,7 +219,6 @@ public class MultiAgentHeuristicTC implements Heuristic {
 		return toret;
 	}
 
-
 	@Override
 	public boolean isGoal(State s) {
 		// TODO Auto-generated method stub
@@ -212,7 +236,7 @@ public class MultiAgentHeuristicTC implements Heuristic {
 		boolean isGoal = isAcc;
 		isDeadend = isAvoid | isDeadend;
 
-		if (isDeadend|isGoal) {
+		if (isDeadend | isGoal) {
 			Bounds b = null;
 			for (Objectives obj : objs) {
 				switch (obj) {
@@ -266,14 +290,18 @@ public class MultiAgentHeuristicTC implements Heuristic {
 				break;
 			}
 			case TaskCompletion: {
-				double lb = tightBounds?this.getMinMax(vals, false):this.getMinMax(vals, true);
+				double lb = tightBounds ? this.getMinMax(vals, false) : this.getMinMax(vals, true);
 				double ub = minMaxVals.get(obj).getValue();
 				b = new Bounds(ub, lb);
+				//if all the values are 0 then we know its a deadend 
+				double tcsum = getSum(vals); 
+
+					
 				break;
 			}
 			case Cost: {
 				double ub = getSum(vals);
-				ub = Math.min(ub,minMaxVals.get(obj).getValue());
+				ub = Math.min(ub, minMaxVals.get(obj).getValue());
 				double lb = 0.0;
 				b = new Bounds(ub, lb);
 				break;

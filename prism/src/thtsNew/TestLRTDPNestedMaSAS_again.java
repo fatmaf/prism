@@ -42,7 +42,7 @@ public class TestLRTDPNestedMaSAS_again {
 			String[] options = { "sas","sasgreedy" };
 
 			String option = options[0];// "currentWIP";
-			int maxRuns = 5;
+			int maxRuns = 1;
 			if (args.length > 0) {
 				System.out.println(Arrays.deepToString(args));
 				option = args[0];
@@ -448,8 +448,12 @@ private void testString(int testNum, int maxTests,long durMS)
 				propertiesFileName, resultsLocation, hasSharedState);
 
 		boolean tightBounds = true;
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval, tightBounds);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
+		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
+		minMaxVals.put(Objectives.TaskCompletion,
+				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen, singleAgentSolutions, minMaxVals, tightBounds);
+		// EmptyNestedMultiAgentHeuristicTCTC(maModelGen, gs, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -473,10 +477,7 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		mainLog.println("Initialising BackupLabelledFullBelmanCap Function");
 		fileLog.println("Initialising BackupLabelledFullBelmanCap Function");
-		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
-		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
-		minMaxVals.put(Objectives.TaskCompletion,
-				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+
 		mainLog.println("Caps: "+minMaxVals.toString());
 		fileLog.println("Caps: "+minMaxVals.toString());
 		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, 
@@ -622,8 +623,12 @@ private void testString(int testNum, int maxTests,long durMS)
 				propertiesFileName, resultsLocation, hasSharedState);
 
 		boolean tightBounds = true;
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval, tightBounds);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
+		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
+		minMaxVals.put(Objectives.TaskCompletion,
+				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen, singleAgentSolutions,minMaxVals, tightBounds);
+		// EmptyNestedMultiAgentHeuristicTC(maModelGen, gs, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -642,10 +647,7 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		mainLog.println("Initialising BackupLabelledFullBelmanCap Function");
 		fileLog.println("Initialising BackupLabelledFullBelmanCap Function");
-		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
-		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
-		minMaxVals.put(Objectives.TaskCompletion,
-				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+		
 		mainLog.println("Caps: "+minMaxVals.toString());
 		fileLog.println("Caps: "+minMaxVals.toString());
 		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, 
@@ -778,8 +780,8 @@ private void testString(int testNum, int maxTests,long durMS)
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen, singleAgentSolutions, minMaxVals);
+		// EmptyNestedMultiAgentHeuristicTC(maModelGen, gs, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -943,8 +945,8 @@ private void testString(int testNum, int maxTests,long durMS)
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen, singleAgentSolutions, minMaxVals);
+		// EmptyNestedMultiAgentHeuristicTC(maModelGen, gs, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -1082,8 +1084,8 @@ private void testString(int testNum, int maxTests,long durMS)
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		Heuristic heuristicFunction = new MultiAgentHeuristic(maModelGen, singleAgentSolutions, hval);
-		// EmptyNestedMultiAgentHeuristic(maModelGen, gs, null, hval);
+		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen, singleAgentSolutions, minMaxVals);
+		// EmptyNestedMultiAgentHeuristicTCTC(maModelGen, gs, null, hval);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
