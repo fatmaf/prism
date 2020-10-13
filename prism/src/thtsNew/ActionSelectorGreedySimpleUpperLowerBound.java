@@ -16,6 +16,7 @@ public class ActionSelectorGreedySimpleUpperLowerBound implements ActionSelector
 	}
 
 	public ChanceNode selectActionSimple(DecisionNode nd) {
+		rgen = new Random();
 		ChanceNode selectedActionNode = null;
 		// if bounds are not initialised choose the one with uninitialised bounds
 		// just the next one

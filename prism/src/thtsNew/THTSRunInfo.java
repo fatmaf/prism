@@ -20,8 +20,10 @@ public class THTSRunInfo {
 	{
 		String toret = "\nNum of Rollouts\t"+numRolloutsTillSolved+"\nGoalFound\t"+goalFound+
 				"\nInitialStateSolved\t"+initialStateSolved+"\nGoalOnProbablePath\t"+goalOnProbablePath;
-		if(initialStateValues!=null)
-			toret+="\n"+initialStateValues.toString();
+		if(initialStateValues!=null) {
+		for(Objectives obj:initialStateValues.keySet())
+		toret+="\t"+obj+":"+getBoundsString(obj,"\t");
+		}
 		return toret; 
 	}
 	public String getBoundsString(Objectives obj,String sep)

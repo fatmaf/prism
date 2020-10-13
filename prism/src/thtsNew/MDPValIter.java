@@ -69,7 +69,7 @@ public class MDPValIter {
 	public ModelCheckerMultipleResult computeNestedValIterArray(MDPModelChecker mc, MDP mdp, BitSet target,
 			BitSet remain, ArrayList<MDPRewardsSimple> rewards, ArrayList<double[]> rewardsInitVal,
 			ArrayList<Boolean> minRewards, BitSet statesToIgnoreForVI, int probPreference, double[] probInitVal,
-			PrismLog mainLog, String resLoc,String name) throws PrismException {
+			PrismLog mainLog, String resLoc, String name) throws PrismException {
 		ModelCheckerMultipleResult res;
 		int i, n, iters, numYes, numNo;
 		double solnProb[];
@@ -98,7 +98,7 @@ public class MDPValIter {
 			strat[i] = target.get(i) ? -2 : -1;
 		}
 
-		//skipping precomputation
+		// skipping precomputation
 //		 Precomputation
 //		timerProb0 = System.currentTimeMillis();
 //		if (mc.getPrecomp() && mc.getProb0()) {
@@ -165,7 +165,6 @@ public class MDPValIter {
 		// where initVal is 0.0 or 1.0, depending on whether we converge from
 		// below/above.
 
-
 		// Determine set of states actually need to compute values for
 		unknown = new BitSet();
 		unknown.set(0, n);
@@ -219,7 +218,7 @@ public class MDPValIter {
 				}
 			}
 			for (i = 0; i < n; i++) {
-				
+
 				if (!statesToIgnoreForVI.get(i)) {
 
 					numChoices = mdp.getNumChoices(i);
@@ -255,8 +254,15 @@ public class MDPValIter {
 								}
 							}
 							if (isBetter) {
-								updateVals = true;
-								break;
+								sameCostVal = PrismUtils.doublesAreClose(currentCostVal.get(rew),
+										solnReward.get(rew)[i], epsilon
+										/* termCritParam */, termCrit == TermCrit.ABSOLUTE);
+								if (sameCostVal)
+									isBetter = false;
+								if (isBetter) {
+									updateVals = true;
+									break;
+								}
 							} else {
 								// check if they're the same
 								sameCostVal = PrismUtils.doublesAreClose(currentCostVal.get(rew),
@@ -268,18 +274,19 @@ public class MDPValIter {
 							}
 						}
 						if (updateVals) {
-//							String updateString = i+"[P:"+solnProb[i]+"->"+currentProbVal;
+//							String updateString = i + "[P:" + solnProb[i] + "->" + currentProbVal;
 							solnProb[i] = currentProbVal;
 							for (int rews = 0; rews < numRewards; rews++) {
-//								updateString+=", R"+rews+":"+solnReward.get(rews)[i]+"->"+currentCostVal.get(rews);
+//								updateString += ", R" + rews + ":" + solnReward.get(rews)[i] + "->"
+//										+ currentCostVal.get(rews);
 								solnReward.get(rews)[i] = currentCostVal.get(rews);
 							}
 //							updateString += "]";
 							strat[i] = j;
 							done = false;
-//							if (iters > 9000) {
+//							if (iters > 5000) {
 //								mainLog.println(updateString);
-////								mainLog.println(i);
+//								mainLog.println(i);
 //							}
 						}
 

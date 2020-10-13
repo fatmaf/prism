@@ -19,22 +19,25 @@ public class MultiAgentHeuristicTC implements Heuristic {
 
 	boolean tightBounds = false;
 	HashMap<Objectives, Entry<Double, Double>> minMaxVals;
+	boolean useSASForInit = false; 
 
 	public MultiAgentHeuristicTC(MultiAgentNestedProductModelGenerator mapmg,
 			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns,
-			HashMap<Objectives, Entry<Double, Double>> minMaxVals) {
+			HashMap<Objectives, Entry<Double, Double>> minMaxVals,boolean useSASForInit) {
 		this.mapmg = mapmg;
 		this.singleAgentSolns = singleAgentSolns;
 		this.minMaxVals = minMaxVals;
+		this.useSASForInit = useSASForInit;
 	}
 
 	public MultiAgentHeuristicTC(MultiAgentNestedProductModelGenerator mapmg,
 			ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolns,
-			HashMap<Objectives, Entry<Double, Double>> minMaxVals, boolean tightBounds) {
+			HashMap<Objectives, Entry<Double, Double>> minMaxVals,boolean useSASForInit, boolean tightBounds) {
 		this.mapmg = mapmg;
 		this.singleAgentSolns = singleAgentSolns;
 		this.minMaxVals = minMaxVals;
 		this.tightBounds = tightBounds;
+		this.useSASForInit = useSASForInit;
 	}
 
 	public void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode n) {
@@ -269,6 +272,7 @@ public class MultiAgentHeuristicTC implements Heuristic {
 			return toret;
 		}
 
+		if(this.useSASForInit) {
 		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
 
 		// get the corresponding state from the objectives
@@ -321,7 +325,16 @@ public class MultiAgentHeuristicTC implements Heuristic {
 			}
 			toret.put(obj, b);
 		}
-
+		}
+		else
+		{
+			for (Objectives obj : objs) {
+				double lb = minMaxVals.get(obj).getKey();
+				double ub = minMaxVals.get(obj).getValue();
+				Bounds b = new Bounds(ub, lb);
+				toret.put(obj, b);
+			}
+		}
 		return toret;
 
 	}

@@ -1,7 +1,10 @@
 package thtsNew;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -39,44 +42,68 @@ import thtsNew.MDPValIter.ModelCheckerMultipleResult;
 
 public class TestProdGenVI {
 	
-	// PRISM_MAINCLASS=thtsNew.TestLRTDPNestedMultiAgentSAS prism/bin/prism
+	// PRISM_MAINCLASS=thtsNew.TestProdGenVI prism/bin/prism
 	public static void main(String[] args) {
 		try {
+			String resString = "";
+			String resLine;
+			ArrayList<Double> res;
+			String currentDir = System.getProperty("user.dir");
+			String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+			String resultsLocation = testsLocation + "results/csvs/";
+			
+			FileWriter fw = new FileWriter(resultsLocation+"vi_res.txt", true);
+		    BufferedWriter bw = new BufferedWriter(fw);
+		    PrintWriter out = new PrintWriter(bw);
+		    
 			TestProdGenVI tpgvi = new TestProdGenVI(); 
-			tpgvi.run(false);
+			res = tpgvi.unavoidable(false);
+			resLine="\nunavoidable:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
+			resString+=resLine;
+			out.print(resLine);
+			
+			for(int i = 0; i<=100; i+=10)
+			{
+		
+				res = tpgvi.grid5(false, i); 
+				resLine="\ngrid5-"+i+"-:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
+				out.print(resLine);
+				resString+=resLine;
+			}
+			out.close();
+			bw.close();
+			fw.close();
+			System.out.println(resString);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 	}
-	public void run(boolean debug) throws Exception
+	public ArrayList<Double> grid5(boolean debug,int fsp) throws Exception
 	{
-		boolean goalFound = false;
-		double[] hvals = { 50 };
-		int[] rollouts = { 100 };
-		int[] trialLens = { 50 };
+	
 
-		int hvalnum = 0;
-		THTSRunInfo rinfo = null;
-		double hval = hvals[hvalnum];
-		int maxRollouts = rollouts[hvalnum];
 		boolean hasSharedState = false;
-		int trialLen = trialLens[hvalnum];
 
 
-		float epsilon = 0.0001f;
+
+
 		
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
-		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String testsLocation = currentDir + "/tests/wkspace/grid5/"+fsp+"/";
 		String resultsLocation = testsLocation + "results/justvi/";
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
 
-		String example =  "tro_example_new_small";//"tro_example_new_small_onefailaction";
-		hasSharedState = true; 
+		String[] examples= {"r10_g10_a1_grid_5_fsp_0_0_", "r10_g10_a1_grid_5_fsp_10_1_"
+				,"r10_g10_a1_grid_5_fsp_20_2_","r10_g10_a1_grid_5_fsp_30_3_","r10_g10_a1_grid_5_fsp_40_4_"
+				,"r10_g10_a1_grid_5_fsp_50_5_","r10_g10_a1_grid_5_fsp_60_6_","r10_g10_a1_grid_5_fsp_70_7_"
+				,"r10_g10_a1_grid_5_fsp_80_8_","r10_g10_a1_grid_5_fsp_90_9_","r10_g10_a1_grid_5_fsp_100_0_"};
+		String example = examples[fsp/10];//r10_g10_a1_grid_5_fsp_0_0_9//"tro_example_new_small";
+
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.TaskCompletion);
 		tieBreakingOrder.add(Objectives.Cost);
@@ -92,8 +119,7 @@ public class TestProdGenVI {
 			mainLog = new PrismDevNullLog();
 
 		Prism prism = new Prism(mainLog);
-		String combString = "_multi_sash_" + tieBreakingOrderStr + "_costcutoff_" + hval + "_trialLen_" + trialLen
-				+ "_rollouts_" + maxRollouts;
+		String combString = "_vi_" + tieBreakingOrderStr ;
 		String algoIden = "_avoid_lrtdp" + combString;
 		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
 
@@ -102,7 +128,7 @@ public class TestProdGenVI {
 
 		mainLog.println("Initialised Prism");
 
-		int numModels = 2;
+		int numModels = 3;
 		ArrayList<String> filenames = new ArrayList<>();
 
 		for (int numModel = 0; numModel < numModels; numModel++) {
@@ -110,7 +136,7 @@ public class TestProdGenVI {
 			filenames.add(modelFileName);
 		}
 
-		String propertiesFileName = testsLocation + example + "_mult.prop";
+		String propertiesFileName = testsLocation + example + "mult.prop";
 
 		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
 		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
@@ -119,10 +145,7 @@ public class TestProdGenVI {
 
 		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
-		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
-		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., hval));
-		minMaxVals.put(Objectives.TaskCompletion,
-				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
+
 		
 
 		prism.loadModelGenerator(maModelGen);
@@ -140,7 +163,8 @@ public class TestProdGenVI {
 				avoidStates.set(i);
 			
 		}
-
+		mainLog.println("AccStates:"+accStates.toString()); 
+		mainLog.println("AvoidStates:"+avoidStates.toString());
 		ProbModelChecker pmc = new ProbModelChecker(prism);
 		
 //		pmc.setModelCheckingInfo(modulesFile, propertiesFile, (RewardGenerator) maModelGen);
@@ -173,9 +197,133 @@ public class TestProdGenVI {
 		System.out.println("Cost: "+result.solns.get(2)[mdp.getFirstInitialState()]);
 		
 		PolicyCreator pc = new PolicyCreator(); 
-		pc.createPolicy(mdp, result.strat);
+//		pc.createPolicy(mdp, result.strat);
+		ArrayList<Double> resVals = pc.createPolicyPrintValues(mdp, result, fileLog);
 		pc.savePolicy(resultsLocation, "mehres");
 		System.out.println("meh");
+		mainLog.close();
+		fileLog.close();
+		return resVals; 
+
+		
+	}
+	
+	public ArrayList<Double> unavoidable(boolean debug) throws Exception
+	{
+
+		boolean hasSharedState = false;
+
+		
+		System.out.println(System.getProperty("user.dir"));
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/justvi/";
+		// making sure resultsloc exits
+		createDirIfNotExist(resultsLocation);
+		System.out.println("Results Location " + resultsLocation);
+
+		String example =  "tro_example_new_small";//"tro_example_new_small_onefailaction";
+		hasSharedState = true; 
+		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
+		tieBreakingOrder.add(Objectives.TaskCompletion);
+		tieBreakingOrder.add(Objectives.Cost);
+		String tieBreakingOrderStr = "_obj_";
+		for (Objectives obj : tieBreakingOrder) {
+			tieBreakingOrderStr += obj.toString() + "_";
+		}
+
+		PrismLog mainLog;
+		if (debug)
+			mainLog = new PrismFileLog("stdout");
+		else
+			mainLog = new PrismDevNullLog();
+
+		Prism prism = new Prism(mainLog);
+		String combString = "_justvi_" + tieBreakingOrderStr;
+		String algoIden = "_avoid_lrtdp" + combString;
+		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
+
+		prism.initialise();
+		prism.setEngine(Prism.EXPLICIT);
+
+		mainLog.println("Initialised Prism");
+
+		int numModels = 2;
+		ArrayList<String> filenames = new ArrayList<>();
+
+		for (int numModel = 0; numModel < numModels; numModel++) {
+			String modelFileName = testsLocation + example + numModel + ".prism";
+			filenames.add(modelFileName);
+		}
+
+		String propertiesFileName = testsLocation + example + "_mult.prop";
+
+		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
+		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
+
+
+
+		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
+				propertiesFileName, resultsLocation, hasSharedState);
+
+
+		prism.loadModelGenerator(maModelGen);
+		prism.buildModel();
+		MDP mdp = (MDP)prism.getBuiltModelExplicit();
+		System.out.println(mdp.infoStringTable());
+		List<State> statesList = mdp.getStatesList(); 
+		BitSet accStates = new BitSet(); 
+		BitSet avoidStates = new BitSet();
+		for(int i = 0; i<statesList.size(); i++) {
+			State s = statesList.get(i);
+			if(maModelGen.isAccState(s))
+				accStates.set(i);
+			if(maModelGen.isAvoidState(s))
+				avoidStates.set(i);
+			
+		}
+
+		mainLog.println("AccStates:"+accStates.toString()); 
+		mainLog.println("AvoidStates:"+avoidStates.toString());
+		ProbModelChecker pmc = new ProbModelChecker(prism);
+		
+//		pmc.setModelCheckingInfo(modulesFile, propertiesFile, (RewardGenerator) maModelGen);
+		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
+		ConstructRewards constructRewards = new ConstructRewards(pmc);
+		
+		MDPRewardsSimple tasksModel = (MDPRewardsSimple) constructRewards.buildRewardStructure(mdp,
+				(RewardGenerator) maModelGen, -1);
+		
+		
+		MDPRewardsSimple costsModel = (MDPRewardsSimple) constructRewards.buildRewardStructure(mdp,
+				(RewardGenerator) maModelGen, 0);
+		
+
+		
+		MDPValIter vi = new MDPValIter();
+		ArrayList<MDPRewardsSimple> rewardsList = new ArrayList<>(); 
+		rewardsList.add(tasksModel); 
+		rewardsList.add(costsModel); 
+		ArrayList<Boolean> minRewards = new ArrayList<>(); 
+		minRewards.add(false); 
+		minRewards.add(true); 
+		BitSet remain = (BitSet)avoidStates.clone(); 
+		remain.flip(0, mdp.getNumStates());
+		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, mdp, accStates, remain,
+				rewardsList, null, minRewards, null, 1, null, mainLog, resultsLocation,"vistuff");
+		
+		System.out.println("Probability: "+result.solns.get(0)[mdp.getFirstInitialState()]);
+		System.out.println("Task Completition: "+result.solns.get(1)[mdp.getFirstInitialState()]);
+		System.out.println("Cost: "+result.solns.get(2)[mdp.getFirstInitialState()]);
+		
+		PolicyCreator pc = new PolicyCreator(); 
+//		pc.createPolicy(mdp, result.strat);
+		ArrayList<Double> resVals = pc.createPolicyPrintValues(mdp, result, fileLog);
+		pc.savePolicy(resultsLocation, "mehres");
+		System.out.println("meh");
+		mainLog.close();
+		fileLog.close();
+		return resVals; 
 
 		
 	}

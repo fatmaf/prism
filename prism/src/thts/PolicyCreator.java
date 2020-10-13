@@ -16,7 +16,9 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import strat.MDStrategy;
+import strat.MDStrategyArray;
 import strat.Strategy;
+import thtsNew.MDPValIter.ModelCheckerMultipleResult;
 
 public class PolicyCreator
 {
@@ -136,6 +138,54 @@ public class PolicyCreator
 	}
 
 	
+	public ArrayList<Double> createPolicyPrintValues(MDP mdp,ModelCheckerMultipleResult result,PrismLog ml)
+	{
+		ArrayList<Double> valsInInitState = new ArrayList<>(); 
+		
+		int initialState = mdp.getFirstInitialState(); 
+		MDStrategyArray strat = result.strat;
+		Stack<Integer> toVisit = new Stack<Integer>();
+		BitSet visited = new BitSet();
+		toVisit.add(initialState);
+		int s;
+		for(int i = 0; i<result.solns.size(); i++)
+		{
+			valsInInitState.add(result.solns.get(i)[initialState]);
+		}
+		while (!toVisit.isEmpty()) {
+			s = toVisit.pop();
+			visited.set(s);
+			String svals="";
+			for(int i=0; i<result.solns.size(); i++)
+			{
+				svals+=i+"-"+result.solns.get(i)[s]+",";
+			}
+			State sState = mdp.getStatesList().get(s);
+			 svals = s+":"+sState.toString()+"["+svals+"]";
+			 ml.println(svals);
+			strat.initialise(s);
+			//			strat.initialise(s);
+			Object action = strat.getChoiceAction();
+			int actionIndex = findActionIndex(mdp, s, action);
+
+			if (actionIndex > -1) {
+				Iterator<Entry<Integer, Double>> tranIter = mdp.getTransitionsIterator(s, actionIndex);
+				ArrayList<Entry<State, Double>> successors = new ArrayList<Entry<State, Double>>();
+				while (tranIter.hasNext()) {
+					Entry<Integer, Double> stateProbPair = tranIter.next();
+					int succ = stateProbPair.getKey();
+					State succState = mdp.getStatesList().get(stateProbPair.getKey());
+					double prob = stateProbPair.getValue();
+					successors.add(new AbstractMap.SimpleEntry<State, Double>(succState, prob));
+					if (!toVisit.contains(succ) && !visited.get(succ)) {
+						toVisit.add(succ);
+					}
+				}
+				mdpCreator.addAction(sState, action, successors);
+			}
+		}
+		return valsInInitState; 
+	}
 	public MDPSimple createPolicy(MDP productMdp, Strategy strat) throws PrismException
 	{
 		int initialState = productMdp.getFirstInitialState();
