@@ -57,15 +57,17 @@ public class TestProdGenVI {
 		    PrintWriter out = new PrintWriter(bw);
 		    
 			TestProdGenVI tpgvi = new TestProdGenVI(); 
-			res = tpgvi.unavoidable(false);
-			resLine="\nunavoidable:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
-			resString+=resLine;
-			out.print(resLine);
+//			res = tpgvi.unavoidable(false);
+//			resLine="\nunavoidable:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
+//			resString+=resLine;
+//			out.print(resLine);
 			
 			for(int i = 0; i<=100; i+=10)
 			{
 		
-				res = tpgvi.grid5(false, i); 
+//				if(i!=30)
+//					continue;
+				res = tpgvi.grid5(true, i); 
 				resLine="\ngrid5-"+i+"-:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
 				out.print(resLine);
 				resString+=resLine;
