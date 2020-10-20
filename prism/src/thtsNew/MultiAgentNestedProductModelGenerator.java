@@ -909,6 +909,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 			}
 
 		}
+		
 		if (choice == -1)
 			return 0.0;
 		else
@@ -923,18 +924,21 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 		if (exploreStateChoiceTransitionCombs == null) {
 			if (exploreStateChoiceCombs == null)
 				generateChoiceCombs();
-			combs = computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(choice));
-		} else
-			combs = exploreStateChoiceTransitionCombs;
+			
+		} 
+		combs = computeCurrentChoiceTransitionCombinations(exploreStateChoiceCombs.get(choice));
 		BitSet parentStateAccs = getDAAccsForState(exploreState);
 		double taskrew = 0;
+		
 		for (int t = 0; t < combs.size(); t++) {
+	
 			Entry<State, Double> e = computeTransitionTargetAndProbability(choice, t);
 			State ns = e.getKey();
 			Double np = e.getValue();
 			BitSet stateAccs = getDAAccsForState(ns);
 			int numtasks = getTasksCompletedFromAccBitSets(parentStateAccs, stateAccs);
 			taskrew += (double) numtasks * np;
+	
 
 		}
 		return taskrew;

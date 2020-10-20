@@ -202,7 +202,7 @@ public class MDPValIter {
 			iters++;
 			done = true;
 
-			if(iters>2000)
+//			if(iters>10)
 				doBigDecimal = true; 
 
 			for (i = 0; i < n; i++) {
@@ -253,7 +253,7 @@ public class MDPValIter {
 							String prevVals  = null; 
 							if(iters>2000)
 							{
-								prevVals=i+":"+strat[i]+"["+solnProb[i]; 
+								prevVals=iters+"-"+i+":"+strat[i]+"["+solnProb[i]; 
 								for (int rews = 0; rews < numRewards; rews++) {
 									prevVals+=", "+solnReward.get(rews)[i];
 

@@ -9,8 +9,10 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import acceptance.AcceptanceOmega;
@@ -41,44 +43,61 @@ import thts.PolicyCreator;
 import thtsNew.MDPValIter.ModelCheckerMultipleResult;
 
 public class TestProdGenVI {
-	
+
+
 	// PRISM_MAINCLASS=thtsNew.TestProdGenVI prism/bin/prism
-	public static void main(String[] args) {
+	public static void main(String[] args)  {
+		Queue<String> lines = new LinkedList<String>(); 
+		String currentDir = System.getProperty("user.dir");
+		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
+		String resultsLocation = testsLocation + "results/csvs/";
+		
 		try {
 			String resString = "";
 			String resLine;
 			ArrayList<Double> res;
-			String currentDir = System.getProperty("user.dir");
-			String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-			String resultsLocation = testsLocation + "results/csvs/";
+
 			
-			FileWriter fw = new FileWriter(resultsLocation+"vi_res.txt", true);
-		    BufferedWriter bw = new BufferedWriter(fw);
-		    PrintWriter out = new PrintWriter(bw);
+		
 		    
 			TestProdGenVI tpgvi = new TestProdGenVI(); 
-//			res = tpgvi.unavoidable(false);
-//			resLine="\nunavoidable:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
-//			resString+=resLine;
-//			out.print(resLine);
+			res = tpgvi.unavoidable(false);
+			resLine="\nunavoidable:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
+			resString+=resLine;
+			lines.add(resLine);
 			
 			for(int i = 0; i<=100; i+=10)
 			{
 		
 //				if(i!=30)
 //					continue;
-				res = tpgvi.grid5(true, i); 
+				res = tpgvi.grid5(false, i); 
 				resLine="\ngrid5-"+i+"-:\tprob:"+res.get(0)+"\ttc:"+res.get(1)+"\tcost:"+res.get(2);
-				out.print(resLine);
+				lines.add(resLine);
 				resString+=resLine;
 			}
-			out.close();
-			bw.close();
-			fw.close();
+			
 			System.out.println(resString);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+		}
+		finally {
+			FileWriter fw;
+			try {
+				fw = new FileWriter(resultsLocation+"vi_res.txt", true);
+			    BufferedWriter bw = new BufferedWriter(fw);
+			    PrintWriter out = new PrintWriter(bw);
+			    for(String line:lines)
+			    	out.println(line);
+			    out.close();
+				bw.close();
+				fw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
 		}
 		
 	}
@@ -180,6 +199,8 @@ public class TestProdGenVI {
 		MDPRewardsSimple costsModel = (MDPRewardsSimple) constructRewards.buildRewardStructure(mdp,
 				(RewardGenerator) maModelGen, 0);
 		
+
+		//printing out the task rewards for a particular state 
 
 		
 		MDPValIter vi = new MDPValIter();

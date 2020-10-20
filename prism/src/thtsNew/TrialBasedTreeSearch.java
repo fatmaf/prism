@@ -151,30 +151,32 @@ public class TrialBasedTreeSearch {
 		}
 		return nodeInMap;
 	}
+
 	public int run(boolean fixSCCs) throws Exception {
-		return run(fixSCCs, 0,false);
-	}
-	public int run(boolean fixSCCs,boolean debug) throws Exception {
-		return run(fixSCCs, 0,debug);
+		return run(fixSCCs, 0, false);
 	}
 
-	public HashMap<Objectives,Bounds> getInitialStateBounds() throws PrismException
-	{
+	public int run(boolean fixSCCs, boolean debug) throws Exception {
+		return run(fixSCCs, 0, debug);
+	}
+
+	public HashMap<Objectives, Bounds> getInitialStateBounds() throws PrismException {
 		Node n0 = getRootNode(0);
 		return n0.bounds;
-		
+
 	}
-	public int run(boolean fixSCCs, int rootNodeNum,boolean debug) throws Exception {
+
+	public int run(boolean fixSCCs, int rootNodeNum, boolean debug) throws Exception {
 
 		boolean donullvl = false;// true;
-		if(!debug) {
-			donullvl=true;
+		if (!debug) {
+			donullvl = true;
 		}
 		if (donullvl)
 			vl = new VisualiserLog(/* resultsLocation + name + ".vl", */ this.tieBreakingOrder, donullvl);
 		else
 			vl = new VisualiserLog(resultsLocation + name + ".vl", this.tieBreakingOrder);
-		
+
 		Vector<Integer> trialLenHist = new Vector<>();
 		int binsize = 10;
 		for (int bin = 0; bin < maxTrialLen; bin += binsize) {
@@ -196,7 +198,7 @@ public class TrialBasedTreeSearch {
 			trialMDP = null;//
 //			if(debug)
 //				trialMDP=new MDPCreator();
-			//new MDPCreator();
+			// new MDPCreator();
 			visitDecisionNode((DecisionNode) n0);
 
 			if (resultsLocation != null) {
@@ -230,11 +232,10 @@ public class TrialBasedTreeSearch {
 			trialLen = 0;
 		}
 		Node n0 = getRootNode(rootNodeNum);
-		if(!n0.isSolved())
-		{
-			//just checking 
+		if (!n0.isSolved()) {
+			// just checking
 			vl.beginActionSelection();
-			vl.writeActSelChoices((DecisionNode)n0);
+			vl.writeActSelChoices((DecisionNode) n0);
 			vl.endActionSelectin();
 		}
 		vl.closeLog();
@@ -378,29 +379,31 @@ public class TrialBasedTreeSearch {
 	}
 
 	boolean notTimedOut() {
-		return (this.trialLen < this.maxTrialLen);// (this.numRollouts < this.maxRollouts);
+		if (maxTrialLen < 0)
+			return true;
+		else
+			return (this.trialLen < this.maxTrialLen);// (this.numRollouts < this.maxRollouts);
 	}
 
 	void setNodeHeuristics(Node n0) throws PrismException {
-		if(!n0.boundsInitialised()) {
-		vl.beginHeuristicAssignment();
+		if (!n0.boundsInitialised()) {
+			vl.beginHeuristicAssignment();
 
-		if (n0 instanceof DecisionNode) {
+			if (n0 instanceof DecisionNode) {
 
-			
-			HashMap<Objectives, Bounds> nodehs = hf.getStateBounds(tieBreakingOrder, (DecisionNode) n0);
+				HashMap<Objectives, Bounds> nodehs = hf.getStateBounds(tieBreakingOrder, (DecisionNode) n0);
 //			mainLog.println(n0.getShortName()+" Set Node H: "+nodehs.toString());
 //			fileLog.println(n0.getShortName()+" Set Node H: "+nodehs.toString());
-			
-			((DecisionNode) n0).setBounds(nodehs);
-			
-		} else if (n0 instanceof ChanceNode) {
-			hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNode) n0);
+
+				((DecisionNode) n0).setBounds(nodehs);
+
+			} else if (n0 instanceof ChanceNode) {
+				hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNode) n0);
 //			mainLog.println(n0.getShortName()+" Set Node H: "+n0.getBoundsString());
 //			fileLog.println(n0.getShortName()+" Set Node H: "+n0.getBoundsString());
-		}
-		vl.writeAssignedHeuristic(n0);
-		vl.endHeuristicAssignment();
+			}
+			vl.writeAssignedHeuristic(n0);
+			vl.endHeuristicAssignment();
 		}
 	}
 
@@ -604,7 +607,7 @@ public class TrialBasedTreeSearch {
 	}
 
 	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation, int rnNum) throws Exception {
-		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder,true);
+		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
 		vl.beginPolRun();
 		boolean goalFound = false;
 		Node n0 = getRootNode(rnNum);
@@ -630,12 +633,12 @@ public class TrialBasedTreeSearch {
 				if (d.getChildren().size() < 5)
 					mainLog.println(d.getChildren());
 				ChanceNode a = actSelrt.selectAction(d, false);
-		
+
 				vl.beginActionSelection();
 				vl.writeActSelChoices(d);
 				vl.writeSelectedAction(a);
 				vl.endActionSelectin();
-				
+
 				// get these children
 				if (a != null) {
 
@@ -735,8 +738,9 @@ public class TrialBasedTreeSearch {
 		boolean[] toRet = { goalFound, n0.isSolved() };
 		return finalStatesList;
 	}
-	
-	ArrayList<State> runThroughRetFinalStatesList(ActionSelector actSelrt, String resultsLocation, int rnNum) throws Exception {
+
+	ArrayList<State> runThroughRetFinalStatesList(ActionSelector actSelrt, String resultsLocation, int rnNum)
+			throws Exception {
 		ArrayList<State> finalStatesList = new ArrayList<>();
 		ArrayList<DecisionNode> finalDNs = new ArrayList<>();
 		boolean goalFound = false;
@@ -801,7 +805,7 @@ public class TrialBasedTreeSearch {
 				d.setSolved();
 
 		}
-		tempMDP.saveMDP(resultsLocation, getName() +"_"+sString+  "_rn" + rnNum + "_runthru.dot");
+		tempMDP.saveMDP(resultsLocation, getName() + "_" + sString + "_rn" + rnNum + "_runthru.dot");
 //		boolean[] toRet = { goalFound, n0.isSolved() };
 		return finalStatesList;
 	}
