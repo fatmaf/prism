@@ -153,7 +153,7 @@ public class TempTHTS {
 			sas.setName(nameval[nameval.length-1].replaceAll(".prism", ""));
 			sas.loadModel(filename);
 			sas.loadProperties(propFilename);
-			HashMap<Objectives, HashMap<State, Double>> solution = sas.getSolution();
+			HashMap<Objectives, HashMap<State, Double>> solution = sas.getStateValues();
 			results.add(solution);
 		}
 		return results;

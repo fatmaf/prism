@@ -269,7 +269,7 @@ public class TestThings {
 		String alternatepropfn = testsLocation + example + ".prop";
 		sas.loadModel(filename);
 		sas.loadProperties(alternatepropfn);
-		HashMap<Objectives, HashMap<State, Double>> solution = sas.getSolution();
+		HashMap<Objectives, HashMap<State, Double>> solution = sas.getStateValues();
 		// so now we can take this and use it as a heuristic!!
 
 	}

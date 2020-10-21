@@ -215,9 +215,10 @@ public class TrialBasedTreeSearch {
 			fileLog.println("Trial Ended with steps:" + trialLen);
 			avgTrialLen = (avgTrialLen * numRollouts + trialLen) / (numRollouts + 1);
 			int binnum = trialLen / binsize;
+			if(trialLenHist!=null && trialLenHist.size() > binnum) {
 			int binval = trialLenHist.get(binnum);
 			trialLenHist.set(binnum, ++binval);
-
+			}
 //				if (notTimedOut()) {
 //					mainLog.println("New trial since number of steps was not used up");
 //					fileLog.println("New trial since number of steps was not used up");

@@ -88,12 +88,14 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 	}
 // things to do 
-	// find the sangle agent solution function 
+	// find the single agent solution function 
 	// get strategies for each agent and store them with states 
 	// we want the mdp choices not the joint mdp ones 
 	// so perhaps we'll need the actions 
+	// ^ done 
 	// create a new action selection function 
 	//also have to remove the trial len thing 
+	// ^ done 
 	//you can basically set it to a very large number or just add a caveat 
 	// like an if and set it to -1 so that its never true etc 
 	//we need to look at the thts paper okay 
@@ -207,12 +209,14 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		return mapmg;
 	}
 
-	//TODO: edit here 
-	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
-			PrismLog mainLog, String resultsLocation, ArrayList<String> fns, String propFilename) throws Exception {
+	
+	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> 
+	solveMaxTaskForAllSingleAgents(Prism prism,
+			PrismLog mainLog, String resultsLocation, ArrayList<String> fns, 
+			String propFilename, ArrayList<HashMap<State,Object>> stateActions) throws Exception {
 		SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism, mainLog, resultsLocation);
 		// so now we can read in the model
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> results = new ArrayList<>();
+		ArrayList<HashMap<Objectives, HashMap<State, Double>>> allStateValues = new ArrayList<>();
 		for (String filename : fns) {
 			String[] nameval = filename.split("/");
 			sas.setName(nameval[nameval.length - 1].replaceAll(".prism", ""));
@@ -221,10 +225,13 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 			//so we need to edit this bit 
 			//so we need a new function with the strategy 
 			
-			HashMap<Objectives, HashMap<State, Double>> solution = sas.getSolution();
-			results.add(solution);
+			HashMap<Objectives, HashMap<State, Double>> stateValues = new HashMap<>(); 
+			HashMap<State,Object> stateAction = new HashMap<>(); 
+					sas.getStateValuesAndStrategies(stateValues,stateAction);
+			stateActions.add(stateAction);
+			allStateValues.add(stateValues);
 		}
-		return results;
+		return allStateValues;
 	}
 
 	
@@ -274,7 +281,8 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		Prism prism = new Prism(mainLog);
 		String combString = "_r"+run+"_config"+config;
 		String algoIden =  combString;
-		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
+		PrismLog fileLog = new PrismFileLog(resultsLocation + 
+				"log_" + example + algoIden + "_justmdp" + ".txt");//
 
 		prism.initialise();
 		prism.setEngine(Prism.EXPLICIT);
@@ -294,8 +302,9 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
 		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
 
-		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentSolutions = solveMaxTaskForAllSingleAgents(
-				prism, mainLog, resultsLocation, filenames, propertiesFileName);
+		ArrayList<HashMap<State,Object>> stateActions = new ArrayList<>();
+		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentStateValues = solveMaxTaskForAllSingleAgents(
+				prism, mainLog, resultsLocation, filenames, propertiesFileName,stateActions);
 
 		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
@@ -306,10 +315,9 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
 		boolean useSASH = false; 
-//		if(config >2)
-//			useSASH = true; 
+
 		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen,
-				singleAgentSolutions, minMaxVals, useSASH);
+				singleAgentStateValues, minMaxVals, useSASH);
 
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -319,9 +327,14 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
 		//TODO:change this // to a new action selection =D 
-		ActionSelector actionSelection
+		 
+		ActionSelector greedyActSel
 		= new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
-		
+		double actSelSoftmaxProb = 0.8; 
+		ActionSelector softmaxActSel = new ActionSelectorSoftmax(greedyActSel,actSelSoftmaxProb);
+		ActionSelector rolloutPol = 
+				new ActionSelectorSASRolloutPol(maModelGen,stateActions); 
+		ActionSelector actionSelection = new ActionSelectorMCTS(softmaxActSel,rolloutPol);
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
 		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
 
@@ -361,14 +374,13 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		if (actionSelection instanceof ActionSelectorGreedyTieBreakRandomLowerBound)
-			actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+		
 
 		rinfo = new THTSRunInfo();
 
-		goalack = thts.runThroughMostProb(actionSelection, resultsLocation);
+		goalack = thts.runThroughMostProb(greedyActSel, resultsLocation);
 		rinfo.goalOnProbablePath = goalack[0];
-		goalack = thts.runThrough(actionSelection, resultsLocation);
+		goalack = thts.runThrough(greedyActSel, resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
