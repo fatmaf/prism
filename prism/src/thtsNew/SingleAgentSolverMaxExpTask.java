@@ -404,6 +404,12 @@ public class SingleAgentSolverMaxExpTask {
 			stateAction.put(state, action); 
 		}
 		//		return solution;
+		
+		if (name != null) {
+		PolicyCreator pc = new PolicyCreator();
+		pc.createPolicyAllStates(npMDP.getProductModel(), result.strat);
+		pc.savePolicy(resLoc, "nvipol" + name);
+	}
 
 	}
 

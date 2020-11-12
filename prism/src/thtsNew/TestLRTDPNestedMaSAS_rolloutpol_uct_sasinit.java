@@ -34,14 +34,14 @@ import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
 
-public class TestLRTDPNestedMaSAS_rolloutpol {
+public class TestLRTDPNestedMaSAS_rolloutpol_uct_sasinit {
 
 	// running this from the commandline
 	// PRISM_MAINCLASS=thtsNew.TestLRTDPNestedMaSAS_rolloutpol prism/bin/prism
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
-			TestLRTDPNestedMaSAS_rolloutpol tester = new TestLRTDPNestedMaSAS_rolloutpol();
+			TestLRTDPNestedMaSAS_rolloutpol_uct_sasinit tester = new TestLRTDPNestedMaSAS_rolloutpol_uct_sasinit();
 
 			String resString = "";
 			String resLine;
@@ -49,17 +49,17 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 			String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
 			String resultsLocation = testsLocation + "results/csvs/";
 
-			FileWriter fw = new FileWriter(resultsLocation + "towardsmcts_basic.csv", true);
+			FileWriter fw = new FileWriter(resultsLocation + "towardsmcts_uct_sasinit.csv", true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			PrintWriter out = new PrintWriter(bw);
-			resLine="\nName\tFSP\tRun\tTC_U\tTC_L\tC_U\tC_L\tSolved\tGoal\tProbGoal\tNumRollouts"; 
+			resLine="\nName\tC\tRun\tTC_U\tTC_L\tC_U\tC_L\tSolved\tGoal\tProbGoal\tNumRollouts"; 
 			out.print(resLine);
 //			int c = 0; 
-			for(int c = 1; c<=2; c++) {
-			for(int i = 0; i<100; i++) {
+			for(double c = 10; c<=100; c+=25) {
+			for(int i = 0; i<5; i++) {
 			THTSRunInfo rinfo = tester.unavoidableSingleAgentSolH(true,i,c);
 		
-			resLine="\nunavoidable"+"\tc"+c+"\t"+i+"\t"+rinfo.getBoundsString(Objectives.TaskCompletion, "\t")+"\t"
+			resLine="\nunavoidable"+"\t"+c+"\t"+i+"\t"+rinfo.getBoundsString(Objectives.TaskCompletion, "\t")+"\t"
 			+rinfo.getBoundsString(Objectives.Cost, "\t")+"\t"+rinfo.initialStateSolved+"\t"
 			+rinfo.goalFound+"\t"+rinfo.goalOnProbablePath+"\t"+rinfo.numRolloutsTillSolved; 
 //			resLine = "\nunavoidable\t" + rinfo.toString();
@@ -240,7 +240,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 
 
-	THTSRunInfo unavoidableSingleAgentSolH(boolean debug,int run,int config) throws Exception {
+	THTSRunInfo unavoidableSingleAgentSolH(boolean debug,int run,double uctC  ) throws Exception {
 
 		double[] hvals = { 50 };
 		int[] rollouts = { 10000 };
@@ -259,7 +259,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/towardsmcts/basic/";
+		String resultsLocation = testsLocation + "results/towardsmcts/uct_sasinit/";
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
@@ -280,7 +280,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 			mainLog = new PrismDevNullLog();
 
 		Prism prism = new Prism(mainLog);
-		String combString = "_r"+run+"_config"+config;
+		String combString = "_r"+run+"_uctC"+uctC;
 		String algoIden =  combString;
 		PrismLog fileLog = new PrismFileLog(resultsLocation + 
 				"log_" + example + algoIden + "_justmdp" + ".txt");//
@@ -315,7 +315,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		boolean useSASH = false; 
+		boolean useSASH = true; 
 
 		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen,
 				singleAgentStateValues, minMaxVals, useSASH);
@@ -329,15 +329,16 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 		//TODO:change this // to a new action selection =D 
 		 
-		ActionSelector greedyActSel
-		= new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
-		if(config==2)
-			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
-		double actSelSoftmaxProb = 0.2; 
-		ActionSelector softmaxActSel = new ActionSelectorSoftmax(greedyActSel,actSelSoftmaxProb);
+		ArrayList<Boolean> useUpperBound = new ArrayList<>();
+		useUpperBound.add(true);
+		useUpperBound.add(false);
+		ActionSelector actSelUCT
+		= new ActionSelectorUCT(tieBreakingOrder,/*uctC,*/useUpperBound);
+	
+	
 		ActionSelector rolloutPol = 
 				new ActionSelectorSASRolloutPol(maModelGen,stateActions); 
-		ActionSelector actionSelection = new ActionSelectorMCTS(softmaxActSel,rolloutPol);
+		ActionSelector actionSelection = new ActionSelectorMCTS(actSelUCT,rolloutPol);
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
 		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
 
@@ -345,7 +346,8 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 		mainLog.println("Initialising Full Bellman Backup Function");
 		fileLog.println("Initialising Full Bellman Backup Function");
-
+		ActionSelector greedyActSel
+		= new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
 		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon,
 				minMaxVals,fileLog);
 

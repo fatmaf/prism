@@ -11,6 +11,8 @@ public class THTSRunInfo {
 	public int numRolloutsTillSolved=-1; 
 	public boolean goalOnProbablePath=false; 
 	public HashMap<Objectives,Bounds> initialStateValues=null;
+	public HashMap<Objectives,Double> vipol = null; 
+	public boolean stackoverflowerror = false; 
 	
 	boolean goalFoundAndSolved()
 	{
@@ -25,6 +27,19 @@ public class THTSRunInfo {
 		toret+="\t"+obj+":"+getBoundsString(obj,"\t");
 		}
 		return toret; 
+	}
+	public String getviInfo(Objectives obj)
+	{
+		String toret = ""; 
+		if(vipol!=null)
+		{
+			if(vipol.containsKey(obj))
+			{
+				toret = vipol.get(obj).toString();
+			}
+		}
+		return toret; 
+		
 	}
 	public String getBoundsString(Objectives obj,String sep)
 	{

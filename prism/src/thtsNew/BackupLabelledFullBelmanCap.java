@@ -59,7 +59,9 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 		if (doBackup) {
 
 			if(debugLog!=null)
-				debugLog.println("LRTDP Backup: "+dn.toString());
+				{
+				debugLog.println("----------LRTDP Backup Begin "+dn.toString()+"----------------");
+				}
 			boolean toret = true;
 			Stack<DecisionNode> open = new Stack<DecisionNode>();
 			Stack<DecisionNode> closed = new Stack<DecisionNode>();
@@ -86,9 +88,26 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 					// then add in all the successors
 					// for which we need an action selector and a chance node
 					ChanceNode cn = actSel.selectAction(s, false);
+					//cn is this solved??? if its not then we cant do much  
+					
 					for (DecisionNode dnc : cn.getChildren()) {
 						if (!dnc.isSolved() & !open.contains(dnc) & !closed.contains(dnc)) {
+							if(debugLog!=null)
+								debugLog.println("Adding to open list: "+dnc.toString());
 							open.push(dnc);
+						}
+						else
+						{
+							
+							if(debugLog!=null)
+							{
+								if(dnc.isSolved())
+								debugLog.println("Already Solved: "+dnc.toString());
+								if(open.contains(dnc))
+									debugLog.println("In open list: "+dnc.toString());
+								if(closed.contains(dnc))
+									debugLog.println("In close list: "+dnc.toString());
+							}
 						}
 					}
 
@@ -102,12 +121,13 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 
 					DecisionNode dns = closed.pop();
 					ChanceNode cn = actSel.selectAction(dns, false);
-					if(debugLog!=null)
-						debugLog.println("Solved: "+dns.toString());
-					cn.setSolved();
+					updateChanceNode(cn);
+//					cn.setSolved(); //so this is a problem 
 					if(debugLog!=null)
 						debugLog.println("Best Action: "+cn.toString());
 					dns.setSolved();
+					if(debugLog!=null)
+						debugLog.println("Set to Solved: "+dns.toString());
 
 				}
 			} else {
@@ -128,6 +148,8 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 			// just back up this node
 			updateDecisionNode(dn);
 		}
+		
+		debugLog.println("--------LRTDP Backup End "+dn.toString()+"-------------");
 		return backupToRet;
 
 	}

@@ -3,6 +3,7 @@ package thtsNew;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,14 +12,19 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.Vector;
 
+import explicit.MDPModelChecker;
+import explicit.ProbModelChecker;
+import explicit.rewards.MDPRewardsSimple;
 import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.DefaultModelGenerator;
+import prism.Prism;
 import prism.PrismDevNullLog;
 import thts.Bounds;
 import thts.MDPCreator;
 import thts.Objectives;
+import thtsNew.MDPValIter.ModelCheckerMultipleResult;
 import thtsSCC.SCCFinder;
 
 public class TrialBasedTreeSearch {
@@ -215,9 +221,9 @@ public class TrialBasedTreeSearch {
 			fileLog.println("Trial Ended with steps:" + trialLen);
 			avgTrialLen = (avgTrialLen * numRollouts + trialLen) / (numRollouts + 1);
 			int binnum = trialLen / binsize;
-			if(trialLenHist!=null && trialLenHist.size() > binnum) {
-			int binval = trialLenHist.get(binnum);
-			trialLenHist.set(binnum, ++binval);
+			if (trialLenHist != null && trialLenHist.size() > binnum) {
+				int binval = trialLenHist.get(binnum);
+				trialLenHist.set(binnum, ++binval);
 			}
 //				if (notTimedOut()) {
 //					mainLog.println("New trial since number of steps was not used up");
@@ -257,6 +263,8 @@ public class TrialBasedTreeSearch {
 		int prevTrialLen = trialLen;
 		boolean doBackup = true;
 		if (!n.isSolved() & notTimedOut()) {
+			if (n.getState().toString().contains("1,-1,1,0,1,0"))
+				mainLog.println();
 			doBackup = true;
 			trialLen++;
 			prevTrialLen = trialLen;
@@ -279,6 +287,8 @@ public class TrialBasedTreeSearch {
 				// so we've got to check all the actions associated with this node
 				// and randomly select one
 
+				if (n.getState().toString().contains("2,-1,1,0,1,0"))
+					mainLog.println("hmm");
 				ChanceNode selectedAction = selectAction(n);
 				// lrtdp has a forward backup
 //				backup.backupDecisionNode(n);
@@ -605,6 +615,104 @@ public class TrialBasedTreeSearch {
 
 	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation) throws Exception {
 		return runThrough(actSelrt, resultsLocation, 0);
+	}
+
+	HashMap<Objectives,Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum,Prism prism)
+			throws Exception {
+		// need a rewards structure
+		// need a costs structure
+		HashMap<Objectives,Double> resvals = new HashMap<Objectives,Double>();
+		BitSet accStates = new BitSet();
+		BitSet avoidStates = new BitSet();
+		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
+		vl.beginPolRun();
+		boolean goalFound = false;
+		Node n0 = getRootNode(rnNum);
+		System.out.println("Root node solved: " + n0.isSolved());
+		MDPCreator tempMDP = new MDPCreator();
+		mainLog.println("Running through");
+		fileLog.println("Running through");
+		Stack<DecisionNode> q = new Stack<DecisionNode>();
+		ArrayList<DecisionNode> seen = new ArrayList<>();
+		q.push((DecisionNode) n0);
+		while (!q.isEmpty()) {
+			DecisionNode d = q.pop();
+			if (d.isGoal) {
+				goalFound = true;
+				int si = tempMDP.getStateIndex(d.getState());
+				accStates.set(si);
+
+			}
+//			if (d.isDeadend) {
+//				int si = tempMDP.getStateIndex(d.getState());
+//				avoidStates.set(si);
+//			}
+			if (seen.contains(d))
+				continue;
+			seen.add(d);
+			mainLog.println(d.getShortName() + d.getBoundsString());
+			fileLog.println(d.getShortName() + d.getBoundsString());
+
+			if (d.canHaveChildren() && !d.isLeafNode()) {
+				if (d.getChildren().size() < 5)
+					mainLog.println(d.getChildren());
+				ChanceNode a = actSelrt.selectAction(d, false);
+
+				vl.beginActionSelection();
+				vl.writeActSelChoices(d);
+				vl.writeSelectedAction(a);
+				vl.endActionSelectin();
+
+				// get these children
+				if (a != null) {
+
+					mainLog.println(a);
+					fileLog.println(a);
+					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
+					if (a.getChildren() != null) {
+						for (DecisionNode dnc : a.getChildren()) {
+							q.push(dnc);
+							successors.add(
+									new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
+						}
+						ArrayList<Double> rews = new ArrayList<Double>();
+						rews.add(a.getReward(Objectives.TaskCompletion));
+						rews.add(a.getReward(Objectives.Cost));
+						tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
+					}
+				} else {
+					fileLog.println("no action for " + d.getState());
+				}
+			} else {
+				fileLog.println(d.getState() + (d.canHaveChildren()
+						? (d.isLeafNode() ? "unexplored" : "can have children so whats happeing here?")
+						: " is a goal or deadend"));
+			}
+		}
+//		int si = tempMDP.getStateIndex(n0.getState());
+		tempMDP.setInitialState(n0.getState());
+		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
+//		boolean[] toRet = { goalFound, n0.isSolved() };
+		vl.endRollout();
+		vl.closeLog();
+		ArrayList<MDPRewardsSimple> rews = tempMDP.createRewardStructures();
+		ProbModelChecker pmc = new ProbModelChecker(prism);
+//		pmc.setModelCheckingInfo(modulesFile, propertiesFile, (RewardGenerator) maModelGen);
+		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
+		 avoidStates.flip(0, tempMDP.getMDP().getNumStates());
+		 MDPValIter vi = new MDPValIter();
+		 ArrayList<Boolean> minRewards = new ArrayList<>(); 
+		 minRewards.add(false); 
+		 minRewards.add(true);
+		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates, /*avoidStates*/null,
+				rews, null, minRewards, null, 1, null, mainLog, resultsLocation,"vistuff");
+//		return toRet;
+//		return tempMDP;
+		resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]); 
+		resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]); 
+		resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
+		return resvals; 
+
 	}
 
 	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation, int rnNum) throws Exception {

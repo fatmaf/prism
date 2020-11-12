@@ -34,14 +34,14 @@ import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
 
-public class TestLRTDPNestedMaSAS_rolloutpol {
+public class TestLRTDPNestedMaSAS_rolloutpol_sasinit {
 
 	// running this from the commandline
 	// PRISM_MAINCLASS=thtsNew.TestLRTDPNestedMaSAS_rolloutpol prism/bin/prism
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
-			TestLRTDPNestedMaSAS_rolloutpol tester = new TestLRTDPNestedMaSAS_rolloutpol();
+			TestLRTDPNestedMaSAS_rolloutpol_sasinit tester = new TestLRTDPNestedMaSAS_rolloutpol_sasinit();
 
 			String resString = "";
 			String resLine;
@@ -49,23 +49,29 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 			String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
 			String resultsLocation = testsLocation + "results/csvs/";
 
-			FileWriter fw = new FileWriter(resultsLocation + "towardsmcts_basic.csv", true);
+			FileWriter fw = new FileWriter(resultsLocation + "towardsmcts_basic_sasinit.csv", true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			PrintWriter out = new PrintWriter(bw);
-			resLine="\nName\tFSP\tRun\tTC_U\tTC_L\tC_U\tC_L\tSolved\tGoal\tProbGoal\tNumRollouts"; 
+			resLine = "\nName\tConfig\tEpsilon\tRun\tTC_U\tTC_L\tC_U\tC_L\tSolved\tGoal\tProbGoal\tNumRollouts";
 			out.print(resLine);
 //			int c = 0; 
-			for(int c = 1; c<=2; c++) {
-			for(int i = 0; i<100; i++) {
-			THTSRunInfo rinfo = tester.unavoidableSingleAgentSolH(true,i,c);
-		
-			resLine="\nunavoidable"+"\tc"+c+"\t"+i+"\t"+rinfo.getBoundsString(Objectives.TaskCompletion, "\t")+"\t"
-			+rinfo.getBoundsString(Objectives.Cost, "\t")+"\t"+rinfo.initialStateSolved+"\t"
-			+rinfo.goalFound+"\t"+rinfo.goalOnProbablePath+"\t"+rinfo.numRolloutsTillSolved; 
+			double[] epsilons= {0.8,0.5}; 
+			for (int c = 1; c <= 4; c++) {
+				double epsilon =epsilons[0]; 
+				if(c==2 || c==4)
+					epsilon=epsilons[1];
+				
+				for (int i = 0; i < 100; i++) {
+					THTSRunInfo rinfo = tester.unavoidableSingleAgentSolH(true, i, c,epsilon);
+
+					resLine = "\nunavoidable" + "\tc" + c + "\t"+epsilon+"\t" + i + "\t"
+							+ rinfo.getBoundsString(Objectives.TaskCompletion, "\t") + "\t"
+							+ rinfo.getBoundsString(Objectives.Cost, "\t") + "\t" + rinfo.initialStateSolved + "\t"
+							+ rinfo.goalFound + "\t" + rinfo.goalOnProbablePath + "\t" + rinfo.numRolloutsTillSolved;
 //			resLine = "\nunavoidable\t" + rinfo.toString();
-			out.print(resLine);
-			resString += resLine;
-			}
+					out.print(resLine);
+					resString += resLine;
+				}
 			}
 //			for (int i = 0; i <= 100; i += 10) {
 //				for (int j = 0; j < 10; j++) {
@@ -89,19 +95,18 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 	}
 // things to do 
-	// find the single agent solution function 
-	// get strategies for each agent and store them with states 
-	// we want the mdp choices not the joint mdp ones 
-	// so perhaps we'll need the actions 
-	// ^ done 
-	// create a new action selection function 
-	//also have to remove the trial len thing 
-	// ^ done 
-	//you can basically set it to a very large number or just add a caveat 
-	// like an if and set it to -1 so that its never true etc 
-	//we need to look at the thts paper okay 
-	//but for now lets just comment on all the places we need to edit things 
-	
+	// find the single agent solution function
+	// get strategies for each agent and store them with states
+	// we want the mdp choices not the joint mdp ones
+	// so perhaps we'll need the actions
+	// ^ done
+	// create a new action selection function
+	// also have to remove the trial len thing
+	// ^ done
+	// you can basically set it to a very large number or just add a caveat
+	// like an if and set it to -1 so that its never true etc
+	// we need to look at the thts paper okay
+	// but for now lets just comment on all the places we need to edit things
 
 	public void createDirIfNotExist(String directoryName) {
 		File directory = new File(directoryName);
@@ -210,11 +215,9 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		return mapmg;
 	}
 
-	
-	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> 
-	solveMaxTaskForAllSingleAgents(Prism prism,
-			PrismLog mainLog, String resultsLocation, ArrayList<String> fns, 
-			String propFilename, ArrayList<HashMap<State,Object>> stateActions) throws Exception {
+	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
+			PrismLog mainLog, String resultsLocation, ArrayList<String> fns, String propFilename,
+			ArrayList<HashMap<State, Object>> stateActions) throws Exception {
 		SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism, mainLog, resultsLocation);
 		// so now we can read in the model
 		ArrayList<HashMap<Objectives, HashMap<State, Double>>> allStateValues = new ArrayList<>();
@@ -223,28 +226,23 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 			sas.setName(nameval[nameval.length - 1].replaceAll(".prism", ""));
 			sas.loadModel(filename);
 			sas.loadProperties(propFilename);
-			//so we need to edit this bit 
-			//so we need a new function with the strategy 
-			
-			HashMap<Objectives, HashMap<State, Double>> stateValues = new HashMap<>(); 
-			HashMap<State,Object> stateAction = new HashMap<>(); 
-					sas.getStateValuesAndStrategies(stateValues,stateAction);
+			// so we need to edit this bit
+			// so we need a new function with the strategy
+
+			HashMap<Objectives, HashMap<State, Double>> stateValues = new HashMap<>();
+			HashMap<State, Object> stateAction = new HashMap<>();
+			sas.getStateValuesAndStrategies(stateValues, stateAction);
 			stateActions.add(stateAction);
 			allStateValues.add(stateValues);
 		}
 		return allStateValues;
 	}
 
-	
-
-
-
-
-	THTSRunInfo unavoidableSingleAgentSolH(boolean debug,int run,int config) throws Exception {
+	THTSRunInfo unavoidableSingleAgentSolH(boolean debug, int run, int config, double egreedy) throws Exception {
 
 		double[] hvals = { 50 };
 		int[] rollouts = { 10000 };
-		int[] trialLens = { -1}; // -1 to say we don't want to restrict trials 
+		int[] trialLens = { -1 }; // -1 to say we don't want to restrict trials
 		double hval;
 		THTSRunInfo rinfo = null;
 		boolean[] goalack = new boolean[2];
@@ -259,7 +257,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		System.out.println(System.getProperty("user.dir"));
 		String currentDir = System.getProperty("user.dir");
 		String testsLocation = currentDir + "/tests/wkspace/tro_examples/";
-		String resultsLocation = testsLocation + "results/towardsmcts/basic/";
+		String resultsLocation = testsLocation + "results/towardsmcts/sasinit/";
 		// making sure resultsloc exits
 		createDirIfNotExist(resultsLocation);
 		System.out.println("Results Location " + resultsLocation);
@@ -280,10 +278,9 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 			mainLog = new PrismDevNullLog();
 
 		Prism prism = new Prism(mainLog);
-		String combString = "_r"+run+"_config"+config;
-		String algoIden =  combString;
-		PrismLog fileLog = new PrismFileLog(resultsLocation + 
-				"log_" + example + algoIden + "_justmdp" + ".txt");//
+		String combString = "_r" + run + "_config" + config;
+		String algoIden = combString;
+		PrismLog fileLog = new PrismFileLog(resultsLocation + "log_" + example + algoIden + "_justmdp" + ".txt");//
 
 		prism.initialise();
 		prism.setEngine(Prism.EXPLICIT);
@@ -303,9 +300,9 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		mainLog.println("Generating Single Agent Solutions using Nested Products and NVI");
 		fileLog.println("Generating Single Agent Solutions using Nested Products and NVI");
 
-		ArrayList<HashMap<State,Object>> stateActions = new ArrayList<>();
+		ArrayList<HashMap<State, Object>> stateActions = new ArrayList<>();
 		ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentStateValues = solveMaxTaskForAllSingleAgents(
-				prism, mainLog, resultsLocation, filenames, propertiesFileName,stateActions);
+				prism, mainLog, resultsLocation, filenames, propertiesFileName, stateActions);
 
 		MultiAgentNestedProductModelGenerator maModelGen = createNestedMultiAgentModelGen(prism, mainLog, filenames,
 				propertiesFileName, resultsLocation, hasSharedState);
@@ -315,11 +312,10 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		minMaxVals.put(Objectives.TaskCompletion,
 				new AbstractMap.SimpleEntry<Double, Double>(0., (double) maModelGen.numDAs));
 
-		boolean useSASH = false; 
+		boolean useSASH = false;
 
-		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen,
-				singleAgentStateValues, minMaxVals, useSASH);
-
+		Heuristic heuristicFunction = new MultiAgentHeuristicTC(maModelGen, singleAgentStateValues, minMaxVals,
+				useSASH);
 
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
@@ -327,17 +323,15 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		//TODO:change this // to a new action selection =D 
-		 
-		ActionSelector greedyActSel
-		= new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
-		if(config==2)
+		// TODO:change this // to a new action selection =D
+
+		ActionSelector greedyActSel = new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
+		if (config == 2 || config == 4)
 			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
-		double actSelSoftmaxProb = 0.2; 
-		ActionSelector softmaxActSel = new ActionSelectorSoftmax(greedyActSel,actSelSoftmaxProb);
-		ActionSelector rolloutPol = 
-				new ActionSelectorSASRolloutPol(maModelGen,stateActions); 
-		ActionSelector actionSelection = new ActionSelectorMCTS(softmaxActSel,rolloutPol);
+		double actSelSoftmaxProb = egreedy;
+		ActionSelector softmaxActSel = new ActionSelectorSoftmax(greedyActSel, actSelSoftmaxProb);
+		ActionSelector rolloutPol = new ActionSelectorSASRolloutPol(maModelGen, stateActions);
+		ActionSelector actionSelection = new ActionSelectorMCTS(softmaxActSel, rolloutPol);
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
 		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
 
@@ -346,14 +340,13 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		mainLog.println("Initialising Full Bellman Backup Function");
 		fileLog.println("Initialising Full Bellman Backup Function");
 
-		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon,
-				minMaxVals,fileLog);
+		BackupNVI backupFunction = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals,
+				fileLog);
 
 		mainLog.println("Initialising Reward Helper Function");
 		fileLog.println("Initialising Reward Helper Function");
 
 		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
-
 
 		mainLog.println("Max Rollouts: " + maxRollouts);
 		mainLog.println("Max TrialLen: " + trialLen);
@@ -363,7 +356,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
-		
+
 		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts, trialLen,
 				heuristicFunction, actionSelection, outcomeSelection, rewardH, backupFunction, doForwardBackup,
 				tieBreakingOrder, mainLog, fileLog);
@@ -377,10 +370,10 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		
 
 		rinfo = new THTSRunInfo();
-		greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+		if (config >= 3)
+			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
 		goalack = thts.runThroughMostProb(greedyActSel, resultsLocation);
 		rinfo.goalOnProbablePath = goalack[0];
 		goalack = thts.runThrough(greedyActSel, resultsLocation);
@@ -396,5 +389,4 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 
 	}
 
-	
 }

@@ -28,7 +28,10 @@ public class ActionSelectorSASRolloutPol implements ActionSelector {
 		ArrayList<String> robotActions = new ArrayList<>(); 
 		for(int i = 0; i<robotStates.size();i++)
 		{
-			robotActions.add(stateActions.get(i).get(robotStates.get(i)).toString()); 
+			String sa = stateActions.get(i).get(robotStates.get(i)).toString();
+			if(sa.contentEquals("?"))
+				sa = "failed";
+			robotActions.add(sa); 
 		}
 		//then we create a joint action using that 
 		String ja = mapmg.createJointActionFromString(robotActions);
@@ -39,7 +42,10 @@ public class ActionSelectorSASRolloutPol implements ActionSelector {
 			return nd.getChild(ja);
 		}
 
-		return null;
+		String msg="Unable to find action "+ja + " for state "+s.toString();
+		System.out.println(msg); 
+		throw new Exception(msg);
+//		return null;
 	}
 
 }
