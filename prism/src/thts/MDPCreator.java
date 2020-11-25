@@ -4,14 +4,19 @@
 package thts;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 
 import explicit.Distribution;
 import explicit.MDPSimple;
+import explicit.rewards.MDPRewardsSimple;
 import parser.State;
+import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 
@@ -28,9 +33,34 @@ public class MDPCreator {
 	boolean printMessages;
 	MDPSimple mdp;
 	HashMap<State, Integer> stateIndices;
-
+	//create a structure to hold the rewards 
+	ArrayList<HashMap<Integer,Entry<Integer,Double>>> rewards; 
 	PrismLog mainLog;
 
+
+	public MDPSimple getMDP()
+	{
+		return mdp; 
+	}
+	public ArrayList<MDPRewardsSimple> createRewardStructures() throws PrismException
+	{
+		mdp.findDeadlocks(true);
+		ArrayList<MDPRewardsSimple> rews = new ArrayList<>(); 
+		for(int i = 0; i<rewards.size(); i++)
+		{
+			HashMap<Integer, Entry<Integer, Double>> rewshere = rewards.get(i);
+			MDPRewardsSimple mdprews = new MDPRewardsSimple(mdp.getNumStates());
+			for(int s: rewshere.keySet())
+			{
+				mdprews.addToTransitionReward(s, rewshere.get(s).getKey(), rewshere.get(s).getValue());
+			}
+			rews.add(mdprews);
+		}
+		
+		return rews; 
+		
+	}
+	
 	public MDPCreator(PrismLog mainLog) {
 		printMessages = false;
 		mdp = new MDPSimple();
@@ -70,7 +100,7 @@ public class MDPCreator {
 		return added;
 	}
 
-	int getStateIndex(State s) {
+	public int getStateIndex(State s) {
 		if (!stateIndices.containsKey(s)) {
 			boolean added = addState(s);
 			if (added) {
@@ -165,7 +195,38 @@ public class MDPCreator {
 
 		return true;
 	}
+	public boolean addAction(State s, Object a, ArrayList<Entry<State, Double>> successorsWithProbs,ArrayList<Double>rews) {
 
+		// add an action to a state
+		// does not check if the same action is added twice!!!
+		// it shouldnt be you know
+		Distribution distr = new Distribution();
+		int stateIndex = getStateIndex(s);
+		int actionIndex = mdp.getNumChoices(stateIndex);
+		for (int i = 0; i < successorsWithProbs.size(); i++) {
+			Entry<State, Double> stateProbPair = successorsWithProbs.get(i);
+			State succState = stateProbPair.getKey();
+			double prob = stateProbPair.getValue();
+			int succStateIndex = getStateIndex(succState);
+			distr.add(succStateIndex, prob);
+		}
+		mdp.addActionLabelledChoice(stateIndex, distr, a);
+		if(rewards==null)
+		{
+			rewards = new ArrayList<>(); 
+			for(int i = 0; i<rews.size(); i++)
+				rewards.add(new HashMap<>());
+		}
+		for(int i = 0; i<rews.size(); i++)
+		{
+			Entry<Integer,Double> ar = new AbstractMap.SimpleEntry<Integer,Double>(actionIndex,rews.get(i));
+			rewards.get(i).put(stateIndex,ar);
+		}
+
+		return true;
+	}
+
+	
 	// adds an action or parts of an action
 	public boolean addActionPartial(State s, Object a, ArrayList<Entry<State, Double>> successorsWithProbs) {
 

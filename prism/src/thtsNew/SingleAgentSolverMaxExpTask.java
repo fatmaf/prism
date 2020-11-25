@@ -103,6 +103,61 @@ public class SingleAgentSolverMaxExpTask {
 		mainLog.println("Loaded model "+modelFileName);
 	}
 
+	public void loadProperties(String propertiesFileName,ArrayList<Integer> goals) throws Exception
+	{
+		// loads the properties
+		exprRews = null;
+		exprSafety = null;
+		propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propertiesFileName));
+
+		exprOthers = new ArrayList<>();
+		// lets process all the expressions here
+		// cuz we want to do nvi
+		if(!goals.contains(propertiesFile.getNumProperties()-1))
+		{
+			goals.add(propertiesFile.getNumProperties()-1);
+		}
+		for (int i = 0; i < goals.size()/*propertiesFile.getNumProperties()*/; i++) {
+			int propNum = goals.get(i);
+			System.out.println(propertiesFile.getProperty(propNum));
+//				// so reward + safety
+			Expression exprHere = propertiesFile.getProperty(propNum);
+			if (exprHere instanceof ExpressionReward) {
+				ExpressionReward exprRew = (ExpressionReward) exprHere;
+				if (exprRews == null) // we're not really expecting multiple rewards
+				// but what the hell //lets make it a list
+				{
+					exprRews = new ArrayList<>();
+				}
+
+				exprRews.add(exprRew);
+
+			} 
+			
+				Expression daExpr = ((ExpressionQuant) exprHere).getExpression();
+				boolean isSafeExpr = !Expression.isCoSafeLTLSyntactic(daExpr, true);
+				if (isSafeExpr) {
+					if (exprSafety != null) // more than one safety expr , we did not expect this
+					// so we might and it okay
+					// okay
+					{
+						exprSafety = Expression.And(exprSafety, exprHere);
+					} else {
+						exprSafety = exprHere;
+					}
+				} else {
+					exprOthers.add(exprHere);
+				}
+			}
+		if(exprRews == null)
+		{
+			Expression exprHere = propertiesFile.getProperty(0);
+			ExpressionReward exprRew = (ExpressionReward) exprHere;
+			exprRews = new ArrayList<>();
+			exprRews.add(exprRew);
+		}
+		mainLog.println("Properities "+exprOthers.toString()+" safety "+exprSafety.toString());
+	}
 	public void loadProperties(String propertiesFileName) throws Exception {
 		// loads the properties
 		exprRews = null;
@@ -405,11 +460,11 @@ public class SingleAgentSolverMaxExpTask {
 		}
 		//		return solution;
 		
-		if (name != null) {
-		PolicyCreator pc = new PolicyCreator();
-		pc.createPolicyAllStates(npMDP.getProductModel(), result.strat);
-		pc.savePolicy(resLoc, "nvipol" + name);
-	}
+//		if (name != null) {
+//		PolicyCreator pc = new PolicyCreator();
+//		pc.createPolicyAllStates(npMDP.getProductModel(), result.strat);
+//		pc.savePolicy(resLoc, "nvipol" + name);
+//	}
 
 	}
 

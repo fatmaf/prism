@@ -41,8 +41,10 @@ public class TrialBasedTreeSearch {
 	protected PrismLog fileLog;
 
 	protected HashMap<String, Node> nodesAddedSoFar;
-	private int decisionNodesExplored;
-	private int chanceNodesExplored;
+    ArrayList<Integer> trialLenArray = new ArrayList<Integer>();
+	
+	int decisionNodesExplored;
+	  int chanceNodesExplored;
 	protected int numRollouts;
 	protected int trialLen;
 	private boolean doForwardBackup;
@@ -52,6 +54,47 @@ public class TrialBasedTreeSearch {
 	protected String name = null;
 	protected MDPCreator trialMDP;
 	protected VisualiserLog vl;
+	protected boolean timeBound = false;
+	long timeLimitInMS = 1000000;
+
+	public void setTimeBound(boolean t) {
+		timeBound = t;
+	}
+
+	public boolean isTimeBound() {
+		return timeBound;
+	}
+
+	public void setTimeLimitInMilliSeconds(long time) {
+		timeLimitInMS = time;
+	}
+
+	public long getTimeLimitInMilliSeconds() {
+		return timeLimitInMS;
+	}
+
+	long startTime=-1;
+	long endTime=-1;
+	long duration=-1;
+	int avgTrialLen;
+
+	public void startTimer() {
+		startTime = System.currentTimeMillis();
+	}
+
+	public void calculateDuration() {
+		endTime = System.currentTimeMillis();
+		duration = endTime - startTime;
+	}
+
+	public long getDuration() {
+		return duration;
+	}
+
+	public boolean hasReachedTimeLimit() {
+		calculateDuration();
+		return (duration > timeLimitInMS);
+	}
 
 	public TrialBasedTreeSearch(DefaultModelGenerator pmg, int maxRollouts, int maxTrialLen,
 			Heuristic heuristicFunction, ActionSelector actionSelection, OutcomeSelector outcomeSelection,
@@ -189,7 +232,7 @@ public class TrialBasedTreeSearch {
 			trialLenHist.add(0);
 		}
 		trialLenHist.add(0);
-		double avgTrialLen = 0;
+		avgTrialLen = 0;
 
 		vl.newRollout(numRollouts);
 		boolean initStateSolved = false;
@@ -207,6 +250,7 @@ public class TrialBasedTreeSearch {
 			// new MDPCreator();
 			visitDecisionNode((DecisionNode) n0);
 
+			
 			if (resultsLocation != null) {
 				if (trialMDP != null)
 					trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
@@ -219,12 +263,13 @@ public class TrialBasedTreeSearch {
 			}
 			mainLog.println("Trial Ended with steps:" + trialLen);
 			fileLog.println("Trial Ended with steps:" + trialLen);
+			trialLenArray.add(trialLen);
 			avgTrialLen = (avgTrialLen * numRollouts + trialLen) / (numRollouts + 1);
-			int binnum = trialLen / binsize;
-			if (trialLenHist != null && trialLenHist.size() > binnum) {
-				int binval = trialLenHist.get(binnum);
-				trialLenHist.set(binnum, ++binval);
-			}
+//			int binnum = trialLen / binsize;
+//			if (trialLenHist != null && trialLenHist.size() > binnum) {
+//				int binval = trialLenHist.get(binnum);
+//				trialLenHist.set(binnum, ++binval);
+//			}
 //				if (notTimedOut()) {
 //					mainLog.println("New trial since number of steps was not used up");
 //					fileLog.println("New trial since number of steps was not used up");
@@ -263,8 +308,8 @@ public class TrialBasedTreeSearch {
 		int prevTrialLen = trialLen;
 		boolean doBackup = true;
 		if (!n.isSolved() & notTimedOut()) {
-			if (n.getState().toString().contains("1,-1,1,0,1,0"))
-				mainLog.println();
+//			if (n.getState().toString().contains("1,-1,1,0,1,0"))
+//				mainLog.println();
 			doBackup = true;
 			trialLen++;
 			prevTrialLen = trialLen;
@@ -390,10 +435,16 @@ public class TrialBasedTreeSearch {
 	}
 
 	boolean notTimedOut() {
-		if (maxTrialLen < 0)
-			return true;
-		else
-			return (this.trialLen < this.maxTrialLen);// (this.numRollouts < this.maxRollouts);
+		if (!isTimeBound()) {
+			if (maxTrialLen < 0)
+				return true;
+			else
+				return (this.trialLen < this.maxTrialLen);// (this.numRollouts < this.maxRollouts);
+		} else {
+			if(startTime==-1)
+				startTimer();
+			return (!hasReachedTimeLimit());
+		}
 	}
 
 	void setNodeHeuristics(Node n0) throws PrismException {
@@ -617,11 +668,11 @@ public class TrialBasedTreeSearch {
 		return runThrough(actSelrt, resultsLocation, 0);
 	}
 
-	HashMap<Objectives,Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum,Prism prism)
+	HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism)
 			throws Exception {
 		// need a rewards structure
 		// need a costs structure
-		HashMap<Objectives,Double> resvals = new HashMap<Objectives,Double>();
+		HashMap<Objectives, Double> resvals = new HashMap<Objectives, Double>();
 		BitSet accStates = new BitSet();
 		BitSet avoidStates = new BitSet();
 		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
@@ -699,19 +750,117 @@ public class TrialBasedTreeSearch {
 		ProbModelChecker pmc = new ProbModelChecker(prism);
 //		pmc.setModelCheckingInfo(modulesFile, propertiesFile, (RewardGenerator) maModelGen);
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
-		 avoidStates.flip(0, tempMDP.getMDP().getNumStates());
-		 MDPValIter vi = new MDPValIter();
-		 ArrayList<Boolean> minRewards = new ArrayList<>(); 
-		 minRewards.add(false); 
-		 minRewards.add(true);
-		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates, /*avoidStates*/null,
-				rews, null, minRewards, null, 1, null, mainLog, resultsLocation,"vistuff");
+		avoidStates.flip(0, tempMDP.getMDP().getNumStates());
+		MDPValIter vi = new MDPValIter();
+		ArrayList<Boolean> minRewards = new ArrayList<>();
+		minRewards.add(false);
+		minRewards.add(true);
+		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
+				/* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog, resultsLocation, "vistuff");
 //		return toRet;
 //		return tempMDP;
-		resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]); 
-		resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]); 
+		resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
+		resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
 		resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
-		return resvals; 
+		return resvals;
+
+	}
+	
+	HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, String rnNum, Prism prism)
+			throws Exception {
+		// need a rewards structure
+		// need a costs structure
+		HashMap<Objectives, Double> resvals = new HashMap<Objectives, Double>();
+		BitSet accStates = new BitSet();
+		BitSet avoidStates = new BitSet();
+//		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
+//		vl.beginPolRun();
+		boolean goalFound = false;
+		Node n0 = getRootNode(0);
+		System.out.println("Root node solved: " + n0.isSolved());
+		MDPCreator tempMDP = new MDPCreator();
+		mainLog.println("Running through");
+		fileLog.println("Running through");
+		Stack<DecisionNode> q = new Stack<DecisionNode>();
+		ArrayList<DecisionNode> seen = new ArrayList<>();
+		q.push((DecisionNode) n0);
+		while (!q.isEmpty()) {
+			DecisionNode d = q.pop();
+			if (d.isGoal) {
+				goalFound = true;
+				int si = tempMDP.getStateIndex(d.getState());
+				accStates.set(si);
+
+			}
+//			if (d.isDeadend) {
+//				int si = tempMDP.getStateIndex(d.getState());
+//				avoidStates.set(si);
+//			}
+			if (seen.contains(d))
+				continue;
+			seen.add(d);
+			mainLog.println(d.getShortName() + d.getBoundsString());
+			fileLog.println(d.getShortName() + d.getBoundsString());
+
+			if (d.canHaveChildren() && !d.isLeafNode()) {
+				if (d.getChildren().size() < 5)
+					mainLog.println(d.getChildren());
+				ChanceNode a = actSelrt.selectAction(d, false);
+
+				vl.beginActionSelection();
+				vl.writeActSelChoices(d);
+				vl.writeSelectedAction(a);
+				vl.endActionSelectin();
+
+				// get these children
+				if (a != null) {
+
+					mainLog.println(a);
+					fileLog.println(a);
+					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
+					if (a.getChildren() != null) {
+						for (DecisionNode dnc : a.getChildren()) {
+							q.push(dnc);
+							successors.add(
+									new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
+						}
+						ArrayList<Double> rews = new ArrayList<Double>();
+						rews.add(a.getReward(Objectives.TaskCompletion));
+						rews.add(a.getReward(Objectives.Cost));
+						tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
+					}
+				} else {
+					fileLog.println("no action for " + d.getState());
+				}
+			} else {
+				fileLog.println(d.getState() + (d.canHaveChildren()
+						? (d.isLeafNode() ? "unexplored" : "can have children so whats happeing here?")
+						: " is a goal or deadend"));
+			}
+		}
+//		int si = tempMDP.getStateIndex(n0.getState());
+		tempMDP.setInitialState(n0.getState());
+//		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
+//		boolean[] toRet = { goalFound, n0.isSolved() };
+//		vl.endRollout();
+//		vl.closeLog();
+		ArrayList<MDPRewardsSimple> rews = tempMDP.createRewardStructures();
+		ProbModelChecker pmc = new ProbModelChecker(prism);
+//		pmc.setModelCheckingInfo(modulesFile, propertiesFile, (RewardGenerator) maModelGen);
+		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
+		avoidStates.flip(0, tempMDP.getMDP().getNumStates());
+		MDPValIter vi = new MDPValIter();
+		ArrayList<Boolean> minRewards = new ArrayList<>();
+		minRewards.add(false);
+		minRewards.add(true);
+		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
+				/* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog, resultsLocation, "vistuff");
+//		return toRet;
+//		return tempMDP;
+		resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
+		resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
+		resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
+		return resvals;
 
 	}
 

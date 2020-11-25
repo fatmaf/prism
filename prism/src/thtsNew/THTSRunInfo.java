@@ -1,5 +1,7 @@
 package thtsNew;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import thts.Bounds;
@@ -13,6 +15,14 @@ public class THTSRunInfo {
 	public HashMap<Objectives,Bounds> initialStateValues=null;
 	public HashMap<Objectives,Double> vipol = null; 
 	public boolean stackoverflowerror = false; 
+	public boolean timeLimited = false; 
+	public long maxTimeLimit = -1; 
+	public long duration = -1; 
+	public double averageTrialLen = -1; 
+	public int maxTrialLen = 0; 
+	public int minTrialLen = 0; 
+	public int chanceNodesExp = -1; 
+	public int decisionNodesExp = -1; 
 	
 	boolean goalFoundAndSolved()
 	{
@@ -52,6 +62,11 @@ public class THTSRunInfo {
 			}
 		}
 		return toret; 
+	}
+	public void setTrialLenStuff(ArrayList<Integer> tLens)
+	{
+		this.minTrialLen = Collections.min(tLens);
+		this.maxTrialLen = Collections.max(tLens  );
 	}
 
 }
