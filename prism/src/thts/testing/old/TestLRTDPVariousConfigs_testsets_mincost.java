@@ -467,14 +467,14 @@ public class TestLRTDPVariousConfigs_testsets_mincost {
 		prism.setEngine(Prism.EXPLICIT);
 
 		mainLog.println("Initialised Prism");
-
+		fileLog.println("TIME-InitialisedPrism:"+System.currentTimeMillis());
 		stateActions = new ArrayList<>();
 		singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, mainLog, logFilesLocation, tfi.filenames,
 				tfi.propertiesfile, stateActions, robots, goals);
-
+		fileLog.println("TIME-SolvedSingleAgentSolutions:"+System.currentTimeMillis());
 		maModelGen = createNestedMultiAgentModelGen(prism, mainLog, tfi.filenames, tfi.propertiesfile, logFilesLocation,
 				tfi.hasSharedState, robots, goals);
-
+		fileLog.println("TIME-GeneratedMAModel:"+System.currentTimeMillis());
 		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
 		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., maxCost));
 		minMaxVals.put(Objectives.TaskCompletion,
@@ -494,11 +494,11 @@ public class TestLRTDPVariousConfigs_testsets_mincost {
 		mainLog.println("\nInitialising THTS");
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
-
+		fileLog.println("TIME-StartingSearch:"+System.currentTimeMillis());
 		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts,
 				trialLength, heuristic, actSel, outSel, rewardH, backup, doForwardBackup, tieBreakingOrder, mainLog,
 				fileLog);
-
+		
 		if (dovipolcheckonintervals) {
 			thts.enablePolCheckAtIntervals(0, prism);
 		}
@@ -517,11 +517,15 @@ public class TestLRTDPVariousConfigs_testsets_mincost {
 		} catch (StackOverflowError e) {
 			runInfo.stackoverflowerror = true;
 		}
+		fileLog.println("TIME-FinishedSearch:"+System.currentTimeMillis());
+		
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
 		HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, prism);
-		System.out.println(tempres);
+		fileLog.println("TIME-FinishedVIPol:"+System.currentTimeMillis());
+		fileLog.println("VIPolValues:\n"+tempres);
+//		System.out.println(tempres);
 
 		mainLog.close();
 		fileLog.close();
