@@ -1,0 +1,1 @@
+PRISM_MAINCLASS=thtsNew.TestLRTDPVariousConfigs_testsets_mincost prism/bin/prism
