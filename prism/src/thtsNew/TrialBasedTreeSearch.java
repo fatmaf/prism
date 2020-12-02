@@ -116,7 +116,7 @@ public class TrialBasedTreeSearch {
 		calculateDuration();
 		if (doPolicyCheckAtIntervals) {
 			long timePassedSincePrevCheck = duration - timeAtPrevPolCheck; 
-			long timeInterval = timePassedSincePrevCheck - polCheckIntervalInMS; 
+			
 			
 			if (timePassedSincePrevCheck>polCheckIntervalInMS) {
 
@@ -124,7 +124,10 @@ public class TrialBasedTreeSearch {
 					if (timeValues == null)
 						timeValues = new HashMap<>();
 
+					fileLog.println("TIME-VIPol"+timeValues.size()+"Start:"+System.currentTimeMillis());
 					HashMap<Objectives, Double> res = doVIOnPolicy(actSel, polPrism);
+					fileLog.println("TIME-VIPol"+timeValues.size()+"End:"+System.currentTimeMillis());
+					fileLog.println("VIPol"+timeValues.size()+":"+res);
 					timeValues.put(duration, res);
 					timeAtPrevPolCheck = duration;
 				} catch (Exception e) {
@@ -258,6 +261,7 @@ public class TrialBasedTreeSearch {
 
 	public int run(boolean fixSCCs, int rootNodeNum, boolean debug) throws Exception {
 
+		fileLog.println("TIME-StartingTHTSRun:"+System.currentTimeMillis());
 		boolean donullvl = false;// true;
 		if (!debug) {
 			donullvl = true;
@@ -278,6 +282,7 @@ public class TrialBasedTreeSearch {
 		vl.newRollout(numRollouts);
 		boolean initStateSolved = false;
 		while (this.numRollouts < this.maxRollouts && !initStateSolved) {
+			fileLog.println("TIME-StartingTrial:"+System.currentTimeMillis());
 			mainLog.println("Rollout: " + numRollouts);
 			fileLog.println("Rollout: " + numRollouts);
 			vl.newRollout(numRollouts);
@@ -293,11 +298,8 @@ public class TrialBasedTreeSearch {
 					trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
 
 			}
-			if (fixSCCs) {
-				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false));
-//				
-				sccfinder.findSCCs((DecisionNode) n0, fixSCCs);
-			}
+
+			fileLog.println("TIME-FinishedTrial:"+System.currentTimeMillis());
 			mainLog.println("Trial Ended with steps:" + trialLen);
 			fileLog.println("Trial Ended with steps:" + trialLen);
 			trialLenArray.add(trialLen);
@@ -348,8 +350,8 @@ public class TrialBasedTreeSearch {
 			n.numVisits++;
 //			mainLog.println(
 //					"Step:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
-			fileLog.println(
-					"Step:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
+//			fileLog.println(
+//					"Step:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
 			vl.addStateBit(n);
 
 			// mark for goal or deadend
@@ -360,8 +362,8 @@ public class TrialBasedTreeSearch {
 				// so we've got to check all the actions associated with this node
 				// and randomly select one
 
-				if (n.getState().toString().contains("2,-1,1,0,1,0"))
-					mainLog.println("hmm");
+//				if (n.getState().toString().contains("2,-1,1,0,1,0"))
+//					mainLog.println("hmm");
 				ChanceNode selectedAction = selectAction(n);
 				// lrtdp has a forward backup
 //				backup.backupDecisionNode(n);
@@ -376,7 +378,7 @@ public class TrialBasedTreeSearch {
 //				n.markSolved();
 				n.setSolved();
 //				mainLog.println("Setting " + n.getState() + " to solved");
-				fileLog.println("Setting " + n.getState() + " to solved");
+//				fileLog.println("Setting " + n.getState() + " to solved");
 //				doBackup = false;
 			}
 //			if (n.getShortName().contains("5"))
@@ -386,15 +388,15 @@ public class TrialBasedTreeSearch {
 			doBackup = backup.backupDecisionNode(n, doBackup);
 //			mainLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
 //					+ n.getBoundsString());
-			fileLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
-					+ n.getBoundsString() + (n.isSolved() ? ", solved" : ""));
+//			fileLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
+//					+ n.getBoundsString() + (n.isSolved() ? ", solved" : ""));
 
 		} else {
 			if (n != null) {
 //				mainLog.println("TimedOut/Solved:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
 //						+ n.getBoundsString() + " solved:" + n.isSolved());
-				fileLog.println("TimedOut/Solved:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
-						+ n.getBoundsString() + " solved:" + n.isSolved());
+//				fileLog.println("TimedOut/Solved:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
+//						+ n.getBoundsString() + " solved:" + n.isSolved());
 			}
 		}
 		return doBackup;
@@ -410,8 +412,8 @@ public class TrialBasedTreeSearch {
 			n.numVisits++;
 //			mainLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
 //					+ n.getBoundsString());
-			fileLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
-					+ n.getBoundsString());
+//			fileLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
+//					+ n.getBoundsString());
 
 			ArrayList<DecisionNode> selectedOutcome = selectOutcome(n);
 			vl.endStep();
@@ -426,8 +428,8 @@ public class TrialBasedTreeSearch {
 				backup.forwardbackupChanceNode(n);
 //				mainLog.println("ForwardBackupStep:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + ","
 //						+ n.numVisits + ",B:" + n.getBoundsString());
-				fileLog.println("ForwardBackupStep:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + ","
-						+ n.numVisits + ",B:" + n.getBoundsString());
+//				fileLog.println("ForwardBackupStep:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+//						+ n.numVisits + ",B:" + n.getBoundsString());
 
 			}
 			// outcome = selectOutcome(n)
@@ -451,8 +453,8 @@ public class TrialBasedTreeSearch {
 			backup.backupChanceNode(n, doBackup);
 //			mainLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
 //					+ n.numVisits + ",B:" + n.getBoundsString());
-			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
-					+ n.numVisits + ",B:" + n.getBoundsString() + (n.isSolved() ? ", solved" : ""));
+//			fileLog.println("BackupStep:" + prevTrialLen + "CN:" + n.getState() + "," + n.getAction() + ","
+//					+ n.numVisits + ",B:" + n.getBoundsString() + (n.isSolved() ? ", solved" : ""));
 
 		} else {
 			fileLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
@@ -520,8 +522,8 @@ public class TrialBasedTreeSearch {
 			backup.forwardbackupDecisionNode(n0);
 //			mainLog.println("ForwardBackupStep:" + trialLen + "DN:" + n0.getState() + "," + n0.numVisits + ",B:"
 //					+ n0.getBoundsString());
-			fileLog.println("ForwardBackupStep:" + trialLen + "DN:" + n0.getState() + "," + n0.numVisits + ",B:"
-					+ n0.getBoundsString());
+//			fileLog.println("ForwardBackupStep:" + trialLen + "DN:" + n0.getState() + "," + n0.numVisits + ",B:"
+//					+ n0.getBoundsString());
 
 		}
 
@@ -641,8 +643,8 @@ public class TrialBasedTreeSearch {
 		Node n0 = getRootNode(rnNum);
 		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
-		mainLog.println("Running through");
-		fileLog.println("Running through");
+//		mainLog.println("Running through");
+//		fileLog.println("Running through");
 		Stack<DecisionNode> q = new Stack<DecisionNode>();
 		ArrayList<DecisionNode> seen = new ArrayList<>();
 		q.push((DecisionNode) n0);
@@ -653,8 +655,8 @@ public class TrialBasedTreeSearch {
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
-			mainLog.println(d.getShortName() + d.getBoundsString());
-			fileLog.println(d.getShortName() + d.getBoundsString());
+//			mainLog.println(d.getShortName() + d.getBoundsString());
+//			fileLog.println(d.getShortName() + d.getBoundsString());
 //			if (d.getShortName().contains("4,0,0,1,0"))
 //				mainLog.println("debug");
 			if (d.canHaveChildren() && !d.isLeafNode()) {
@@ -664,8 +666,8 @@ public class TrialBasedTreeSearch {
 				// get these children
 				if (a != null) {
 
-					mainLog.println(a);
-					fileLog.println(a);
+//					mainLog.println(a);
+//					fileLog.println(a);
 					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
 
 					if (a.getChildren() != null) {
@@ -687,7 +689,7 @@ public class TrialBasedTreeSearch {
 				}
 			}
 		}
-		tempMDP.saveMDP(resultsLocation, getName() + "_runthru_mostProb.dot");
+//		tempMDP.saveMDP(resultsLocation, getName() + "_runthru_mostProb.dot");
 		boolean[] toRet = { goalFound, n0.isSolved() };
 		return toRet;
 	}
@@ -703,14 +705,14 @@ public class TrialBasedTreeSearch {
 		HashMap<Objectives, Double> resvals = new HashMap<Objectives, Double>();
 		BitSet accStates = new BitSet();
 		BitSet avoidStates = new BitSet();
-		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
-		vl.beginPolRun();
+//		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
+//		vl.beginPolRun();
 
 		Node n0 = getRootNode(rnNum);
-		System.out.println("Root node solved: " + n0.isSolved());
+//		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
-		mainLog.println("Running through");
-		fileLog.println("Running through");
+//		mainLog.println("Running through");
+//		fileLog.println("Running through");
 		Stack<DecisionNode> q = new Stack<DecisionNode>();
 		ArrayList<DecisionNode> seen = new ArrayList<>();
 		q.push((DecisionNode) n0);
@@ -726,12 +728,12 @@ public class TrialBasedTreeSearch {
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
-			mainLog.println(d.getShortName() + d.getBoundsString());
-			fileLog.println(d.getShortName() + d.getBoundsString());
+//			mainLog.println(d.getShortName() + d.getBoundsString());
+//			fileLog.println(d.getShortName() + d.getBoundsString());
 
 			if (d.canHaveChildren() && !d.isLeafNode()) {
-				if (d.getChildren().size() < 5)
-					mainLog.println(d.getChildren());
+//				if (d.getChildren().size() < 5)
+//					mainLog.println(d.getChildren());
 
 				ArrayList<ChanceNode> as;
 				if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
@@ -743,16 +745,16 @@ public class TrialBasedTreeSearch {
 				}
 
 				for (ChanceNode a : as) {
-					vl.beginActionSelection();
-					vl.writeActSelChoices(d);
-					vl.writeSelectedAction(a);
-					vl.endActionSelectin();
+//					vl.beginActionSelection();
+//					vl.writeActSelChoices(d);
+//					vl.writeSelectedAction(a);
+//					vl.endActionSelectin();
 
 					// get these children
 					if (a != null) {
 
-						mainLog.println(a);
-						fileLog.println(a);
+//						mainLog.println(a);
+//						fileLog.println(a);
 						ArrayList<Entry<State, Double>> successors = new ArrayList<>();
 						if (a.getChildren() != null) {
 							for (DecisionNode dnc : a.getChildren()) {
@@ -777,10 +779,10 @@ public class TrialBasedTreeSearch {
 		}
 
 		tempMDP.setInitialState(n0.getState());
-		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
+//		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
 
-		vl.endRollout();
-		vl.closeLog();
+//		vl.endRollout();
+//		vl.closeLog();
 		ArrayList<MDPRewardsSimple> rews = tempMDP.createRewardStructures();
 		ProbModelChecker pmc = new ProbModelChecker(prism);
 
@@ -809,7 +811,7 @@ public class TrialBasedTreeSearch {
 	}
 
 	HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, Prism prism) throws Exception {
-		fileLog.println("Starting VI on Policy");
+//		fileLog.println("Starting VI on Policy");
 		long viStartTime = System.currentTimeMillis();
 		// need a rewards structure
 		// need a costs structure
@@ -820,8 +822,8 @@ public class TrialBasedTreeSearch {
 		Node n0 = getRootNode(0);
 //		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
-		mainLog.println("Running through");
-		fileLog.println("Running through");
+//		mainLog.println("Running through");
+//		fileLog.println("Running through");
 		Stack<DecisionNode> q = new Stack<DecisionNode>();
 		ArrayList<DecisionNode> seen = new ArrayList<>();
 		q.push((DecisionNode) n0);
@@ -836,8 +838,8 @@ public class TrialBasedTreeSearch {
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
-			mainLog.println(d.getShortName() + d.getBoundsString());
-			fileLog.println(d.getShortName() + d.getBoundsString());
+//			mainLog.println(d.getShortName() + d.getBoundsString());
+//			fileLog.println(d.getShortName() + d.getBoundsString());
 
 			if (d.canHaveChildren() && !d.isLeafNode()) {
 
@@ -850,15 +852,15 @@ public class TrialBasedTreeSearch {
 					as.add(a);
 				}
 				for (ChanceNode a : as) {
-					vl.beginActionSelection();
-					vl.writeActSelChoices(d);
-					vl.writeSelectedAction(a);
-					vl.endActionSelectin();
+//					vl.beginActionSelection();
+//					vl.writeActSelChoices(d);
+//					vl.writeSelectedAction(a);
+//					vl.endActionSelectin();
 
 					if (a != null) {
 
-						mainLog.println(a);
-						fileLog.println(a);
+//						mainLog.println(a);
+//						fileLog.println(a);
 						ArrayList<Entry<State, Double>> successors = new ArrayList<>();
 						if (a.getChildren() != null) {
 							for (DecisionNode dnc : a.getChildren()) {
@@ -907,14 +909,14 @@ public class TrialBasedTreeSearch {
 	}
 
 	boolean[] runThrough(ActionSelector actSelrt, String resultsLocation, int rnNum) throws Exception {
-		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
-		vl.beginPolRun();
+//		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
+//		vl.beginPolRun();
 		boolean goalFound = false;
 		Node n0 = getRootNode(rnNum);
 		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
-		mainLog.println("Running through");
-		fileLog.println("Running through");
+//		mainLog.println("Running through");
+//		fileLog.println("Running through");
 		Stack<DecisionNode> q = new Stack<DecisionNode>();
 		ArrayList<DecisionNode> seen = new ArrayList<>();
 		q.push((DecisionNode) n0);
@@ -925,25 +927,25 @@ public class TrialBasedTreeSearch {
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
-			mainLog.println(d.getShortName() + d.getBoundsString());
-			fileLog.println(d.getShortName() + d.getBoundsString());
+//			mainLog.println(d.getShortName() + d.getBoundsString());
+//			fileLog.println(d.getShortName() + d.getBoundsString());
 //			if (d.getShortName().contains("4,0,0,1,0"))
 //				mainLog.println("debug");
 			if (d.canHaveChildren() && !d.isLeafNode()) {
-				if (d.getChildren().size() < 5)
-					mainLog.println(d.getChildren());
+//				if (d.getChildren().size() < 5)
+//					mainLog.println(d.getChildren());
 				ChanceNode a = actSelrt.selectAction(d, false);
 
-				vl.beginActionSelection();
-				vl.writeActSelChoices(d);
-				vl.writeSelectedAction(a);
-				vl.endActionSelectin();
+//				vl.beginActionSelection();
+//				vl.writeActSelChoices(d);
+//				vl.writeSelectedAction(a);
+//				vl.endActionSelectin();
 
 				// get these children
 				if (a != null) {
 
-					mainLog.println(a);
-					fileLog.println(a);
+//					mainLog.println(a);
+//					fileLog.println(a);
 					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
 					if (a.getChildren() != null) {
 						for (DecisionNode dnc : a.getChildren()) {
@@ -962,10 +964,10 @@ public class TrialBasedTreeSearch {
 						: " is a goal or deadend"));
 			}
 		}
-		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
+//		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
 		boolean[] toRet = { goalFound, n0.isSolved() };
-		vl.endRollout();
-		vl.closeLog();
+//		vl.endRollout();
+//		vl.closeLog();
 		return toRet;
 	}
 
