@@ -70,7 +70,7 @@ public class GetTestInfo {
 	}
 
 	public HashMap<String, TestSuite> readTestSuitesFromCSV() {
-		String testinfoloc = "/home/fatma/Data/PhD/code/stapussi_prelim/xkcdStyle/testInfo/allTests/";
+		String testinfoloc = "./tests/";
 		String fn = "allTests.csv";
 		HashMap<String, TestSuite> testSuites = new HashMap<>();
 		try {
