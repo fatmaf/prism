@@ -37,7 +37,7 @@ public class MultiAgentHeuristic implements Heuristic {
 		this.tightBounds = tightBounds;
 	}
 
-	public void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode n) {
+	public void setChanceNodeBounds(ArrayList<Objectives> objs, ChanceNode n) throws PrismException {
 		// just the best
 		// so the same as a backup
 		if (n.getChildren() != null) {

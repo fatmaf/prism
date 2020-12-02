@@ -443,7 +443,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);//new ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);//new ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 		
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
 		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -487,7 +487,7 @@ public class TempTHTS {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),resultsLocation);
+		thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),resultsLocation);
 
 
 	}
@@ -534,7 +534,7 @@ public class TempTHTS {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);//new ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);//new ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 		
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
 		fileLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -579,7 +579,7 @@ public class TempTHTS {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),resultsLocation);
+		thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),resultsLocation);
 
 
 	}
@@ -668,7 +668,7 @@ public class TempTHTS {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),resultsLocation);
+		thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),resultsLocation);
 
 	}
 

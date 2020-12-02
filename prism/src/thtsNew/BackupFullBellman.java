@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+import prism.PrismException;
 import thts.Bounds;
 import thts.Objectives;
 
@@ -18,7 +19,7 @@ public class BackupFullBellman extends BackupNVI {
 	}
 
 	@Override
-	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) {
+	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws PrismException {
 		if (cn.getChildren() != null) {
 
 			for (Objectives obj : tieBreakingOrder) {
@@ -163,7 +164,7 @@ public class BackupFullBellman extends BackupNVI {
 	}
 
 	@Override
-	public boolean forwardbackupChanceNode(ChanceNode cn) {
+	public boolean forwardbackupChanceNode(ChanceNode cn) throws PrismException {
 		return backupChanceNode(cn,true);
 	}
 

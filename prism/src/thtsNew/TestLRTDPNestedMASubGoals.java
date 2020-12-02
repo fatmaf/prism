@@ -472,7 +472,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -533,7 +533,7 @@ public class TestLRTDPNestedMASubGoals {
 			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 			ArrayList<State> res;
 			if (maModelGen.initialStateList == null) {
-				res = thts.runThroughRetFinalStatesList(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+				res = thts.runThroughRetFinalStatesList(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),
 						resultsLocation, 0, heuristicFunction.subGoalNum);
 				if (res.size() > 0)
 					maModelGen.initialStateList = res;
@@ -541,7 +541,7 @@ public class TestLRTDPNestedMASubGoals {
 				res = new ArrayList<>();
 				for (int rnNum = 0; rnNum < maModelGen.initialStateList.size(); rnNum++) {
 					ArrayList<State> tres = thts.runThroughRetFinalStatesList(
-							new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation, rnNum,
+							new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation, rnNum,
 							heuristicFunction.subGoalNum);
 					res.addAll(tres);
 
@@ -557,7 +557,7 @@ public class TestLRTDPNestedMASubGoals {
 		// one last time
 		maModelGen.initialStateList = null;
 		ArrayList<State> tres = thts.runThroughRetFinalStatesList(
-				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation, 0,
+				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation, 0,
 				heuristicFunction.subGoalNum + 1);
 		mainLog.close();
 		fileLog.close();
@@ -674,7 +674,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -730,7 +730,7 @@ public class TestLRTDPNestedMASubGoals {
 			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
 			ArrayList<State> res = thts.runThroughRetFinalStatesList(
-					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation, 0,
+					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation, 0,
 					heuristicFunction.subGoalNum);
 			maModelGen.initialStateList = res;
 
@@ -846,7 +846,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -892,7 +892,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
@@ -908,7 +908,7 @@ public class TestLRTDPNestedMASubGoals {
 //					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 //					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 //
-//					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+//					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),
 //							resultsLocation);
 //					goalFound = goalack[0];
 //					fileLog.println("Goal Found: " + goalack[0]);
@@ -1029,7 +1029,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1075,7 +1075,7 @@ public class TestLRTDPNestedMASubGoals {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
@@ -1093,7 +1093,7 @@ public class TestLRTDPNestedMASubGoals {
 //					mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 //					fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 //
-//					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+//					goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),
 //							resultsLocation);
 //					goalFound = goalack[0];
 //					fileLog.println("Goal Found: " + goalack[0]);

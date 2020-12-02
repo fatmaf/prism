@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
 
+import prism.PrismException;
 import thts.Bounds;
 import thts.Objectives;
 
@@ -13,7 +14,8 @@ public class BackupLabelledFullBelman extends BackupNVI {
 	float epsilon;
 	ActionSelector actSel;
 
-	public BackupLabelledFullBelman(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon) {
+	public BackupLabelledFullBelman(ArrayList<Objectives> tieBreakingOrder,
+			ActionSelector actSel, float epsilon) {
 //		this.tieBreakingOrder = tieBreakingOrder;
 		super(tieBreakingOrder);
 		this.epsilon = epsilon;
@@ -22,22 +24,12 @@ public class BackupLabelledFullBelman extends BackupNVI {
 
 	boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds) {
 		return boundsLessThanEpsilon(bounds, epsilon, tieBreakingOrder);
-//		boolean toret = true;
-//		for(Objectives obj:tieBreakingOrder)
-//		{
-//			Bounds b = bounds.get(obj); 
-//			if(b.getLower()>epsilon)
-//			{
-//				toret = false; 
-//				break; 
-//			}
-//		}
-//		return toret; 
+
 
 	}
 
 	@Override
-	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) {
+	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws PrismException {
 		updateChanceNode(cn);
 		return doBackup;
 	}
@@ -64,10 +56,7 @@ public class BackupLabelledFullBelman extends BackupNVI {
 							updateChanceNode(cn);
 						}
 					}
-//					else
-//					{
-//						System.out.println("bug");
-//					}
+
 				}
 				HashMap<Objectives, Bounds> bounds = residualDecision((DecisionNode) s);
 
@@ -98,8 +87,6 @@ public class BackupLabelledFullBelman extends BackupNVI {
 			} else {
 				while (!closed.isEmpty()) {
 					DecisionNode dns = closed.pop();
-//					ChanceNode cn = actSel.selectAction(dns, false);
-//					updateChanceNode(cn);
 					updateDecisionNode(dns);
 				}
 			}
@@ -110,7 +97,7 @@ public class BackupLabelledFullBelman extends BackupNVI {
 
 	}
 
-	public void updateChanceNode(ChanceNode cn) {
+	public void updateChanceNode(ChanceNode cn) throws PrismException {
 		if (cn.getChildren() != null) {
 
 			for (Objectives obj : tieBreakingOrder) {
@@ -126,7 +113,7 @@ public class BackupLabelledFullBelman extends BackupNVI {
 
 				}
 				cn.leadToDeadend = allChildrenAreDeadends;
-//				if (!cn.leadToDeadend) // Ignore the reward if its a deadend
+
 				sumHere = sumHere.add(rewHere);
 				cn.setBounds(obj, sumHere);
 			}
@@ -235,7 +222,7 @@ public class BackupLabelledFullBelman extends BackupNVI {
 	}
 
 	@Override
-	public boolean forwardbackupChanceNode(ChanceNode cn) {
+	public boolean forwardbackupChanceNode(ChanceNode cn) throws PrismException {
 		updateChanceNode(cn);
 		return true;
 	}

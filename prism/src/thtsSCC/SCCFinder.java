@@ -119,7 +119,7 @@ public class SCCFinder {
 	void test() throws Exception {
 		ArrayList<Objectives> tieBreakingOrder = new ArrayList<Objectives>();
 		tieBreakingOrder.add(Objectives.Cost);
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);
 		actSel = actionSelection;
 //		actSel = null;
 		DecisionNode root = this.createTestGraph();

@@ -110,7 +110,7 @@ public class TestJustMDP {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -154,7 +154,7 @@ public class TestJustMDP {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 		if (goalack[0])
 			goalFound++;
 
@@ -258,7 +258,7 @@ public class TestJustMDP {
 			mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 			fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-			ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+			ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																										// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 			mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -301,7 +301,7 @@ public class TestJustMDP {
 			mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 			fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-			boolean[] goalackAndSolved = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+			boolean[] goalackAndSolved = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),
 					resultsLocation);
 			if (goalackAndSolved[0])
 				goalFound++;

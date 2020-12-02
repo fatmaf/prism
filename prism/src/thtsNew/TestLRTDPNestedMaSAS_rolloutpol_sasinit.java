@@ -327,7 +327,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol_sasinit {
 
 		ActionSelector greedyActSel = new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
 		if (config == 2 || config == 4)
-			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);
 		double actSelSoftmaxProb = egreedy;
 		ActionSelector softmaxActSel = new ActionSelectorSoftmax(greedyActSel, actSelSoftmaxProb);
 		ActionSelector rolloutPol = new ActionSelectorSASRolloutPol(maModelGen, stateActions);
@@ -373,7 +373,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol_sasinit {
 
 		rinfo = new THTSRunInfo();
 		if (config >= 3)
-			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,true);
 		goalack = thts.runThroughMostProb(greedyActSel, resultsLocation);
 		rinfo.goalOnProbablePath = goalack[0];
 		goalack = thts.runThrough(greedyActSel, resultsLocation);

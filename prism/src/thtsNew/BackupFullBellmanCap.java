@@ -3,6 +3,9 @@ package thtsNew;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+
+import prism.PrismException;
+
 import java.util.Map.Entry;
 
 import thts.Bounds;
@@ -29,7 +32,7 @@ public class BackupFullBellmanCap extends BackupNVI {
 	}
 
 	@Override
-	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) {
+	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws PrismException {
 		if (!cn.isSolved()) {
 			if (cn.getChildren() != null) {
 
@@ -187,7 +190,7 @@ public class BackupFullBellmanCap extends BackupNVI {
 	}
 
 	@Override
-	public boolean forwardbackupChanceNode(ChanceNode cn) {
+	public boolean forwardbackupChanceNode(ChanceNode cn) throws PrismException {
 		return backupChanceNode(cn, true);
 	}
 

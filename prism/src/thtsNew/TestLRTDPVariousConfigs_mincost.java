@@ -34,8 +34,8 @@ import thts.Objectives;
 import thtsNew.MDPValIter.ModelCheckerMultipleResult;
 
 //PRISM_MAINCLASS=thtsNew.TestLRTDPVariousConfigs prism/bin/prism
-public class TestLRTDPVariousConfigs {
-	private static boolean dofincost;
+public class TestLRTDPVariousConfigs_mincost {
+
 	// each configuration has a bunch of things
 	// so there are a bunch of configurations
 	ActionSelector actSel = null;
@@ -100,12 +100,12 @@ public class TestLRTDPVariousConfigs {
 		// then we set the configuration
 		// then we set the number of runs
 		// then we run tests
-		TestLRTDPVariousConfigs t1 = new TestLRTDPVariousConfigs();
+		TestLRTDPVariousConfigs_mincost t1 = new TestLRTDPVariousConfigs_mincost();
 		int maxRuns = 10;// 20;
-		dofincost = false;
+
 		try {
-			t1.runAllConfigsSmallExample(maxRuns);
-//			t1.runSelConfigsGrid5(maxRuns);
+//			t1.runAllConfigsSmallExample(maxRuns);
+			t1.runSelConfigsGrid5(maxRuns);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -113,8 +113,7 @@ public class TestLRTDPVariousConfigs {
 	}
 
 	public void runAllConfigsSmallExample(int maxRuns) throws Exception {
-		if (!dofincost)
-			maxCost = 0;
+
 		for (int i = 0; i < confignames.length; i++) {
 
 			String config = confignames[i];
@@ -124,7 +123,7 @@ public class TestLRTDPVariousConfigs {
 	}
 
 	public void runSelConfigsGrid5(int maxRuns) throws Exception {
-		String[] selConfigs = { "0a", "0b", "0c", "0d", "6", "8", "10", "13" };
+		String[] selConfigs = {  "8" };
 		this.maxCost = 1000;
 		for (int i = 0; i < selConfigs.length; i++) {
 			for (fsp = 0; fsp < 100; fsp += 30) {
@@ -150,16 +149,18 @@ public class TestLRTDPVariousConfigs {
 		boolean hasSharedState = false;
 		double egreedyProb = 0.8;
 		boolean debug = false;
+		String logsFileSuffix = "_mincost_again_again";
 		timeBound = true;
 		setTieBreakingOrder();
+		this.maxRollouts = 100000;
 		TestFileInfo tfi = new TestFileInfo(filename, propsuffix, testsLocation, numRobots, hasSharedState);
-		openResultsFile(filename + "_" + configname);
+		openResultsFile(filename + "_" + configname+logsFileSuffix);
 		printResultsHeader();
 		closeResultsFile();
 		for (int i = 0; i < maxRuns; i++) {
 
 			THTSRunInfo rinfo = runConfiguration(configname, tfi, debug, i, egreedyProb);
-			openResultsFile(filename + "_" + configname);
+			openResultsFile(filename + "_" + configname+logsFileSuffix);
 			printResult(configname, i, egreedyProb, rinfo);
 			closeResultsFile();
 
@@ -179,11 +180,8 @@ public class TestLRTDPVariousConfigs {
 		double egreedyProb = 0.8;
 		this.maxCost = 50;
 		boolean debug = false;
-		String fnsuffix = "_finpen";
-		if (!dofincost) {
-			maxCost = 0;
-			fnsuffix = "_nofinpen";
-		}
+		String fnsuffix = "_mincost";
+	
 		setTieBreakingOrder();
 		TestFileInfo tfi = new TestFileInfo(filename, propsuffix, testsLocation, numRobots, hasSharedState);
 		openResultsFile(filename + "_" + configname + fnsuffix);
@@ -317,9 +315,7 @@ public class TestLRTDPVariousConfigs {
 			actSel = new ActionSelectorMCTS(greedyActSel, rolloutPol);
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
+		
 			backup = new BackupLabelledFullBelman(tieBreakingOrder,
 					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
 		polActSel = greedyActSel;
@@ -339,9 +335,7 @@ public class TestLRTDPVariousConfigs {
 
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
+
 			backup = new BackupLabelledFullBelman(tieBreakingOrder,
 					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
 
@@ -365,9 +359,7 @@ public class TestLRTDPVariousConfigs {
 
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
+	
 			backup = new BackupLabelledFullBelman(tieBreakingOrder,
 					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
 
@@ -392,9 +384,7 @@ public class TestLRTDPVariousConfigs {
 
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
+		
 			backup = new BackupLabelledFullBelman(tieBreakingOrder,
 					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
 
@@ -500,7 +490,7 @@ public class TestLRTDPVariousConfigs {
 
 	void setTieBreakingOrder() {
 		tieBreakingOrder = new ArrayList<Objectives>();
-		tieBreakingOrder.add(Objectives.TaskCompletion);
+//		tieBreakingOrder.add(Objectives.TaskCompletion);
 		tieBreakingOrder.add(Objectives.Cost);
 	}
 

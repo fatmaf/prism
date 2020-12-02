@@ -1,14 +1,12 @@
 package thtsNew;
 
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -20,7 +18,7 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.DefaultModelGenerator;
 import prism.Prism;
-import prism.PrismDevNullLog;
+
 import thts.Bounds;
 import thts.MDPCreator;
 import thts.Objectives;
@@ -41,10 +39,11 @@ public class TrialBasedTreeSearch {
 	protected PrismLog fileLog;
 
 	protected HashMap<String, Node> nodesAddedSoFar;
-    ArrayList<Integer> trialLenArray = new ArrayList<Integer>();
-	
+	ArrayList<Integer> trialLenArray = new ArrayList<Integer>();
+
+	public HashMap<Long, HashMap<Objectives, Double>> timeValues;
 	int decisionNodesExplored;
-	  int chanceNodesExplored;
+	int chanceNodesExplored;
 	protected int numRollouts;
 	protected int trialLen;
 	private boolean doForwardBackup;
@@ -55,8 +54,11 @@ public class TrialBasedTreeSearch {
 	protected MDPCreator trialMDP;
 	protected VisualiserLog vl;
 	protected boolean timeBound = false;
-	long timeLimitInMS = 1000000;
+	long timeLimitInMS = 15 * 60 * 1000; // 1000000; //15 mins
 
+	int maxPolEvals = 0; 
+	boolean polEvals[]; 
+	int currentPolEval = 0; 
 	public void setTimeBound(boolean t) {
 		timeBound = t;
 	}
@@ -73,10 +75,28 @@ public class TrialBasedTreeSearch {
 		return timeLimitInMS;
 	}
 
-	long startTime=-1;
-	long endTime=-1;
-	long duration=-1;
+	long startTime = -1;
+	long endTime = -1;
+	long duration = -1;
 	int avgTrialLen;
+
+	boolean doPolicyCheckAtIntervals = false;
+	long polCheckIntervalInMS = 2 * 60 * 1000;// 5mins
+	long polCheckIntervalErrorInMS = 1000; //  
+	long timeAtPrevPolCheck = 0;
+	private Prism polPrism;
+
+	public void enablePolCheckAtIntervals(long polCheckIntervalInMS,Prism mc) {
+		if (polCheckIntervalInMS > 0)
+			this.polCheckIntervalErrorInMS = polCheckIntervalInMS;
+		this.doPolicyCheckAtIntervals = true;
+		polPrism = mc;
+		maxPolEvals = (int) (this.timeLimitInMS/this.polCheckIntervalInMS); currentPolEval = 0; 
+	}
+
+	public void disablePolCheckAtIntervals() {
+		this.doPolicyCheckAtIntervals = false;
+	}
 
 	public void startTimer() {
 		startTime = System.currentTimeMillis();
@@ -85,6 +105,7 @@ public class TrialBasedTreeSearch {
 	public void calculateDuration() {
 		endTime = System.currentTimeMillis();
 		duration = endTime - startTime;
+
 	}
 
 	public long getDuration() {
@@ -93,6 +114,25 @@ public class TrialBasedTreeSearch {
 
 	public boolean hasReachedTimeLimit() {
 		calculateDuration();
+		if (doPolicyCheckAtIntervals) {
+			long timePassedSincePrevCheck = duration - timeAtPrevPolCheck; 
+			long timeInterval = timePassedSincePrevCheck - polCheckIntervalInMS; 
+			
+			if (timePassedSincePrevCheck>polCheckIntervalInMS) {
+
+				try {
+					if (timeValues == null)
+						timeValues = new HashMap<>();
+
+					HashMap<Objectives, Double> res = doVIOnPolicy(actSel, polPrism);
+					timeValues.put(duration, res);
+					timeAtPrevPolCheck = duration;
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 		return (duration > timeLimitInMS);
 	}
 
@@ -114,6 +154,7 @@ public class TrialBasedTreeSearch {
 		this.tieBreakingOrder = tieBreakingOrder;
 		this.fileLog = fileLog;
 		this.doForwardBackup = doForwardBackup;
+		
 	}
 
 	public Node getRootNode(int rootNodeNum) throws PrismException {
@@ -242,22 +283,18 @@ public class TrialBasedTreeSearch {
 			vl.newRollout(numRollouts);
 
 			Node n0 = getRootNode(rootNodeNum);
-//			while (!n0.isSolved() || notTimedOut()) {
 
 			trialMDP = null;//
-//			if(debug)
-//				trialMDP=new MDPCreator();
-			// new MDPCreator();
+
 			visitDecisionNode((DecisionNode) n0);
 
-			
 			if (resultsLocation != null) {
 				if (trialMDP != null)
 					trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
 
 			}
 			if (fixSCCs) {
-				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder));
+				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false));
 //				
 				sccfinder.findSCCs((DecisionNode) n0, fixSCCs);
 			}
@@ -265,16 +302,7 @@ public class TrialBasedTreeSearch {
 			fileLog.println("Trial Ended with steps:" + trialLen);
 			trialLenArray.add(trialLen);
 			avgTrialLen = (avgTrialLen * numRollouts + trialLen) / (numRollouts + 1);
-//			int binnum = trialLen / binsize;
-//			if (trialLenHist != null && trialLenHist.size() > binnum) {
-//				int binval = trialLenHist.get(binnum);
-//				trialLenHist.set(binnum, ++binval);
-//			}
-//				if (notTimedOut()) {
-//					mainLog.println("New trial since number of steps was not used up");
-//					fileLog.println("New trial since number of steps was not used up");
-//
-//				}
+
 			if (n0.isSolved())
 				initStateSolved = true;
 
@@ -441,7 +469,7 @@ public class TrialBasedTreeSearch {
 			else
 				return (this.trialLen < this.maxTrialLen);// (this.numRollouts < this.maxRollouts);
 		} else {
-			if(startTime==-1)
+			if (startTime == -1)
 				startTimer();
 			return (!hasReachedTimeLimit());
 		}
@@ -677,7 +705,7 @@ public class TrialBasedTreeSearch {
 		BitSet avoidStates = new BitSet();
 		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
 		vl.beginPolRun();
-		boolean goalFound = false;
+
 		Node n0 = getRootNode(rnNum);
 		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
@@ -689,15 +717,12 @@ public class TrialBasedTreeSearch {
 		while (!q.isEmpty()) {
 			DecisionNode d = q.pop();
 			if (d.isGoal) {
-				goalFound = true;
+
 				int si = tempMDP.getStateIndex(d.getState());
 				accStates.set(si);
 
 			}
-//			if (d.isDeadend) {
-//				int si = tempMDP.getStateIndex(d.getState());
-//				avoidStates.set(si);
-//			}
+
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
@@ -707,32 +732,42 @@ public class TrialBasedTreeSearch {
 			if (d.canHaveChildren() && !d.isLeafNode()) {
 				if (d.getChildren().size() < 5)
 					mainLog.println(d.getChildren());
-				ChanceNode a = actSelrt.selectAction(d, false);
 
-				vl.beginActionSelection();
-				vl.writeActSelChoices(d);
-				vl.writeSelectedAction(a);
-				vl.endActionSelectin();
-
-				// get these children
-				if (a != null) {
-
-					mainLog.println(a);
-					fileLog.println(a);
-					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
-					if (a.getChildren() != null) {
-						for (DecisionNode dnc : a.getChildren()) {
-							q.push(dnc);
-							successors.add(
-									new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
-						}
-						ArrayList<Double> rews = new ArrayList<Double>();
-						rews.add(a.getReward(Objectives.TaskCompletion));
-						rews.add(a.getReward(Objectives.Cost));
-						tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
-					}
+				ArrayList<ChanceNode> as;
+				if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
+					as = ((ActionSelectorMultiGreedySimpleLowerBound) actSelrt).getAllBestActions(d);
 				} else {
-					fileLog.println("no action for " + d.getState());
+					ChanceNode a = actSelrt.selectAction(d, false);
+					as = new ArrayList<ChanceNode>();
+					as.add(a);
+				}
+
+				for (ChanceNode a : as) {
+					vl.beginActionSelection();
+					vl.writeActSelChoices(d);
+					vl.writeSelectedAction(a);
+					vl.endActionSelectin();
+
+					// get these children
+					if (a != null) {
+
+						mainLog.println(a);
+						fileLog.println(a);
+						ArrayList<Entry<State, Double>> successors = new ArrayList<>();
+						if (a.getChildren() != null) {
+							for (DecisionNode dnc : a.getChildren()) {
+								q.push(dnc);
+								successors.add(
+										new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
+							}
+							ArrayList<Double> rews = new ArrayList<Double>();
+							rews.add(getCNReward(Objectives.TaskCompletion,a));
+							rews.add(getCNReward(Objectives.Cost,a));
+							tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
+						}
+					} else {
+						fileLog.println("no action for " + d.getState());
+					}
 				}
 			} else {
 				fileLog.println(d.getState() + (d.canHaveChildren()
@@ -740,15 +775,15 @@ public class TrialBasedTreeSearch {
 						: " is a goal or deadend"));
 			}
 		}
-//		int si = tempMDP.getStateIndex(n0.getState());
+
 		tempMDP.setInitialState(n0.getState());
 		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
-//		boolean[] toRet = { goalFound, n0.isSolved() };
+
 		vl.endRollout();
 		vl.closeLog();
 		ArrayList<MDPRewardsSimple> rews = tempMDP.createRewardStructures();
 		ProbModelChecker pmc = new ProbModelChecker(prism);
-//		pmc.setModelCheckingInfo(modulesFile, propertiesFile, (RewardGenerator) maModelGen);
+
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
 		avoidStates.flip(0, tempMDP.getMDP().getNumStates());
 		MDPValIter vi = new MDPValIter();
@@ -756,9 +791,8 @@ public class TrialBasedTreeSearch {
 		minRewards.add(false);
 		minRewards.add(true);
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
-				/* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog, resultsLocation, "vistuff");
-//		return toRet;
-//		return tempMDP;
+				/* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog);
+
 		resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
 		resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
 		resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
@@ -766,18 +800,25 @@ public class TrialBasedTreeSearch {
 
 	}
 	
-	HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, String rnNum, Prism prism)
-			throws Exception {
+	double getCNReward(Objectives obj,ChanceNode cn) throws PrismException
+	{
+		if(cn.hasRewardObjective(obj))
+			return cn.getReward(obj);
+		else
+		return rewH.getReward(obj, cn);
+	}
+
+	HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, Prism prism) throws Exception {
+		fileLog.println("Starting VI on Policy");
+		long viStartTime = System.currentTimeMillis();
 		// need a rewards structure
 		// need a costs structure
 		HashMap<Objectives, Double> resvals = new HashMap<Objectives, Double>();
 		BitSet accStates = new BitSet();
 		BitSet avoidStates = new BitSet();
-//		vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true);
-//		vl.beginPolRun();
-		boolean goalFound = false;
+
 		Node n0 = getRootNode(0);
-		System.out.println("Root node solved: " + n0.isSolved());
+//		System.out.println("Root node solved: " + n0.isSolved());
 		MDPCreator tempMDP = new MDPCreator();
 		mainLog.println("Running through");
 		fileLog.println("Running through");
@@ -787,15 +828,11 @@ public class TrialBasedTreeSearch {
 		while (!q.isEmpty()) {
 			DecisionNode d = q.pop();
 			if (d.isGoal) {
-				goalFound = true;
 				int si = tempMDP.getStateIndex(d.getState());
 				accStates.set(si);
 
 			}
-//			if (d.isDeadend) {
-//				int si = tempMDP.getStateIndex(d.getState());
-//				avoidStates.set(si);
-//			}
+
 			if (seen.contains(d))
 				continue;
 			seen.add(d);
@@ -803,34 +840,40 @@ public class TrialBasedTreeSearch {
 			fileLog.println(d.getShortName() + d.getBoundsString());
 
 			if (d.canHaveChildren() && !d.isLeafNode()) {
-				if (d.getChildren().size() < 5)
-					mainLog.println(d.getChildren());
-				ChanceNode a = actSelrt.selectAction(d, false);
 
-				vl.beginActionSelection();
-				vl.writeActSelChoices(d);
-				vl.writeSelectedAction(a);
-				vl.endActionSelectin();
-
-				// get these children
-				if (a != null) {
-
-					mainLog.println(a);
-					fileLog.println(a);
-					ArrayList<Entry<State, Double>> successors = new ArrayList<>();
-					if (a.getChildren() != null) {
-						for (DecisionNode dnc : a.getChildren()) {
-							q.push(dnc);
-							successors.add(
-									new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
-						}
-						ArrayList<Double> rews = new ArrayList<Double>();
-						rews.add(a.getReward(Objectives.TaskCompletion));
-						rews.add(a.getReward(Objectives.Cost));
-						tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
-					}
+				ArrayList<ChanceNode> as;
+				if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
+					as = ((ActionSelectorMultiGreedySimpleLowerBound) actSelrt).getAllBestActions(d);
 				} else {
-					fileLog.println("no action for " + d.getState());
+					ChanceNode a = actSelrt.selectAction(d, false);
+					as = new ArrayList<ChanceNode>();
+					as.add(a);
+				}
+				for (ChanceNode a : as) {
+					vl.beginActionSelection();
+					vl.writeActSelChoices(d);
+					vl.writeSelectedAction(a);
+					vl.endActionSelectin();
+
+					if (a != null) {
+
+						mainLog.println(a);
+						fileLog.println(a);
+						ArrayList<Entry<State, Double>> successors = new ArrayList<>();
+						if (a.getChildren() != null) {
+							for (DecisionNode dnc : a.getChildren()) {
+								q.push(dnc);
+								successors.add(
+										new AbstractMap.SimpleEntry<State, Double>(dnc.getState(), dnc.getTranProb(a)));
+							}
+							ArrayList<Double> rews = new ArrayList<Double>();
+							rews.add(getCNReward(Objectives.TaskCompletion,a));
+							rews.add(getCNReward(Objectives.Cost,a));
+							tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
+						}
+					} else {
+						fileLog.println("no action for " + d.getState());
+					}
 				}
 			} else {
 				fileLog.println(d.getState() + (d.canHaveChildren()
@@ -838,28 +881,27 @@ public class TrialBasedTreeSearch {
 						: " is a goal or deadend"));
 			}
 		}
-//		int si = tempMDP.getStateIndex(n0.getState());
+
 		tempMDP.setInitialState(n0.getState());
-//		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
-//		boolean[] toRet = { goalFound, n0.isSolved() };
-//		vl.endRollout();
-//		vl.closeLog();
+
 		ArrayList<MDPRewardsSimple> rews = tempMDP.createRewardStructures();
 		ProbModelChecker pmc = new ProbModelChecker(prism);
-//		pmc.setModelCheckingInfo(modulesFile, propertiesFile, (RewardGenerator) maModelGen);
+
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
 		avoidStates.flip(0, tempMDP.getMDP().getNumStates());
 		MDPValIter vi = new MDPValIter();
 		ArrayList<Boolean> minRewards = new ArrayList<>();
 		minRewards.add(false);
 		minRewards.add(true);
-		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
-				/* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog, resultsLocation, "vistuff");
-//		return toRet;
-//		return tempMDP;
+		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates, null, rews,
+				null, minRewards, null, 1, null, mainLog);
+
 		resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
 		resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
 		resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
+		long viduration = System.currentTimeMillis() - viStartTime;
+		fileLog.println("VI on Policy took: " + viduration + " ms ("
+				+ TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS));
 		return resvals;
 
 	}

@@ -71,7 +71,7 @@ public class MDPValIter {
 	public ModelCheckerMultipleResult computeNestedValIterArray(MDPModelChecker mc, MDP mdp, BitSet target,
 			BitSet remain, ArrayList<MDPRewardsSimple> rewards, ArrayList<double[]> rewardsInitVal,
 			ArrayList<Boolean> minRewards, BitSet statesToIgnoreForVI, int probPreference, double[] probInitVal,
-			PrismLog mainLog, String resLoc, String name) throws PrismException {
+			PrismLog mainLog) throws PrismException {
 		ModelCheckerMultipleResult res;
 		int i, n, iters, numYes, numNo;
 		double solnProb[];
@@ -81,8 +81,8 @@ public class MDPValIter {
 		long timerVI, timerGlobal;
 		int strat[] = null;
 		boolean min = false;
-		//for debugging 
-		//an array list of values for the soln 
+		// for debugging
+		// an array list of values for the soln
 
 		int numRewards = rewards.size();
 		TermCrit termCrit = mc.getTermCrit();
@@ -102,7 +102,7 @@ public class MDPValIter {
 
 		for (i = 0; i < n; i++) {
 			strat[i] = target.get(i) ? -2 : -1;
-		
+
 		}
 
 		// skipping precomputation
@@ -144,15 +144,12 @@ public class MDPValIter {
 		// soln2Prog = new double[n];
 		solnReward = new ArrayList<double[]>();
 		for (int rew = 0; rew < numRewards; rew++) {
-			if (rewardsInitVal == null || rewardsInitVal.get(rew) == null)
-			{	
+			if (rewardsInitVal == null || rewardsInitVal.get(rew) == null) {
 				solnReward.add(new double[n]);
-		
-			}
-			else
+
+			} else
 				solnReward.add(rewardsInitVal.get(rew).clone());
 		}
-
 
 		// Initialise solution vectors to initVal
 		// where initVal is 0.0 or 1.0, depending on whether we converge from
@@ -187,7 +184,6 @@ public class MDPValIter {
 		ArrayList<Double> currentCostVal = new ArrayList<Double>();
 		double currentCost;
 
-
 		if (statesToIgnoreForVI == null) // set it to unknown
 		{
 			statesToIgnoreForVI = (BitSet) unknown.clone();
@@ -196,14 +192,14 @@ public class MDPValIter {
 
 		double epsilon = mc.getTermCritParam();
 
-		boolean doBigDecimal = false; 
+		boolean doBigDecimal = false;
 		while (!done && iters < mc.getMaxIters()) {
 
 			iters++;
 			done = true;
 
 //			if(iters>10)
-				doBigDecimal = true; 
+			doBigDecimal = true;
 
 			for (i = 0; i < n; i++) {
 
@@ -217,7 +213,7 @@ public class MDPValIter {
 						// for each reward
 						// get the current value
 						currentProbVal = mdp.mvMultJacSingle(i, j, solnProb);
-						
+
 						// get all rew vals
 						for (int rew = 0; rew < numRewards; rew++) {
 							if (rewards.get(rew) == null) {
@@ -229,39 +225,32 @@ public class MDPValIter {
 							else
 								currentCostVal.add(currentCost);
 						}
-					
+
 						boolean updateVals = false;
-						for(int rew=0; rew<numRewards;rew++)
-						{
-							int comparedVals = 
-									compareDoubles(currentCostVal.get(rew),solnReward.get(rew)[i],minRewards.get(rew),epsilon,termCrit,doBigDecimal);
-							//if isbetter set update to true 
-							if(comparedVals > 0)
-							{
+						for (int rew = 0; rew < numRewards; rew++) {
+							int comparedVals = compareDoubles(currentCostVal.get(rew), solnReward.get(rew)[i],
+									minRewards.get(rew), epsilon, termCrit, doBigDecimal);
+							// if isbetter set update to true
+							if (comparedVals > 0) {
 								updateVals = true;
-								break; 
-							}
-							else
-							{
-								if(comparedVals != 0)
+								break;
+							} else {
+								if (comparedVals != 0)
 									break;
 							}
 						}
-						
-						if(updateVals)
-						{
-							String prevVals  = null; 
-							if(iters>2000)
-							{
-								prevVals=iters+"-"+i+":"+strat[i]+"["+solnProb[i]; 
+
+						if (updateVals) {
+							String prevVals = null;
+							if (iters > 2000) {
+								prevVals = iters + "-" + i + ":" + strat[i] + "[" + solnProb[i];
 								for (int rews = 0; rews < numRewards; rews++) {
-									prevVals+=", "+solnReward.get(rews)[i];
+									prevVals += ", " + solnReward.get(rews)[i];
 
 								}
-								prevVals+="]";
+								prevVals += "]";
 							}
 
-							
 							solnProb[i] = currentProbVal;
 							for (int rews = 0; rews < numRewards; rews++) {
 
@@ -270,27 +259,22 @@ public class MDPValIter {
 
 							strat[i] = j;
 							done = false;
-		
-							
-							if(iters>2000)
-							{
-								prevVals+="->"+strat[i]+"["+solnProb[i]; 
+
+							if (iters > 2000) {
+								prevVals += "->" + strat[i] + "[" + solnProb[i];
 								for (int rews = 0; rews < numRewards; rews++) {
-									prevVals+=", "+solnReward.get(rews)[i];
+									prevVals += ", " + solnReward.get(rews)[i];
 
 								}
-								prevVals+="]";
+								prevVals += "]";
 								mainLog.println(prevVals);
 							}
 						}
-						
 
 					}
 
 				}
 			}
-			
-				
 
 		}
 
@@ -315,7 +299,6 @@ public class MDPValIter {
 		// Store strategy
 		res.strat = new MDStrategyArray(mdp, strat);
 
-
 		solnReward.add(0, solnProb.clone());
 		res.solns = solnReward;
 
@@ -324,53 +307,44 @@ public class MDPValIter {
 		return res;
 	}
 
-	//compares two doubles upto a certain precision 
-	//returns 0 if same 
-	//returns 1 if d2 is better than d1 
-	//returns -1 if d2 is worse 
-	
-	private int compareDoubles(double d1, double d2, boolean smallerIsBetter,double precision,TermCrit termCrit,boolean doBigD) {
-		
-		int toret = 0; 
-		if(doBigD)
-		{
+	// compares two doubles upto a certain precision
+	// returns 0 if same
+	// returns 1 if d2 is better than d1
+	// returns -1 if d2 is worse
+
+	private int compareDoubles(double d1, double d2, boolean smallerIsBetter, double precision, TermCrit termCrit,
+			boolean doBigD) {
+
+		int toret = 0;
+		if (doBigD) {
 //			double decimalPlaces = Math.log10(precision);
-			BigDecimal bd1 = new BigDecimal(d1); 
-			BigDecimal bd2 = new BigDecimal(d2); 
-			BigDecimal sub = bd2.subtract(bd1); 
-			if(sub.abs().compareTo(new BigDecimal(precision))>0)
-			{
-				toret = -1; 
-				if(smallerIsBetter)
-				{
-					if(sub.compareTo(new BigDecimal(0))>0)
-						toret = 1; 
-				}
-				else {
-					if(sub.compareTo(new BigDecimal(0))<0)
-						toret=1;
+			BigDecimal bd1 = new BigDecimal(d1);
+			BigDecimal bd2 = new BigDecimal(d2);
+			BigDecimal sub = bd2.subtract(bd1);
+			if (sub.abs().compareTo(new BigDecimal(precision)) > 0) {
+				toret = -1;
+				if (smallerIsBetter) {
+					if (sub.compareTo(new BigDecimal(0)) > 0)
+						toret = 1;
+				} else {
+					if (sub.compareTo(new BigDecimal(0)) < 0)
+						toret = 1;
 				}
 			}
-			return toret; 
-		}
-		else{
-		boolean sameCostVal = PrismUtils.doublesAreClose(d1,
-				d2, precision , termCrit == TermCrit.ABSOLUTE);
-		if(!sameCostVal)
-		{
-			toret = -1; 
-			if(smallerIsBetter)
-			{
-				if(d2>d1)
-					toret = 1; 
+			return toret;
+		} else {
+			boolean sameCostVal = PrismUtils.doublesAreClose(d1, d2, precision, termCrit == TermCrit.ABSOLUTE);
+			if (!sameCostVal) {
+				toret = -1;
+				if (smallerIsBetter) {
+					if (d2 > d1)
+						toret = 1;
+				} else {
+					if (d2 < d1)
+						toret = 1;
+				}
 			}
-			else
-			{
-				if(d2<d1)
-					toret = 1; 
-			}
-		}
-		return toret;
+			return toret;
 		}
 	}
 

@@ -456,7 +456,7 @@ private void testString(int testNum, int maxTests,long durMS)
 
 
 		double epsilonActSel = 0.8; 
-		ActionSelector baseActSel = new ActionSelectorGreedySimpleLowerUpperBound(tieBreakingOrder);// new
+		ActionSelector baseActSel = new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);// new
 
 		mainLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound epsilon="+epsilonActSel);
 		fileLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound epsilon="+epsilonActSel);
@@ -631,7 +631,7 @@ private void testString(int testNum, int maxTests,long durMS)
 		mainLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound Action Selector Function");
 		fileLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound Action Selector Function");
 
-		ActionSelector actionSelection =  new ActionSelectorGreedySimpleLowerUpperBound(tieBreakingOrder);// new
+		ActionSelector actionSelection =  new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);// new
 		// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising OutcomeSelectorRandomSkipSolved Function");
@@ -787,7 +787,7 @@ private void testString(int testNum, int maxTests,long durMS)
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -828,8 +828,8 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
-		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder),
+		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
+		boolean[] goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false),
 				resultsLocation);
 
 		mainLog.close();
@@ -952,7 +952,7 @@ private void testString(int testNum, int maxTests,long durMS)
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -993,8 +993,8 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
@@ -1091,7 +1091,7 @@ private void testString(int testNum, int maxTests,long durMS)
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1132,8 +1132,8 @@ private void testString(int testNum, int maxTests,long durMS)
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();

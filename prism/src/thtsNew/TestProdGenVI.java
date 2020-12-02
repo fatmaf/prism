@@ -213,7 +213,7 @@ public class TestProdGenVI {
 		BitSet remain = (BitSet)avoidStates.clone(); 
 		remain.flip(0, mdp.getNumStates());
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, mdp, accStates, remain,
-				rewardsList, null, minRewards, null, 1, null, mainLog, resultsLocation,"vistuff");
+				rewardsList, null, minRewards, null, 1, null, mainLog);
 		
 		System.out.println("Probability: "+result.solns.get(0)[mdp.getFirstInitialState()]);
 		System.out.println("Task Completition: "+result.solns.get(1)[mdp.getFirstInitialState()]);
@@ -333,7 +333,7 @@ public class TestProdGenVI {
 		BitSet remain = (BitSet)avoidStates.clone(); 
 		remain.flip(0, mdp.getNumStates());
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, mdp, accStates, remain,
-				rewardsList, null, minRewards, null, 1, null, mainLog, resultsLocation,"vistuff");
+				rewardsList, null, minRewards, null, 1, null, mainLog);
 		
 		System.out.println("Probability: "+result.solns.get(0)[mdp.getFirstInitialState()]);
 		System.out.println("Task Completition: "+result.solns.get(1)[mdp.getFirstInitialState()]);

@@ -16,7 +16,6 @@ import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceType;
 import automata.DA;
 import explicit.LTLModelChecker;
-import explicit.rewards.MDPRewardsSimple;
 import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionQuant;
@@ -29,13 +28,13 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
-import thts.MDPCreator;
 import thts.Objectives;
-import thtsNew.MDPValIter.ModelCheckerMultipleResult;
 
-//PRISM_MAINCLASS=thtsNew.TestLRTDPVariousConfigs prism/bin/prism
-public class TestLRTDPVariousConfigs {
-	private static boolean dofincost;
+//PRISM_MAINCLASS=thtsNew.TestLRTDPVariousConfigs_testsets prism/bin/prism
+public class TestLRTDPVariousConfigs_testsets_mincost {
+
+	HashMap<String, TestSuite> filteredTestSuites;
+
 	// each configuration has a bunch of things
 	// so there are a bunch of configurations
 	ActionSelector actSel = null;
@@ -59,6 +58,7 @@ public class TestLRTDPVariousConfigs {
 	BufferedWriter bw;
 	PrintWriter out;
 
+//	String configName;
 	int fsp;
 
 	boolean timeBound = false;
@@ -71,6 +71,8 @@ public class TestLRTDPVariousConfigs {
 
 	String[] confignames = { "0a", "0b", "0c", "0d", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
 			"13", "14", "15", "16", "17", "18", "19", "20" };
+
+	private boolean dovichecksonintervals;
 
 	public class TestFileInfo {
 		String filename;
@@ -94,105 +96,116 @@ public class TestLRTDPVariousConfigs {
 		}
 	}
 
+	public TestLRTDPVariousConfigs_testsets_mincost() {
+		GetTestInfo testInfo = new GetTestInfo();
+		String tnid = "Warehouse Shelf to Depot";
+		HashMap<String, TestSuite> testSuites = testInfo.readTestSuitesFromCSV();
+		filteredTestSuites = testInfo.filterTestSuitesForTest(tnid, testSuites);
+//		testInfo.readTestSets(tnid);
+	}
+
 	public static void main(String[] args) {
 
 		// first we set the test file
 		// then we set the configuration
 		// then we set the number of runs
 		// then we run tests
-		TestLRTDPVariousConfigs t1 = new TestLRTDPVariousConfigs();
+		TestLRTDPVariousConfigs_testsets_mincost t1 = new TestLRTDPVariousConfigs_testsets_mincost();
 		int maxRuns = 10;// 20;
-		dofincost = false;
 		try {
-			t1.runAllConfigsSmallExample(maxRuns);
-//			t1.runSelConfigsGrid5(maxRuns);
+
+			t1.runSelConfigsTestSet(maxRuns);
 		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 
-	public void runAllConfigsSmallExample(int maxRuns) throws Exception {
-		if (!dofincost)
-			maxCost = 0;
-		for (int i = 0; i < confignames.length; i++) {
+	public void runSelConfigsTestSet(int maxRuns) throws Exception {
+		String[] selConfigs = { "8"/* , "10" */ };
+		// this.maxCost = 10000;
+		String testSuffix = "timing";
+		String[] testConfigs = { "Failstates" };
+		for (String tc : testConfigs) {
+			for (int i = 0; i < selConfigs.length; i++) {
 
-			String config = confignames[i];
-
-			runSmallExample(config, maxRuns);
-		}
-	}
-
-	public void runSelConfigsGrid5(int maxRuns) throws Exception {
-		String[] selConfigs = { "0a", "0b", "0c", "0d", "6", "8", "10", "13" };
-		this.maxCost = 1000;
-		for (int i = 0; i < selConfigs.length; i++) {
-			for (fsp = 0; fsp < 100; fsp += 30) {
 				String config = selConfigs[i];
-				runGrid5(config, maxRuns);
+				runTestSets(config, maxRuns, tc, testSuffix);
+
 			}
 		}
 	}
 
-	public void runGrid5(String configname, int maxRuns) throws Exception {
-
-		String[] examples = { "r10_g10_a1_grid_5_fsp_0_0_", "r10_g10_a1_grid_5_fsp_10_1_",
-				"r10_g10_a1_grid_5_fsp_20_2_", "r10_g10_a1_grid_5_fsp_30_3_", "r10_g10_a1_grid_5_fsp_40_4_",
-				"r10_g10_a1_grid_5_fsp_50_5_", "r10_g10_a1_grid_5_fsp_60_6_", "r10_g10_a1_grid_5_fsp_70_7_",
-				"r10_g10_a1_grid_5_fsp_80_8_", "r10_g10_a1_grid_5_fsp_90_9_", "r10_g10_a1_grid_5_fsp_100_0_" };
-		String filename = examples[fsp / 10];
+	public void runTestSets(String configname, int maxRuns, String testSetConfig, String testSuffix) throws Exception {
 
 		String propsuffix = "mult";
-		String resFolderExt = "grid5/" + fsp + "/";
-		String logFilesExt = "results/configs/" + configname + "/";
-		initialiseResultsLocations(resFolderExt, logFilesExt);
-		int numRobots = 3;
+		TestSuite testSuite = filteredTestSuites.get(testSetConfig);
+
 		boolean hasSharedState = false;
 		double egreedyProb = 0.8;
 		boolean debug = false;
 		timeBound = true;
-		setTieBreakingOrder();
-		TestFileInfo tfi = new TestFileInfo(filename, propsuffix, testsLocation, numRobots, hasSharedState);
-		openResultsFile(filename + "_" + configname);
-		printResultsHeader();
-		closeResultsFile();
-		for (int i = 0; i < maxRuns; i++) {
+		dovichecksonintervals = true;
+		String resfn = testSetConfig + "_" + configname + "_" + testSuffix;
 
-			THTSRunInfo rinfo = runConfiguration(configname, tfi, debug, i, egreedyProb);
-			openResultsFile(filename + "_" + configname);
-			printResult(configname, i, egreedyProb, rinfo);
+		for (String tid : testSuite.testSets.keySet()) {
+			HashMap<String, Integer> tcounter = new HashMap<>();
+
+			TestSet testSet = testSuite.getTestSet(tid);
+			String testLoc = testSet.location;
+			ArrayList<Test> subtestset = testSet.tests;
+			String resFolderExt = tid + "/";
+			String logFilesExt = "results/configs/" + configname + "/";
+			setTieBreakingOrder();
+			initialiseResultsLocations(testLoc, resFolderExt, logFilesExt);
+
+			openResultsFile(resfn);
+			printResultsHeader();
 			closeResultsFile();
+			for (Test singleTest : subtestset) {
+				String filename = singleTest.id;
+				String fsps = filename.split("fsp_")[1];
+				fsps = fsps.split("_")[0];
+				fsp = (int) Float.parseFloat(fsps);
+
+				if (testSetConfig.contentEquals("Robots") || testSetConfig.contentEquals("Goals")) {
+					if (fsp != 90)
+						continue;
+				} else {
+					if (fsp != 0 && fsp != 30 && fsp != 60 && fsp != 90)
+						continue;
+				}
+
+				int numRobots = singleTest.numRobots;
+
+				int numGoals = singleTest.numGoals;
+
+				maxCost = 122 * numRobots * Math.pow(2, numGoals);
+				String counterString = fsp + "_" + numRobots + "_" + numGoals;
+				if (!tcounter.containsKey(counterString))
+					tcounter.put(counterString, 0);
+				if (tcounter.get(counterString) > maxRuns)
+					continue;
+				tcounter.put(counterString, tcounter.get(counterString) + 1);
+				System.out.println("***********\n" + counterString + "-" + testSetConfig + "-"
+						+ tcounter.get(counterString) + "/" + maxRuns + "\n************");
+
+				TestFileInfo tfi = new TestFileInfo(filename, propsuffix, testLoc, singleTest.modelFiles.size(),
+						hasSharedState);
+
+				long startTime = System.currentTimeMillis();
+				THTSRunInfo rinfo = runConfiguration(configname, tfi, debug, filename, egreedyProb,
+						singleTest.robotsList, singleTest.goalsList, dovichecksonintervals);
+				long endTime = System.currentTimeMillis();
+				openResultsFile(resfn);
+				printResult(configname, filename, egreedyProb, rinfo, singleTest.numRobots, singleTest.numGoals,
+						(endTime - startTime));
+				closeResultsFile();
+
+			}
 
 		}
-
-	}
-
-	public void runSmallExample(String configname, int maxRuns) throws Exception {
-
-		String resFolderExt = "tro_examples/";
-		String logFilesExt = "results/configs/" + configname + "/";
-		initialiseResultsLocations(resFolderExt, logFilesExt);
-		int numRobots = 2;
-		String filename = "tro_example_new_small";
-		String propsuffix = "_mult";
-		boolean hasSharedState = true;
-		double egreedyProb = 0.8;
-		this.maxCost = 50;
-		boolean debug = false;
-		String fnsuffix = "_finpen";
-		if (!dofincost) {
-			maxCost = 0;
-			fnsuffix = "_nofinpen";
-		}
-		setTieBreakingOrder();
-		TestFileInfo tfi = new TestFileInfo(filename, propsuffix, testsLocation, numRobots, hasSharedState);
-		openResultsFile(filename + "_" + configname + fnsuffix);
-		printResultsHeader();
-		for (int i = 0; i < maxRuns; i++) {
-			THTSRunInfo rinfo = runConfiguration(configname, tfi, debug, i, egreedyProb);
-			printResult(configname, i, egreedyProb, rinfo);
-		}
-		closeResultsFile();
 
 	}
 
@@ -306,7 +319,19 @@ public class TestLRTDPVariousConfigs {
 		useSASH = initialiseWithSAS;
 		heuristic = new MultiAgentHeuristicTC(maModelGen, singleAgentStateValues, minMaxVals, useSASH);
 
-		ActionSelector greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false);
+		// Task Completion
+		// Upper Bound: Set to Num DA
+		// Lower Bound: Set to 0
+		// Cost
+		// Upper Bound: Set to max cost
+		// Lower Bound: Set to 0
+		// Greedy (Best Action - TC, then C) [if TC and C same, tiebreak random]
+		// Single agent solutions
+		// Probability
+		// Greedy (Best Action - TC:Upper Bound, then C:Lower Bound) [if TC and C same,
+		// tiebreak random]
+
+		ActionSelector greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, true);
 
 		ActionSelector rolloutPol = new ActionSelectorSASRolloutPol(maModelGen, stateActions);
 		if (actSelSoftmaxProb > 0 && actSelSoftmaxProb < 1) {
@@ -317,12 +342,9 @@ public class TestLRTDPVariousConfigs {
 			actSel = new ActionSelectorMCTS(greedyActSel, rolloutPol);
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
-			backup = new BackupLabelledFullBelman(tieBreakingOrder,
-					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
-		polActSel = greedyActSel;
+		backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
+
+		polActSel = new ActionSelectorMultiGreedySimpleLowerBound(tieBreakingOrder);
 
 	}
 
@@ -333,22 +355,30 @@ public class TestLRTDPVariousConfigs {
 		useSASH = initialiseWithSAS;
 		heuristic = new MultiAgentHeuristicTC(maModelGen, singleAgentStateValues, minMaxVals, useSASH);
 
+		// Task Completion
+		// Upper Bound: Set to Num DA
+		// Lower Bound: Set to 0
+		// Cost
+		// Upper Bound: Set to max cost
+		// Lower Bound: Set to 0
+		// Greedy (Best Action - TC, then C) [if TC and C same, tiebreak random]
+		// Single agent solutions
+		// Probability
+		// Greedy (Best Action - TC:Upper Bound, then C:Lower Bound) [if TC and C same,
+		// tiebreak random]
+
 		ActionSelector greedyActSel = new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
 		ActionSelector rolloutPol = new ActionSelectorSASRolloutPol(maModelGen, stateActions);
 		actSel = new ActionSelectorMCTS(greedyActSel, rolloutPol);
 
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
-			backup = new BackupLabelledFullBelman(tieBreakingOrder,
-					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
+		backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
 
 		polActSel = greedyActSel;
 		if (polActGreedy)
 
-			polActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false);
+			polActSel = new ActionSelectorMultiGreedySimpleLowerBound(tieBreakingOrder);
 
 	}
 
@@ -365,16 +395,13 @@ public class TestLRTDPVariousConfigs {
 
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
-			backup = new BackupLabelledFullBelman(tieBreakingOrder,
-					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
+		backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
 
 		polActSel = greedyActSel;
 		if (polActGreedy)
 
-			polActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false);
+			polActSel = new ActionSelectorMultiGreedySimpleLowerBound(tieBreakingOrder);
+		// new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
 
 	}
 
@@ -392,23 +419,20 @@ public class TestLRTDPVariousConfigs {
 
 		outSel = new OutcomeSelectorProb();
 
-		if (dofincost)
-			backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
-		else
-			backup = new BackupLabelledFullBelman(tieBreakingOrder,
-					new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false), epsilon);
+		backup = new BackupLabelledFullBelmanCap(tieBreakingOrder, greedyActSel, epsilon, minMaxVals, fileLog);
 
 		polActSel = greedyActSel;
 		if (polActChoice == 1)
 
-			polActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder, false);
+			polActSel = new ActionSelectorMultiGreedySimpleLowerBound(tieBreakingOrder); // new
+																							// ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
 		else if (polActChoice == 2)
 			polActSel = new ActionSelectorMostVisited();
 
 	}
 
-	THTSRunInfo runConfiguration(String configname, TestFileInfo tfi, boolean debug, int run, double egreedyProb)
-			throws Exception {
+	THTSRunInfo runConfiguration(String configname, TestFileInfo tfi, boolean debug, String run, double egreedyProb,
+			ArrayList<Integer> robots, ArrayList<Integer> goals, boolean dovipolcheckonintervals) throws Exception {
 		THTSRunInfo runInfo = new THTSRunInfo();
 
 		PrismLog mainLog;
@@ -428,10 +452,10 @@ public class TestLRTDPVariousConfigs {
 
 		stateActions = new ArrayList<>();
 		singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, mainLog, logFilesLocation, tfi.filenames,
-				tfi.propertiesfile, stateActions);
+				tfi.propertiesfile, stateActions, robots, goals);
 
 		maModelGen = createNestedMultiAgentModelGen(prism, mainLog, tfi.filenames, tfi.propertiesfile, logFilesLocation,
-				tfi.hasSharedState);
+				tfi.hasSharedState, robots, goals);
 
 		HashMap<Objectives, Entry<Double, Double>> minMaxVals = new HashMap<>();
 		minMaxVals.put(Objectives.Cost, new AbstractMap.SimpleEntry<Double, Double>(0., maxCost));
@@ -457,6 +481,9 @@ public class TestLRTDPVariousConfigs {
 				trialLength, heuristic, actSel, outSel, rewardH, backup, doForwardBackup, tieBreakingOrder, mainLog,
 				fileLog);
 
+		if (dovipolcheckonintervals) {
+			thts.enablePolCheckAtIntervals(0, prism);
+		}
 		mainLog.println("\nBeginning THTS");
 		fileLog.println("\nBeginning THTS");
 		thts.setName(runName);
@@ -468,23 +495,30 @@ public class TestLRTDPVariousConfigs {
 		}
 		int numRolloutsTillSolved = -1;
 		try {
-			numRolloutsTillSolved = thts.run(false, 0, true);
+			numRolloutsTillSolved = thts.run(false, 0, false);
 		} catch (StackOverflowError e) {
 			runInfo.stackoverflowerror = true;
 		}
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism);
+		HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, prism);
 		System.out.println(tempres);
 
 		mainLog.close();
 		fileLog.close();
 		prism.closeDown();
+
 		runInfo.initialStateSolved = thts.getRootNode(0).isSolved();
 		runInfo.vipol = tempres;
 		runInfo.numRolloutsTillSolved = numRolloutsTillSolved;
 		runInfo.initialStateValues = thts.getInitialStateBounds();
+		runInfo.duration = thts.getDuration();
+		runInfo.setTrialLenStuff(thts.trialLenArray);
+		runInfo.averageTrialLen = thts.avgTrialLen;
+		runInfo.chanceNodesExp = thts.chanceNodesExplored;
+		runInfo.decisionNodesExp = thts.decisionNodesExplored;
+		runInfo.vipolAtIntervals = thts.timeValues;
 
 		return runInfo;
 	}
@@ -505,27 +539,32 @@ public class TestLRTDPVariousConfigs {
 	}
 
 	void printResultsHeader() {
-		String header = "\nConfiguration\tFSP\tRun\tEpsilon\tTC_U\tTC_L\tC_U\tC_L"
-				+ "\tSolved\tGoal\tProbGoal\tNumRollouts\tSOError\tVI_TC\tVI_C\tVI_P" + "\tTimeBound\tTimeLimit";
+		String header = "\nConfiguration\tFSP\tRobots\tGoals\tFN\tEpsilon\tTC_U\tTC_L\tC_U\tC_L"
+				+ "\tSolved\tGoal\tProbGoal\tNumRollouts\tSOError\tVI_TC\tVI_C\tVI_P"
+				+ "\tTimeBound\tTimeLimit\tTHTSTimeTaken\tMaxTLen\tMinTLen\tAvgTLen\tDNExp\tCNExp\tTotalTime\tVIPolAtIntervals";
 		if (out != null)
 			out.println(header);
 
 	}
 
-	void printResult(String configname, int run, double epsilon, THTSRunInfo rinfo) {
-		String resLine = configname + "\t" + fsp + "\t" + run + "\t" + epsilon + "\t"
-				+ rinfo.getBoundsString(Objectives.TaskCompletion, "\t") + "\t"
+	void printResult(String configname, String run, double epsilon, THTSRunInfo rinfo, int numRobots, int numGoals,
+			long totalTime) {
+		String resLine = configname + "\t" + fsp + "\t" + numRobots + "\t" + numGoals + "\t" + run + "\t" + epsilon
+				+ "\t" + rinfo.getBoundsString(Objectives.TaskCompletion, "\t") + "\t"
 				+ rinfo.getBoundsString(Objectives.Cost, "\t") + "\t" + rinfo.initialStateSolved + "\t"
 				+ rinfo.goalFound + "\t" + rinfo.goalOnProbablePath + "\t" + rinfo.numRolloutsTillSolved + "\t"
 				+ rinfo.stackoverflowerror + "\t" + rinfo.getviInfo(Objectives.TaskCompletion) + "\t"
 				+ rinfo.getviInfo(Objectives.Cost) + "\t" + rinfo.getviInfo(Objectives.Probability) + "\t"
-				+ rinfo.timeLimited + "\t" + rinfo.maxTimeLimit;
-		out.println(resLine);
+				+ rinfo.timeLimited + "\t" + rinfo.maxTimeLimit + "\t" + rinfo.duration + "\t" + rinfo.maxTrialLen
+				+ "\t" + rinfo.minTrialLen + "\t" + rinfo.averageTrialLen + "\t" + rinfo.decisionNodesExp + "\t"
+				+ rinfo.chanceNodesExp + "\t" + totalTime + "\t" + rinfo.getVIPolIntervalString();
+		if (out != null)
+			out.println(resLine);
 	}
 
 	public MultiAgentNestedProductModelGenerator createNestedMultiAgentModelGen(Prism prism, PrismLog mainLog,
-			ArrayList<String> filenames, String propertiesFileName, String resultsLocation, boolean hasSharedState)
-			throws PrismException, IOException {
+			ArrayList<String> filenames, String propertiesFileName, String resultsLocation, boolean hasSharedState,
+			ArrayList<Integer> robots, ArrayList<Integer> goals) throws PrismException, IOException {
 
 		AcceptanceType[] allowedAcceptance = { AcceptanceType.RABIN, AcceptanceType.REACH };
 
@@ -535,7 +574,9 @@ public class TestLRTDPVariousConfigs {
 		ArrayList<ModulesFileModelGenerator> mfmodgens = new ArrayList<>();
 		ModulesFile modulesFile = null; // just here so we can use the last modules file for our properties
 
-		for (String modelFileName : filenames) {
+		for (int i = 0; i < robots.size(); i++) {
+			String modelFileName = filenames.get(robots.get(i));
+//		for (String modelFileName : filenames) {
 			mainLog.println("Loading model gen for " + modelFileName);
 			modulesFile = prism.parseModelFile(new File(modelFileName)); // because the models are uniform
 			// we might have to find a way to change this later
@@ -551,7 +592,12 @@ public class TestLRTDPVariousConfigs {
 		List<Expression> processedExprs = new ArrayList<Expression>();
 		int safetydaind = -1;
 		Expression safetyexpr = null;
-		for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
+		if (!goals.contains(propertiesFile.getNumProperties() - 1)) {
+			goals.add(propertiesFile.getNumProperties() - 1);
+		}
+		for (int propNum = 0; propNum < goals.size(); propNum++) {
+			int i = goals.get(propNum);
+//		for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
 			mainLog.println(propertiesFile.getProperty(i));
 			// so reward + safety
 			boolean isSafeExpr = false;
@@ -623,15 +669,17 @@ public class TestLRTDPVariousConfigs {
 
 	public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
 			PrismLog mainLog, String resultsLocation, ArrayList<String> fns, String propFilename,
-			ArrayList<HashMap<State, Object>> stateActions) throws Exception {
+			ArrayList<HashMap<State, Object>> stateActions, ArrayList<Integer> robots, ArrayList<Integer> goals)
+			throws Exception {
 		SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism, mainLog, resultsLocation);
 		// so now we can read in the model
 		ArrayList<HashMap<Objectives, HashMap<State, Double>>> allStateValues = new ArrayList<>();
-		for (String filename : fns) {
+		for (int i = 0; i < robots.size(); i++) {
+			String filename = fns.get(robots.get(i));
 			String[] nameval = filename.split("/");
 			sas.setName(nameval[nameval.length - 1].replaceAll(".prism", ""));
 			sas.loadModel(filename);
-			sas.loadProperties(propFilename);
+			sas.loadProperties(propFilename, goals);
 			// so we need to edit this bit
 			// so we need a new function with the strategy
 
@@ -644,9 +692,9 @@ public class TestLRTDPVariousConfigs {
 		return allStateValues;
 	}
 
-	void initialiseResultsLocations(String resFolderext, String logFilesExt) {
-		currentDir = System.getProperty("user.dir");
-		testsLocation = currentDir + "/tests/wkspace/" + resFolderext;
+	void initialiseResultsLocations(String testloc, String resFolderext, String logFilesExt) {
+
+		testsLocation = testloc;
 		logFilesLocation = testsLocation + logFilesExt;
 		resultsLocation = testsLocation + "results/configs/csvs/";
 		createDirIfNotExist(logFilesLocation);

@@ -464,7 +464,7 @@ public class TestLRTDPNestedMaSAS_again {
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 
 		double epsilonActSel = 0.8;
-		ActionSelector baseActSel = new ActionSelectorGreedySimpleLowerUpperBound(tieBreakingOrder);// new
+		ActionSelector baseActSel = new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);// new
 
 		mainLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound epsilon=" + epsilonActSel);
 		fileLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound epsilon=" + epsilonActSel);
@@ -635,7 +635,7 @@ public class TestLRTDPNestedMaSAS_again {
 		mainLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound Action Selector Function");
 		fileLog.println("Initialising ActionSelectorGreedyTieBreakRandomSoftmaxLowerBound Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerUpperBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);// new
 		// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising OutcomeSelectorProbSkipSolved Function");
@@ -1088,7 +1088,7 @@ public class TestLRTDPNestedMaSAS_again {
 
 		ActionSelector actionSelection =
 //				new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
-				new ActionSelectorGreedyTieBreakRandomLowerBound(tieBreakingOrder);// new
+				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,true);// new
 		
 		// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
@@ -1133,8 +1133,8 @@ public class TestLRTDPNestedMaSAS_again {
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		if (actionSelection instanceof ActionSelectorGreedyTieBreakRandomLowerBound)
-			actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+		if (actionSelection instanceof ActionSelectorGreedySimpleLowerBound)
+			actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);
 
 		rinfo = new THTSRunInfo();
 
@@ -1242,7 +1242,7 @@ public class TestLRTDPNestedMaSAS_again {
 
 		ActionSelector actionSelection =
 //				new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
-				new ActionSelectorGreedyTieBreakRandomLowerBound(tieBreakingOrder);// new
+				new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,true);// new
 																					// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising Greedy Bounds Outcome Selector Function");
@@ -1283,8 +1283,8 @@ public class TestLRTDPNestedMaSAS_again {
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		if (actionSelection instanceof ActionSelectorGreedyTieBreakRandomLowerBound)
-			actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+		if (actionSelection instanceof ActionSelectorGreedySimpleLowerBound)
+			actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);
 		rinfo = new THTSRunInfo();
 
 		goalack = thts.runThroughMostProb(actionSelection, resultsLocation);

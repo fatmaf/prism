@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+import prism.PrismException;
 import thts.Bounds;
 import thts.Objectives;
 
@@ -26,7 +27,7 @@ public class BackupFullBellmanRTDP extends BackupNVI {
 	}
 
 	@Override
-	public boolean backupChanceNode(ChanceNode cn, boolean doMarkSolved) {
+	public boolean backupChanceNode(ChanceNode cn, boolean doMarkSolved) throws PrismException {
 
 		if (cn.getChildren() != null) {
 
@@ -192,7 +193,7 @@ public class BackupFullBellmanRTDP extends BackupNVI {
 	}
 
 	@Override
-	public boolean forwardbackupChanceNode(ChanceNode cn) {
+	public boolean forwardbackupChanceNode(ChanceNode cn) throws PrismException {
 		return backupChanceNode(cn, false);
 	}
 

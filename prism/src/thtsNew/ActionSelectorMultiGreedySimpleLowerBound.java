@@ -7,21 +7,21 @@ import java.util.Random;
 import thts.Bounds;
 import thts.Objectives;
 
-public class ActionSelectorGreedySimpleLowerBound implements ActionSelector {
+public class ActionSelectorMultiGreedySimpleLowerBound implements ActionSelector {
 
 	Random rgen;
 	ArrayList<Objectives> tieBreakingOrder;
-	boolean tieBreak;
+	
 
-	public ActionSelectorGreedySimpleLowerBound(ArrayList<Objectives> tieBreakingOrder,boolean tieBreakRandom) {
+	public ActionSelectorMultiGreedySimpleLowerBound(ArrayList<Objectives> tieBreakingOrder) {
 		this.tieBreakingOrder = tieBreakingOrder;
-		this.tieBreak = tieBreakRandom;
 	}
 
 
 
-	public ChanceNode selectActionSimple(DecisionNode nd) {
-		ChanceNode selectedActionNode = null;
+	public ArrayList<ChanceNode> getAllBestActions(DecisionNode nd)
+	{
+		ArrayList<ChanceNode> bestActions; 
 		// if bounds are not initialised choose the one with uninitialised bounds
 		// just the next one
 		if (nd.allChildrenInitialised()) {
@@ -40,26 +40,46 @@ public class ActionSelectorGreedySimpleLowerBound implements ActionSelector {
 					}
 				}
 			}
-			if(tieBreak)
-			{
-				ArrayList<ChanceNode> sameNodes = new ArrayList<>(); 
-				sameNodes.add(greedyAction);
-				for (Object a : nd.getChildren().keySet()) {
-					ChanceNode cn = nd.getChild(a);
-					if(cn!=greedyAction)
-					{
-						if(sameBounds(cn,greedyAction))
-						{
-							sameNodes.add(cn);
-						}
-					}
-					
-				}
-				if(sameNodes.size()>1)
+			ArrayList<ChanceNode> sameNodes = new ArrayList<>(); 
+			sameNodes.add(greedyAction);
+			for (Object a : nd.getChildren().keySet()) {
+				ChanceNode cn = nd.getChild(a);
+				if(cn!=greedyAction)
 				{
-					rgen = new Random();
-					int choice = rgen.nextInt(sameNodes.size()); 
-					greedyAction = sameNodes.get(choice);
+					if(sameBounds(cn,greedyAction))
+					{
+						sameNodes.add(cn);
+					}
+				}
+				
+			}
+			bestActions = sameNodes; 
+			
+		} else {
+			ArrayList<ChanceNode> initChildren = nd.childrenWithuninitialisedBounds();
+			bestActions = new ArrayList<>();
+			 bestActions.add(initChildren.get(0));
+		}
+		return bestActions;
+	}
+	public ChanceNode selectActionSimple(DecisionNode nd) {
+		ChanceNode selectedActionNode = null;
+		// if bounds are not initialised choose the one with uninitialised bounds
+		// just the next one
+		if (nd.allChildrenInitialised()) {
+			ChanceNode greedyAction = null;
+			ChanceNode tempChoice = null;
+			for (Object a : nd.getChildren().keySet()) {
+				ChanceNode cn = nd.getChild(a);
+				if (cn.ignoreAction)
+					continue;
+				if (greedyAction == null)
+					greedyAction = cn;
+				else {
+					tempChoice = getNodeWithBetterLowerBound(greedyAction, cn);
+					if (tempChoice != null) {	
+						greedyAction = cn;
+					}
 				}
 			}
 

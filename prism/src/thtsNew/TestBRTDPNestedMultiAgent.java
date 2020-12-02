@@ -367,7 +367,7 @@ public class TestBRTDPNestedMultiAgent {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
@@ -408,9 +408,9 @@ public class TestBRTDPNestedMultiAgent {
 
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-		goalack = thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThroughMostProb(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 		rinfo.goalOnProbablePath = goalack[0];
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
@@ -522,7 +522,7 @@ public class TestBRTDPNestedMultiAgent {
 		mainLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 		fileLog.println("Initialising Greedy Bounds Difference Action Selector Function");
 
-		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);// new
+		ActionSelector actionSelection = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false);// new
 																									// ActionSelectorGreedyBoundsDiff(tieBreakingOrder);
 
 		mainLog.println("Initialising OutcomeSelectorBoundsGreedyBRTDP");
@@ -565,7 +565,7 @@ public class TestBRTDPNestedMultiAgent {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();
@@ -887,7 +887,7 @@ public class TestBRTDPNestedMultiAgent {
 		mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 		fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
 
-		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder), resultsLocation);
+		goalack = thts.runThrough(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false), resultsLocation);
 
 		mainLog.close();
 		fileLog.close();

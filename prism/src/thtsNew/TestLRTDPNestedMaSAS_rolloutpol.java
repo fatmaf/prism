@@ -332,7 +332,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		ActionSelector greedyActSel
 		= new ActionSelectorGreedySimpleUpperLowerBound(tieBreakingOrder);
 		if(config==2)
-			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+			greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,true);
 		double actSelSoftmaxProb = 0.2; 
 		ActionSelector softmaxActSel = new ActionSelectorSoftmax(greedyActSel,actSelSoftmaxProb);
 		ActionSelector rolloutPol = 
@@ -380,7 +380,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol {
 		
 
 		rinfo = new THTSRunInfo();
-		greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+		greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,true);
 		goalack = thts.runThroughMostProb(greedyActSel, resultsLocation);
 		rinfo.goalOnProbablePath = goalack[0];
 		goalack = thts.runThrough(greedyActSel, resultsLocation);

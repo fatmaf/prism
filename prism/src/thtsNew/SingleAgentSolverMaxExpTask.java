@@ -302,7 +302,7 @@ public class SingleAgentSolverMaxExpTask {
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
 		mainLog.println("Performing NVI");
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, npMDP.getProductModel(), target, remain,
-				rewardsList, null, minRewards, null, 1, null, this.mainLog, resLoc,name);
+				rewardsList, null, minRewards, null, 1, null, this.mainLog);
 		// now this is possibly the MOST important bit
 		// we've got to go over all the states and save them
 		// the last one is the probability
@@ -419,7 +419,7 @@ public class SingleAgentSolverMaxExpTask {
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
 		mainLog.println("Performing NVI");
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, npMDP.getProductModel(), target, remain,
-				rewardsList, null, minRewards, null, 1, null, this.mainLog, resLoc,name);
+				rewardsList, null, minRewards, null, 1, null, this.mainLog);
 		// now this is possibly the MOST important bit
 		// we've got to go over all the states and save them
 		// the last one is the probability

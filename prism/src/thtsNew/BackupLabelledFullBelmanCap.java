@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Stack;
 
+import prism.PrismException;
 import prism.PrismLog;
 import thts.Bounds;
 import thts.Objectives;
@@ -44,7 +45,7 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 	}
 
 	@Override
-	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) {
+	public boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws PrismException {
 		if(debugLog!=null)
 			debugLog.println("Backing Up: "+cn.toString());
 		updateChanceNode(cn);
@@ -154,7 +155,7 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 
 	}
 
-	public void updateChanceNode(ChanceNode cn) {
+	public void updateChanceNode(ChanceNode cn) throws PrismException {
 		if (cn.getChildren() != null) {
 
 			for (Objectives obj : tieBreakingOrder) {
@@ -295,7 +296,7 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 	}
 
 	@Override
-	public boolean forwardbackupChanceNode(ChanceNode cn) {
+	public boolean forwardbackupChanceNode(ChanceNode cn) throws PrismException {
 		updateChanceNode(cn);
 		return true;
 	}

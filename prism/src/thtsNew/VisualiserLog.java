@@ -17,7 +17,7 @@ public class VisualiserLog {
 	boolean donull = false;
 
 	public enum THTSStep {
-		visitDecisionNode, ActSel, visitChanceNode, OutSel, Heuristic,PolRun
+		visitDecisionNode, ActSel, visitChanceNode, OutSel, Heuristic, PolRun
 	}
 
 	THTSStep curr = THTSStep.visitDecisionNode;
@@ -28,13 +28,12 @@ public class VisualiserLog {
 
 	}
 
-	public VisualiserLog(String logName, ArrayList<Objectives> boundsOrder,boolean append) {
-		mainLog = new PrismFileLog(logName,append);
+	public VisualiserLog(String logName, ArrayList<Objectives> boundsOrder, boolean append) {
+		mainLog = new PrismFileLog(logName, append);
 		this.boundsOrder = boundsOrder;
 
 	}
 
-	
 	public VisualiserLog(ArrayList<Objectives> boundsOrder, boolean donull) {
 		this.donull = donull;
 		if (donull)
@@ -60,7 +59,6 @@ public class VisualiserLog {
 
 		return "'" + key + "':" + value.toString();
 	}
-
 
 	public void newRollout(int rNum) {
 		if (!donull) {
@@ -101,14 +99,14 @@ public class VisualiserLog {
 			currentStep += "\n\t\t[begin" + t.toString() + "]{";
 	}
 
-	public void beginPolRun()
-	{
+	public void beginPolRun() {
 		begin(THTSStep.PolRun);
 	}
-	public void endPolRun()
-	{
+
+	public void endPolRun() {
 		end(THTSStep.PolRun);
 	}
+
 	public void beginOutcomeSelection() {
 		begin(THTSStep.OutSel);
 //		if(!donull) {
@@ -149,25 +147,25 @@ public class VisualiserLog {
 		end(THTSStep.Heuristic);
 	}
 
-	public void writeAssignedHeuristic(Node d)
-	{
+	public void writeAssignedHeuristic(Node d) {
 		if (d instanceof DecisionNode)
-			writeAssignedHeuristic((DecisionNode)d); 
-		else if(d instanceof ChanceNode)
-			writeAssignedHeuristic((ChanceNode)d);
+			writeAssignedHeuristic((DecisionNode) d);
+		else if (d instanceof ChanceNode)
+			writeAssignedHeuristic((ChanceNode) d);
 	}
-	private void writeAssignedHeuristic(ChanceNode d)
-	{
-		if(!donull) {
-			currentStep+="\n\t\t"+chanceNodeString(d);
+
+	private void writeAssignedHeuristic(ChanceNode d) {
+		if (!donull) {
+			currentStep += "\n\t\t" + chanceNodeString(d);
 		}
 	}
-	private void writeAssignedHeuristic(DecisionNode d)
-	{
-		if(!donull) {
-			currentStep+="\n\t\t"+decisionNodeString(d);
+
+	private void writeAssignedHeuristic(DecisionNode d) {
+		if (!donull) {
+			currentStep += "\n\t\t" + decisionNodeString(d);
 		}
 	}
+
 	public void writeSelectedAction(ChanceNode d) {
 		if (!donull) {
 			currentStep += "\n\t\tselected:{" + chanceNodeString(d) + "}";

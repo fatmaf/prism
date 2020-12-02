@@ -382,7 +382,7 @@ public class TestLRTDPNestedMaSAS_rolloutpol_uct {
 		
 
 		rinfo = new THTSRunInfo();
-		greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder);
+		greedyActSel = new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,true);
 		goalack = thts.runThroughMostProb(greedyActSel, resultsLocation);
 		rinfo.goalOnProbablePath = goalack[0];
 		goalack = thts.runThrough(greedyActSel, resultsLocation);
