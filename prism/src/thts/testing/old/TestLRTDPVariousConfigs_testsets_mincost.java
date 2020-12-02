@@ -144,7 +144,7 @@ public class TestLRTDPVariousConfigs_testsets_mincost {
 		String[] selConfigs = { "8"/* , "10" */ };
 		// this.maxCost = 10000;
 		String testSuffix = "timing";
-		String[] testConfigs = { "Failstates" };
+		String[] testConfigs = { "Failstates" ,"Goals","Robots"};
 		for (String tc : testConfigs) {
 			for (int i = 0; i < selConfigs.length; i++) {
 
