@@ -149,7 +149,7 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
 			// just back up this node
 			updateDecisionNode(dn);
 		}
-		
+		if(debugLog!=null)
 		debugLog.println("--------LRTDP Backup End "+dn.toString()+"-------------");
 		return backupToRet;
 
