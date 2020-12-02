@@ -30,7 +30,7 @@ import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
 import thts.Objectives;
 
-//PRISM_MAINCLASS=thtsNew.TestLRTDPVariousConfigs_testsets prism/bin/prism
+//PRISM_MAINCLASS=TestLRTDPVariousConfigs_testsets_mincost prism/bin/prism
 public class TestLRTDPVariousConfigs_testsets_mincost {
 
 	HashMap<String, TestSuite> filteredTestSuites;
