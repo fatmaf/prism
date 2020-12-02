@@ -465,7 +465,7 @@ public class TestLRTDPVariousConfigs_testsets_mincost {
 		mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 		fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
 
-		initialiseConfiguration(configname, minMaxVals, fileLog, egreedyProb);
+		initialiseConfiguration(configname, minMaxVals, null, egreedyProb);
 		RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
 
 		mainLog.println("Max Rollouts: " + maxRollouts);
