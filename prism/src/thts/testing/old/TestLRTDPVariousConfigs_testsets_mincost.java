@@ -507,6 +507,7 @@ public class TestLRTDPVariousConfigs_testsets_mincost {
 		thts.setName(runName);
 		thts.setResultsLocation(logFilesLocation);
 		if (this.timeBound) {
+			thts.setTimeLimitInMilliSeconds(30*60*1000);
 			thts.setTimeBound(true);
 			runInfo.timeLimited = true;
 			runInfo.maxTimeLimit = thts.timeLimitInMS;
