@@ -96,6 +96,13 @@ public class BackupLabelledFullBelman extends BackupNVI {
 			backupToRet = toret;
 
 		}
+		// TODO: this is not really what it says to do in lrtdp we need to check this
+		else {
+			// just back up this node
+			updateDecisionNode(dn);
+		}
+		
+		debugLog.println("--------LRTDP Backup End "+dn.toString()+"-------------");
 		return backupToRet;
 
 	}
