@@ -9,7 +9,7 @@
 
 # Reminder: $@ = target, $* = target without extension, $< = dependency
 
-THIS_DIR = thtsNew
+THIS_DIR = thtsNew.thts
 PRISM_DIR_REL = ../..
 
 JNI_GEN_HEADER_DIR=$(THIS_DIR)/$(PRISM_DIR_REL)/$(PRISM_INCLUDE_DIR)/jni
