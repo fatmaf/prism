@@ -1,10 +1,8 @@
-package thts.treesearch;
+package thts.treesearch.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-
-import thts.old.Bounds;
 
 public class THTSRunInfo {
 	public boolean goalFound = false;

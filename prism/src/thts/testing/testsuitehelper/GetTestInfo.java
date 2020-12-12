@@ -1,4 +1,4 @@
-package thts.testsuitehelper;
+package thts.testing.testsuitehelper;
 
 import java.io.*;
 import java.util.ArrayList;

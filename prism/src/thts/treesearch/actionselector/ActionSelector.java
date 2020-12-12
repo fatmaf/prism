@@ -1,8 +1,8 @@
-package thts.actionselector;
+package thts.treesearch.actionselector;
 
 import prism.PrismLog;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 public interface ActionSelector {
 

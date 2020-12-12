@@ -1,4 +1,4 @@
-package thts.VI;
+package thts.vi;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

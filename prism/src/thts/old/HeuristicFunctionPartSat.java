@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import parser.State;
 import prism.PrismException;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
 
 public class HeuristicFunctionPartSat implements HeuristicFunction {
 	MultiAgentProductModelGenerator maProdModGen;

@@ -1,4 +1,4 @@
-package thts.Scratch;
+package thts.scratch;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,24 +27,27 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
-import thts.old.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.actionselector.ActionSelectorGreedySimpleLowerBound;
-import thts.backup.BackupLabelledFullBelman;
-import thts.backup.BackupLabelledFullBelmanCap;
-import thts.backup.BackupNVI;
-import thts.heuristic.Heuristic;
+import thts.treesearch.heuristic.EmptyHeuristic;
+import thts.treesearch.heuristic.EmptyNestedSingleAgentHeuristic;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleLowerBound;
+import thts.treesearch.backup.BackupLabelledFullBelman;
+import thts.treesearch.backup.BackupLabelledFullBelmanCap;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.heuristic.Heuristic;
 import thts.modelgens.MDPModelGenerator;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.modelgens.NestedProductModelGenerator;
 import thts.modelgens.SingleAgentProductModelGenerator;
-import thts.OutcomeSelector.OutcomeSelector;
-import thts.OutcomeSelector.OutcomeSelectorRandom;
-import thts.RewardHelper.RewardHelper;
-import thts.RewardHelper.RewardHelperMDP;
-import thts.RewardHelper.RewardHelperNestedSingleAgent;
-import thts.TreeSearch.THTSRunInfo;
-import thts.TreeSearch.TrialBasedTreeSearch;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.outcomeselector.OutcomeSelectorRandom;
+import thts.treesearch.rewardhelper.RewardHelper;
+import thts.treesearch.rewardhelper.RewardHelperMDP;
+import thts.treesearch.rewardhelper.RewardHelperNestedSingleAgent;
+import thts.treesearch.utils.THTSRunInfo;
+import thts.treesearch.TrialBasedTreeSearch;
+import thts.treesearch.heuristic.EmptySingleAgentHeuristic;
 
 //a class that tests LRTDP and THTS
 public class TestLRTDPSimple {

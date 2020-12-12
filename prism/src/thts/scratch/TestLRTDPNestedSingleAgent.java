@@ -1,4 +1,4 @@
-package thts.Scratch;
+package thts.scratch;
 
 import java.io.File;
 import java.util.AbstractMap;
@@ -25,20 +25,21 @@ import prism.PrismDevNullLog;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
-import thts.old.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.actionselector.ActionSelectorGreedySimpleLowerBound;
-import thts.backup.BackupLabelledFullBelmanCap;
-import thts.backup.BackupNVI;
-import thts.heuristic.Heuristic;
+import thts.treesearch.heuristic.EmptyNestedSingleAgentHeuristic;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleLowerBound;
+import thts.treesearch.backup.BackupLabelledFullBelmanCap;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.heuristic.Heuristic;
 import thts.modelgens.NestedProductModelGenerator;
-import thts.OutcomeSelector.OutcomeSelector;
-import thts.OutcomeSelector.OutcomeSelectorRandom;
-import thts.OutcomeSelector.OutcomeSelectorRandomSkipSolved;
-import thts.RewardHelper.RewardHelper;
-import thts.RewardHelper.RewardHelperNestedSingleAgent;
-import thts.TreeSearch.THTSRunInfo;
-import thts.TreeSearch.TrialBasedTreeSearch;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.outcomeselector.OutcomeSelectorRandom;
+import thts.treesearch.outcomeselector.OutcomeSelectorRandomSkipSolved;
+import thts.treesearch.rewardhelper.RewardHelper;
+import thts.treesearch.rewardhelper.RewardHelperNestedSingleAgent;
+import thts.treesearch.utils.THTSRunInfo;
+import thts.treesearch.TrialBasedTreeSearch;
 
 public class TestLRTDPNestedSingleAgent {
 

@@ -1,8 +1,8 @@
-package thts.sccattempt;
+package thts.treesearch.sccattempt;
 
 import java.util.ArrayList;
 
-import thts.treesearch.Node;
+import thts.treesearch.utils.Node;
 
 //each scc container has an id 
 //and a list of nodes 

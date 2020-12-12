@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import parser.State;
 import prism.PrismException;
+import thts.treesearch.utils.Bounds;
 
 public class ChanceNode extends THTSNode {
 	Object action;

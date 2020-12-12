@@ -1,4 +1,4 @@
-package thts.sccattempt;
+package thts.treesearch.sccattempt;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,22 +26,22 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
-import thts.treesearch.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.actionselector.ActionSelectorGreedySimpleBounds;
-import thts.actionselector.ActionSelectorGreedySimpleLowerBound;
-import thts.backup.BackupFullBellmanCap;
-import thts.backup.BackupNVI;
-import EmptyNestedMultiAgentHeuristic;
-import EmptyNestedMultiAgentHeuristicBounds;
-import thts.heuristic.Heuristic;
+import thts.treesearch.heuristic.EmptyNestedMultiAgentHeuristic;
+import thts.treesearch.heuristic.EmptyNestedMultiAgentHeuristicBounds;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleBounds;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleLowerBound;
+import thts.treesearch.backup.BackupFullBellmanCap;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.heuristic.Heuristic;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
-import thts.outcomeselector.OutcomeSelector;
-import thts.outcomeselector.OutcomeSelectorBoundsGreedyBRTDP;
-import thts.rewardhelper.RewardCalculation;
-import thts.rewardhelper.RewardHelper;
-import thts.rewardhelper.RewardHelperMultiAgent;
-import thts.treesearch.THTSRunInfo;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.outcomeselector.OutcomeSelectorBoundsGreedyBRTDP;
+import thts.treesearch.rewardhelper.RewardCalculation;
+import thts.treesearch.rewardhelper.RewardHelper;
+import thts.treesearch.rewardhelper.RewardHelperMultiAgent;
+import thts.treesearch.utils.THTSRunInfo;
 
 public class TestBRTDPNestedMultiAgent {
 

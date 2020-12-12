@@ -1,11 +1,11 @@
-package thts.actionselector;
+package thts.treesearch.actionselector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import parser.State;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
 
 public class ActionSelectorSASRolloutPol implements ActionSelector {

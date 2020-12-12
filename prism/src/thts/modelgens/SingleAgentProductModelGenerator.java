@@ -1,4 +1,4 @@
-package thts.ModelGens;
+package thts.modelgens;
 
 import java.util.ArrayList;
 import java.util.BitSet;

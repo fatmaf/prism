@@ -1,9 +1,9 @@
-package thts.actionselector;
+package thts.treesearch.actionselector;
 
 
 import prism.PrismLog;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 //takes as input an action selection class and a value for softmax
 public class ActionSelectorMCTS implements ActionSelector {

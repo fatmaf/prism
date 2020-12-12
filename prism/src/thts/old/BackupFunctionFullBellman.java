@@ -5,6 +5,8 @@ import java.util.Map.Entry;
 
 import parser.State;
 import prism.PrismException;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
 
 public class BackupFunctionFullBellman implements BackupFunction {
 	ArrayList<Objectives> tieBreakingOrder;

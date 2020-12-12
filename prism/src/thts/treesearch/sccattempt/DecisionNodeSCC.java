@@ -1,16 +1,16 @@
-package thts.sccattempt;
+package thts.treesearch.sccattempt;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import parser.State;
 import prism.PrismException;
-import thts.old.Bounds;
-import thts.treesearch.Objectives;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
-import thts.treesearch.Node;
-import thts.treesearch.NodeType;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
+import thts.treesearch.utils.Node;
+import thts.treesearch.utils.NodeType;
 
 public class DecisionNodeSCC extends DecisionNode {
 	protected HashMap<Object, ChanceNodeSCC> children;

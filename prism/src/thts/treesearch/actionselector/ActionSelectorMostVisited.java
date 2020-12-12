@@ -1,7 +1,7 @@
-package thts.actionselector;
+package thts.treesearch.actionselector;
 
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 import java.util.ArrayList;
 

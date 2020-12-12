@@ -1,13 +1,13 @@
-package thts.backup;
+package thts.treesearch.backup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import prism.PrismException;
-import thts.old.Bounds;
-import thts.treesearch.Objectives;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 public class BackupFullBellman extends BackupNVI {
 

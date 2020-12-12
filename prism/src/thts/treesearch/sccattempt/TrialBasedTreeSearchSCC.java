@@ -1,4 +1,4 @@
-package thts.sccattempt;
+package thts.treesearch.sccattempt;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -12,18 +12,18 @@ import parser.State;
 import prism.DefaultModelGenerator;
 import prism.PrismException;
 import prism.PrismLog;
-import thts.old.Bounds;
-import thts.old.MDPCreator;
-import thts.treesearch.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.backup.BackupNVI;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
-import thts.heuristic.Heuristic;
-import thts.treesearch.Node;
-import thts.outcomeselector.OutcomeSelector;
-import thts.rewardhelper.RewardHelper;
-import thts.treesearch.VisualiserLog;
+import thts.treesearch.utils.Bounds;
+import thts.utils.MDPCreator;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
+import thts.treesearch.heuristic.Heuristic;
+import thts.treesearch.utils.Node;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.rewardhelper.RewardHelper;
+import thts.treesearch.utils.VisualiserLog;
 
 public class TrialBasedTreeSearchSCC {
 

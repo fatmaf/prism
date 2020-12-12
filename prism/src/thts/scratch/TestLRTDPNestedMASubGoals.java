@@ -1,4 +1,4 @@
-package thts.Scratch;
+package thts.scratch;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,20 +26,20 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
-import thts.old.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.actionselector.ActionSelectorGreedySimpleLowerBound;
-import thts.backup.BackupLabelledFullBelmanCap;
-import thts.backup.BackupNVI;
-import thts.heuristic.Heuristic;
-import thts.OutcomeSelector.OutcomeSelector;
-import thts.OutcomeSelector.OutcomeSelectorRandom;
-import thts.RewardHelper.RewardCalculation;
-import thts.RewardHelper.RewardHelper;
-import thts.RewardHelper.RewardHelperMASubGoals;
-import thts.TreeSearch.THTSRunInfo;
-import thts.TreeSearch.TrialBasedTreeSearch;
-import thts.VI.SingleAgentSolverMaxExpTask;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleLowerBound;
+import thts.treesearch.backup.BackupLabelledFullBelmanCap;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.heuristic.Heuristic;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.outcomeselector.OutcomeSelectorRandom;
+import thts.treesearch.rewardhelper.RewardCalculation;
+import thts.treesearch.rewardhelper.RewardHelper;
+import thts.treesearch.rewardhelper.RewardHelperMASubGoals;
+import thts.treesearch.utils.THTSRunInfo;
+import thts.treesearch.TrialBasedTreeSearch;
+import thts.vi.SingleAgentSolverMaxExpTask;
 
 public class TestLRTDPNestedMASubGoals {
 

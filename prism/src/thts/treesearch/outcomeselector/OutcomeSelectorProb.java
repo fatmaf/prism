@@ -1,7 +1,7 @@
-package thts.outcomeselector;
+package thts.treesearch.outcomeselector;
 
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 import java.util.ArrayList;
 import java.util.Random;

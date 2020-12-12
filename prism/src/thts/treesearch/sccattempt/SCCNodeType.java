@@ -1,4 +1,4 @@
-package thts.sccattempt;
+package thts.treesearch.sccattempt;
 
 public enum SCCNodeType {
 

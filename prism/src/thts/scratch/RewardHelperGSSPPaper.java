@@ -1,10 +1,10 @@
-package thts.Scratch;
+package thts.scratch;
 
 import prism.DefaultModelGenerator;
 import prism.PrismException;
-import thts.old.Objectives;
-import thts.TreeSearch.ChanceNode;
-import thts.RewardHelper.RewardHelper;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.rewardhelper.RewardHelper;
 
 //cuz i'm too lazy
 public class RewardHelperGSSPPaper implements RewardHelper {

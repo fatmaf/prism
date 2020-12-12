@@ -1,4 +1,4 @@
-package thts.TreeSearch;
+package thts.treesearch;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -18,17 +18,16 @@ import prism.PrismLog;
 import prism.DefaultModelGenerator;
 import prism.Prism;
 
-import thts.old.Bounds;
-import thts.old.MDPCreator;
-import thts.old.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.actionselector.ActionSelectorMultiGreedySimpleLowerBound;
-import thts.backup.BackupNVI;
-import thts.heuristic.Heuristic;
-import thts.VI.MDPValIter;
-import thts.VI.MDPValIter.ModelCheckerMultipleResult;
-import thts.OutcomeSelector.OutcomeSelector;
-import thts.RewardHelper.RewardHelper;
+import thts.utils.MDPCreator;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorMultiGreedySimpleLowerBound;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.heuristic.Heuristic;
+import thts.treesearch.utils.*;
+import thts.vi.MDPValIter;
+import thts.vi.MDPValIter.ModelCheckerMultipleResult;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.rewardhelper.RewardHelper;
 
 public class TrialBasedTreeSearch {
 

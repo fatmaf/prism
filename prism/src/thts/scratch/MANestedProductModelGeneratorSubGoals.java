@@ -1,4 +1,4 @@
-package thts.Scratch;
+package thts.scratch;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -23,8 +23,8 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 import simulator.ModulesFileModelGenerator;
-import thts.TreeSearch.HelperClass;
-import thts.RewardHelper.RewardCalculation;
+import thts.treesearch.utils.HelperClass;
+import thts.treesearch.rewardhelper.RewardCalculation;
 
 //a multiagent nested product model generator with subgoals 
 //where subgoals are goals where 1,2,3,... tasks have been generated

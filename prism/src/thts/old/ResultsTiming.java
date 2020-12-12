@@ -48,7 +48,7 @@ public class ResultsTiming
 	String time_identifiers = "+-+";
 	private int numModel = 0;
 	String saveLoc;
-	boolean thtsNew.thts = false;
+	boolean is_thts = false;
 	boolean solutionFound = false; 
 
 	public enum varIDs {
@@ -61,12 +61,12 @@ public class ResultsTiming
 	}
 
 	
-	public ResultsTiming(PrismLog mainLog, String res_trial_name, String saveLoc, boolean thtsNew.thts)
+	public ResultsTiming(PrismLog mainLog, String res_trial_name, String saveLoc, boolean is_thts)
 	{
 		this.mainLog = mainLog;
 		this.res_trial_name = res_trial_name;
 		this.saveLoc = saveLoc;
-		this.thts = thts;
+		this.is_thts= is_thts;
 	}
 
 	public void writeResults()
@@ -83,25 +83,25 @@ public class ResultsTiming
 		json_text += createJsonStyleString("doors", numDoors) + comma;
 		json_text += createJsonStyleString("fs", numFS) + comma;
 		
-		if (!thts)
+		if (!is_thts)
 			json_text += createJsonStyleString("ReallocationStates", numReallocStates) + comma;
-		if (!thts)
+		if (!is_thts)
 			json_text += createJsonStyleString("productCreation", productCreation, true) + comma;
-		if(!thts)
+		if(!is_thts)
 			json_text += createJsonStyleString("Reallocations", reallocations, true) + comma;
 		else
 			json_text += createJsonStyleString("Rollouts", reallocations, true) + comma;
 		
 		json_text += createJsonStyleString("JointPolicyCreation", jointPolicyCreation, true) + comma;
-		if (!thts)
+		if (!is_thts)
 			json_text += createJsonStyleString("nestedProductStates", nestedProductStates, false) + comma;
 		else
 			json_text += createJsonStyleString("singleAgentSolutions", nestedProductStates, false) + comma;
-		if (!thts)
+		if (!is_thts)
 			json_text += createJsonStyleString("nestedProductTimes", nestedProductTimes, true) + comma;
 		else
 			json_text += createJsonStyleString("singleAgentSolutionTimes", nestedProductTimes, true) + comma;
-		if(thts)
+		if(is_thts)
 		{
 			json_text += createJsonStyleString("StatesExplored", teamMDPStates) + comma;
 			json_text += createJsonStyleString("TransitionsExplored", teamMDPTransitions) + comma;
@@ -115,19 +115,19 @@ public class ResultsTiming
 		//		json_text += createJsonStyleString("Total Time", totalComputationTime) + comma;
 		json_text += createJsonStyleString("Team MDP Time", totalTeamMDPCreationTime) + comma;
 		
-		if(!thts)
+		if(!is_thts)
 		json_text += createJsonStyleString("Nested Product Time", allNestedProductCreationTime) + comma;
 		else
 		json_text += createJsonStyleString("All Single Agent Solutions", allNestedProductCreationTime) + comma;
 		
 		json_text += createJsonStyleString("All Reallocations Time", allReallocationsTime) + comma;
-		if(thts)
+		if(is_thts)
 			json_text += createJsonStyleString("Values",values)+comma;
 		json_text += createJsonStyleString("Solution Found",solutionFound+"")+comma; 
 		json_text += createJsonStyleString("Total Time", System.nanoTime() - global_start_time);
 		
 		json_text += "}";
-		if(!thts)
+		if(!is_thts)
 		resLog = new PrismFileLog(saveLoc + "_trial_" + res_trial_name + "_r" + numRobots + "_t" + numTasks + "_d" + numDoors +"_fs"+numFS+ ".json");
 		else
 			resLog = new PrismFileLog(saveLoc + "_trial_" + res_trial_name + "_r" + numRobots + "_t" + numTasks + "_d" + numDoors +"_fs"+numFS+ "_thts.json");

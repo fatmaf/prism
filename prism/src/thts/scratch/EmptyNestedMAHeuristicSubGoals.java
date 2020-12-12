@@ -1,4 +1,4 @@
-package thts.Scratch;
+package thts.scratch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,11 +6,11 @@ import java.util.List;
 
 import parser.State;
 import prism.PrismException;
-import thts.old.Bounds;
-import thts.old.Objectives;
-import thts.TreeSearch.ChanceNode;
-import thts.TreeSearch.DecisionNode;
-import thts.heuristic.Heuristic;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
+import thts.treesearch.heuristic.Heuristic;
 
 public class EmptyNestedMAHeuristicSubGoals implements Heuristic {
 	List<State> goalStates = null;

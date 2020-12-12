@@ -4,12 +4,14 @@ import java.util.ArrayList;
 
 import parser.State;
 import prism.PrismException;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
 
 public class MCTSTrial implements HeuristicFunction
 {
 
 	MultiAgentProductModelGenerator maProdModGen; 
-	Bounds prob; 
+	Bounds prob;
 	Bounds prog; 
 	ArrayList<Bounds> costs; 
 	

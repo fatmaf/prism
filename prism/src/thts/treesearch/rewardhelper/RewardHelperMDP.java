@@ -1,9 +1,9 @@
-package thts.rewardhelper;
+package thts.treesearch.rewardhelper;
 
 import prism.DefaultModelGenerator;
 import prism.PrismException;
-import thts.treesearch.Objectives;
-import thts.treesearch.ChanceNode;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.ChanceNode;
 
 public class RewardHelperMDP implements RewardHelper {
 	DefaultModelGenerator mg;

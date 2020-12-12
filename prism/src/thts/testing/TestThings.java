@@ -1,4 +1,4 @@
-package thts.Testing;
+package thts.testing;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,11 +31,11 @@ import prism.PrismFileLog;
 import prism.PrismLog;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
-import thts.old.MDPCreator;
-import thts.old.Objectives;
+import thts.utils.MDPCreator;
+import thts.treesearch.utils.Objectives;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.modelgens.NestedProductModelGenerator;
-import thts.VI.SingleAgentSolverMaxExpTask;
+import thts.vi.SingleAgentSolverMaxExpTask;
 
 //just test whatever I want here 
 public class TestThings {

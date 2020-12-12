@@ -1,10 +1,10 @@
-package thts.rewardhelper;
+package thts.treesearch.rewardhelper;
 
 
 import prism.PrismException;
-import thts.treesearch.Objectives;
+import thts.treesearch.utils.Objectives;
 import thts.modelgens.NestedProductModelGenerator;
-import thts.treesearch.ChanceNode;
+import thts.treesearch.utils.ChanceNode;
 
 public class RewardHelperNestedSingleAgent implements RewardHelper {
 

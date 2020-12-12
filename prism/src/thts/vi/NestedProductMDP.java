@@ -1,4 +1,4 @@
-package thts.VI;
+package thts.vi;
 
 import java.util.ArrayList;
 import java.util.BitSet;

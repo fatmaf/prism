@@ -1,4 +1,4 @@
-package thts.old;
+package thts.treesearch.utils;
 
 public class Bounds{
 	public double upper;

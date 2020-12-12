@@ -6,6 +6,8 @@ import java.util.List;
 
 import parser.State;
 import prism.PrismException;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
 
 public abstract class THTSNode
 {

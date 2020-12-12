@@ -1,4 +1,4 @@
-package thts.sccattempt;
+package thts.treesearch.sccattempt;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,13 +6,13 @@ import java.util.Stack;
 
 import parser.State;
 import prism.PrismException;
-import thts.old.Bounds;
-import thts.treesearch.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.actionselector.ActionSelectorGreedySimpleLowerBound;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
-import thts.treesearch.Node;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleLowerBound;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
+import thts.treesearch.utils.Node;
 
 //lets first create our own thing from the GSSP example 
 //then everything has 2 or 1 action 

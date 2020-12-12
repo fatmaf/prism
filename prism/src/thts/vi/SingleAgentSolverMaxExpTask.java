@@ -1,4 +1,4 @@
-package thts.VI;
+package thts.vi;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,8 +25,8 @@ import prism.PrismFileLog;
 import prism.PrismLog;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
-import thts.old.Objectives;
-import thts.VI.MDPValIter.ModelCheckerMultipleResult;
+import thts.treesearch.utils.Objectives;
+import thts.vi.MDPValIter.ModelCheckerMultipleResult;
 
 public class SingleAgentSolverMaxExpTask {
 

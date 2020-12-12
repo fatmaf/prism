@@ -1,7 +1,7 @@
-package thts.backup;
+package thts.treesearch.backup;
 
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 public interface Backup {
 	// take in a decisionnode

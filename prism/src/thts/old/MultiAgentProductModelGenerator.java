@@ -20,6 +20,8 @@ import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
 import thts.modelgens.NestedProductModelGenerator;
+import thts.treesearch.utils.Objectives;
+import thts.utils.MDPCreator;
 
 public class MultiAgentProductModelGenerator
 {

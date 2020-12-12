@@ -1,4 +1,4 @@
-package thts.ModelGens;
+package thts.modelgens;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -55,7 +55,7 @@ public class NestedProductModelGenerator extends DefaultModelGenerator {// imple
 	protected ArrayList<Integer> exploreDaState;
 
 	protected int numModelVars;
-	protected int numDAs;
+	public int numDAs;
 
 	protected int safetyDAIndex;
 

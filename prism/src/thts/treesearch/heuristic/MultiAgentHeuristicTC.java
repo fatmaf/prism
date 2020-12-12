@@ -1,4 +1,4 @@
-package thts.heuristic;
+package thts.treesearch.heuristic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,11 +6,11 @@ import java.util.Map.Entry;
 
 import parser.State;
 import prism.PrismException;
-import thts.old.Bounds;
-import thts.treesearch.Objectives;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 //so needs to be initialised with state action values for each robot  
 //and a mapmg to help it do state stuff 

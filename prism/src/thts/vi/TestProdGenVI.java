@@ -1,4 +1,4 @@
-package thts.VI;
+package thts.vi;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,9 +33,9 @@ import prism.PrismFileLog;
 import prism.PrismLog;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
-import thts.old.Objectives;
-import thts.old.PolicyCreator;
-import thts.VI.MDPValIter.ModelCheckerMultipleResult;
+import thts.treesearch.utils.Objectives;
+import thts.utils.PolicyCreator;
+import thts.vi.MDPValIter.ModelCheckerMultipleResult;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
 
 public class TestProdGenVI {

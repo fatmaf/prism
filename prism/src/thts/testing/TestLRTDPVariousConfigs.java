@@ -1,4 +1,4 @@
-package thts.Testing;
+package thts.testing;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -28,22 +28,22 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
-import thts.old.Objectives;
-import thts.actionselector.*;
-import thts.backup.BackupLabelledFullBelman;
-import thts.backup.BackupLabelledFullBelmanCap;
-import thts.backup.BackupNVI;
-import thts.heuristic.Heuristic;
-import thts.heuristic.MultiAgentHeuristicTC;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.*;
+import thts.treesearch.backup.BackupLabelledFullBelman;
+import thts.treesearch.backup.BackupLabelledFullBelmanCap;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.heuristic.Heuristic;
+import thts.treesearch.heuristic.MultiAgentHeuristicTC;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
-import thts.OutcomeSelector.OutcomeSelector;
-import thts.OutcomeSelector.OutcomeSelectorProb;
-import thts.RewardHelper.RewardCalculation;
-import thts.RewardHelper.RewardHelper;
-import thts.RewardHelper.RewardHelperMultiAgent;
-import thts.TreeSearch.THTSRunInfo;
-import thts.TreeSearch.TrialBasedTreeSearch;
-import thts.VI.SingleAgentSolverMaxExpTask;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.outcomeselector.OutcomeSelectorProb;
+import thts.treesearch.rewardhelper.RewardCalculation;
+import thts.treesearch.rewardhelper.RewardHelper;
+import thts.treesearch.rewardhelper.RewardHelperMultiAgent;
+import thts.treesearch.utils.THTSRunInfo;
+import thts.treesearch.TrialBasedTreeSearch;
+import thts.vi.SingleAgentSolverMaxExpTask;
 
 //PRISM_MAINCLASS=thtsNew.Testing.TestLRTDPVariousConfigs prism/bin/prism
 public class TestLRTDPVariousConfigs {
@@ -476,7 +476,7 @@ public class TestLRTDPVariousConfigs {
 		fileLog.println("\nInitialising THTS");
 		boolean doForwardBackup = true;
 
-		TrialBasedTreeSearch thtsNew.thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts,
+		TrialBasedTreeSearch thts = new TrialBasedTreeSearch((DefaultModelGenerator) maModelGen, maxRollouts,
 				trialLength, heuristic, actSel, outSel, rewardH, backup, doForwardBackup, tieBreakingOrder, mainLog,
 				fileLog);
 		if (dovipolcheckonintervals) {

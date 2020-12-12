@@ -1,4 +1,4 @@
-package thts.old;
+package thts.utils;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -16,6 +16,10 @@ import prism.PrismException;
 import prism.PrismLog;
 import strat.MDStrategyArray;
 import strat.Strategy;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
+import thts.treesearch.utils.Node;
 import thts.vi.MDPValIter.ModelCheckerMultipleResult;
 
 public class PolicyCreator
@@ -28,10 +32,10 @@ public class PolicyCreator
 		mdpCreator = new MDPCreator();
 	}
 	
-	public MDPSimple createPolicy(Queue<THTSNode> nodeQ) throws PrismException
+	public MDPSimple createPolicy(Queue<Node> nodeQ) throws PrismException
 	{
-		HashMap<THTSNode,Integer> nodeCounter  = new HashMap<THTSNode,Integer>();
-		THTSNode currNode = nodeQ.remove();
+		HashMap<Node,Integer> nodeCounter  = new HashMap<Node,Integer>();
+		Node currNode = nodeQ.remove();
 		DecisionNode currDecNode=null;//= (DecisionNode)currNode;
 		ChanceNode currChanceNode = null;
 		boolean onChanceNode = false;
@@ -88,11 +92,11 @@ public class PolicyCreator
 
 	}
 
-	public MDPSimple createPolicy(DecisionNode rootNode, ActionSelection actSel, boolean upperbound) throws PrismException
+	public MDPSimple createPolicy(DecisionNode rootNode, ActionSelector actSel, boolean upperbound) throws Exception
 	{
-		Stack<THTSNode> toVisit = new Stack<THTSNode>();
-		Stack<THTSNode> visited = new Stack<THTSNode>();
-		THTSNode currNode = rootNode;
+		Stack<Node> toVisit = new Stack<Node>();
+		Stack<Node> visited = new Stack<Node>();
+		Node currNode = rootNode;
 		DecisionNode currDecNode = rootNode;
 		ChanceNode currChanceNode = null;
 		boolean onChanceNode = false;
@@ -123,8 +127,8 @@ public class PolicyCreator
 				mdpCreator.addAction(currChanceNode.getState(), currChanceNode.getAction(), successors);
 
 			} else {
-				Object action = actSel.selectActionBound(currDecNode, upperbound);
-				currChanceNode = currDecNode.getChild(action);
+				currChanceNode = actSel.selectAction(currDecNode, upperbound);
+
 				if (currChanceNode != null) {
 					if (!toVisit.contains(currChanceNode) && !visited.contains(currChanceNode)) {
 						toVisit.add(currChanceNode);
@@ -333,44 +337,6 @@ public class PolicyCreator
 		return mdpCreator.mdp;
 	}
 
-	public MDPSimple createPolicy(MDPSimple mdp, ActionSelection actionSelection) throws PrismException
-	{
-		int initialState = mdp.getFirstInitialState();
-		return createPolicy(initialState, mdp, actionSelection);
-	}
-
-	public MDPSimple createPolicy(int initialState, MDPSimple mdp, ActionSelection actionSelection) throws PrismException
-	{
-
-		Stack<Integer> toVisit = new Stack<Integer>();
-		BitSet visited = new BitSet();
-		toVisit.add(initialState);
-		int s;
-		while (!toVisit.isEmpty()) {
-			s = toVisit.pop();
-			visited.set(s);
-			State sState = mdp.getStatesList().get(s);
-
-			int actionIndex = actionSelection.selectAction(s);
-			Object action = mdp.getAction(s, actionIndex);
-
-			Iterator<Entry<Integer, Double>> tranIter = mdp.getTransitionsIterator(s, actionIndex);
-			ArrayList<Entry<State, Double>> successors = new ArrayList<Entry<State, Double>>();
-			while (tranIter.hasNext()) {
-				Entry<Integer, Double> stateProbPair = tranIter.next();
-				int succ = stateProbPair.getKey();
-				State succState = mdp.getStatesList().get(stateProbPair.getKey());
-				double prob = stateProbPair.getValue();
-				successors.add(new AbstractMap.SimpleEntry<State, Double>(succState, prob));
-				if (!toVisit.contains(succ) && !visited.get(succ)) {
-					toVisit.add(succ);
-				}
-			}
-			mdpCreator.addAction(sState, action, successors);
-
-		}
-		return mdpCreator.mdp;
-	}
 
 	public void savePolicy(String saveLocation, String name)
 	{

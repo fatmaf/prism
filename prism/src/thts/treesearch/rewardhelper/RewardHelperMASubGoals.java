@@ -1,10 +1,10 @@
-package thts.rewardhelper;
+package thts.treesearch.rewardhelper;
 
 
 import prism.PrismException;
-import thts.treesearch.Objectives;
+import thts.treesearch.utils.Objectives;
 import thts.scratch.MANestedProductModelGeneratorSubGoals;
-import thts.treesearch.ChanceNode;
+import thts.treesearch.utils.ChanceNode;
 
 public class RewardHelperMASubGoals implements RewardHelper {
 

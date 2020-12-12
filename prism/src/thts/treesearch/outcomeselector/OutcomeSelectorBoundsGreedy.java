@@ -1,11 +1,11 @@
-package thts.outcomeselector;
+package thts.treesearch.outcomeselector;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import thts.treesearch.Objectives;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 public class OutcomeSelectorBoundsGreedy implements OutcomeSelector {
 	ArrayList<Objectives> tieBreakingOrder;

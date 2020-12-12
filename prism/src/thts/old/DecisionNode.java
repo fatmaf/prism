@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import parser.State;
 import prism.PrismException;
+import thts.treesearch.utils.Bounds;
 
 public class DecisionNode extends THTSNode
 {
@@ -88,7 +89,7 @@ public class DecisionNode extends THTSNode
 
 	}
 
-	ChanceNode getChild(Object a)
+	public ChanceNode getChild(Object a)
 	{
 		if (isLeafNode())
 			return null;

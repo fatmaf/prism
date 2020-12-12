@@ -1,4 +1,4 @@
-package thts.actionselector;
+package thts.treesearch.actionselector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,10 +6,10 @@ import java.util.Random;
 
 import prism.PrismException;
 
-import thts.old.Bounds;
-import thts.treesearch.Objectives;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.scratch.BaseActionInfo;
 
@@ -62,7 +62,7 @@ public class ActionSelectorGreedySoftmaxLBMultiAgentBaseActions implements Actio
 			}
 			// now create a joint action
 			String ja = mapmg.createJointActionFromString(bestRobotActions);
-			if(nd.children.containsKey(ja))
+			if(nd.getChildren().containsKey(ja))
 			selectedActionNode = nd.getChild(ja);
 			if(selectedActionNode == null)
 			{

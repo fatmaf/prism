@@ -43,8 +43,10 @@ import prism.PrismLog;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
 import strat.MDStrategy;
-import thts.VI.MDPValIter;
-import thts.VI.NestedProductMDP;
+import thts.treesearch.utils.Objectives;
+import thts.utils.PolicyCreator;
+import thts.vi.MDPValIter;
+import thts.vi.NestedProductMDP;
 import thts.modelgens.NestedProductModelGenerator;
 
 public class SingleAgentLoader {

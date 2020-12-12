@@ -1,11 +1,10 @@
-package thts.treesearch;
+package thts.treesearch.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import parser.State;
 import prism.PrismException;
-import thts.old.Bounds;
 
 public class ChanceNode extends Node {
 

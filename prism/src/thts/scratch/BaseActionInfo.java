@@ -1,9 +1,9 @@
-package thts.Scratch;
+package thts.scratch;
 
 import java.util.HashMap;
 
-import thts.old.Bounds;
-import thts.old.Objectives;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
 
 public class BaseActionInfo {
 	public int actionOccurrences;

@@ -1,4 +1,4 @@
-package Heuristic;
+package thts.treesearch.heuristic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,12 +6,12 @@ import java.util.List;
 
 import parser.State;
 import prism.PrismException;
-import thts.old.Bounds;
-import thts.treesearch.Objectives;
-import thts.heuristic.Heuristic;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.heuristic.Heuristic;
 import thts.modelgens.SingleAgentProductModelGenerator;
-import thts.treesearch.ChanceNode;
-import thts.treesearch.DecisionNode;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
 
 public class EmptySingleAgentHeuristic implements Heuristic {
 	List<State> goalStates = null;

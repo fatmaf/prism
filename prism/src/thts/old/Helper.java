@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 
 import prism.PrismException;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.Objectives;
 
 public class Helper
 {
@@ -52,7 +54,7 @@ public class Helper
 	
 	
 	public static Entry<Object,ArrayList<Bounds>> updatedBoundsAndAction(DecisionNode d, boolean upperBound,
-			ArrayList<Objectives> tieBreakingOrder) throws PrismException
+																		 ArrayList<Objectives> tieBreakingOrder) throws PrismException
 	{
 		//for each objective we need a bound thing 
 		ArrayList<Bounds> bestQ = new ArrayList<Bounds>();

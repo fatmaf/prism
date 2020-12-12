@@ -1,4 +1,4 @@
-package thts.treesearch;
+package thts.treesearch.utils;
 
 import java.util.ArrayList;
 import java.util.List;

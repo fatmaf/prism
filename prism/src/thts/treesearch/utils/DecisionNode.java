@@ -1,10 +1,9 @@
-package thts.treesearch;
+package thts.treesearch.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import parser.State;
 import prism.PrismException;
-import thts.old.Bounds;
 import thts.scratch.BaseActionInfo;
 
 
@@ -19,7 +18,7 @@ public class DecisionNode extends Node {
 	//count = how many actions this base action is in 
 	//this is not going to be used unless we have multiple robots 
 	//and honestly even then if we use a specific heuristic and action selection function 
-	protected ArrayList<HashMap<Object, BaseActionInfo>> baseActionsForRobot = null;
+	public ArrayList<HashMap<Object, BaseActionInfo>> baseActionsForRobot = null;
 	
 	public void reset()
 	{

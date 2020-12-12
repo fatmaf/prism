@@ -1,4 +1,4 @@
-package thts.Scratch;
+package thts.scratch;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,26 +27,26 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import simulator.ModulesFileModelGenerator;
-import thts.old.Objectives;
-import thts.actionselector.ActionSelector;
-import thts.actionselector.ActionSelectorGreedySimpleLowerBound;
-import thts.actionselector.ActionSelectorGreedySimpleUpperLowerBound;
-import thts.actionselector.ActionSelectorSoftmax;
-import thts.backup.BackupLabelledFullBelmanCap;
-import thts.backup.BackupNVI;
-import thts.heuristic.Heuristic;
-import thts.heuristic.MultiAgentHeuristic;
+import thts.treesearch.utils.Objectives;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleLowerBound;
+import thts.treesearch.actionselector.ActionSelectorGreedySimpleUpperLowerBound;
+import thts.treesearch.actionselector.ActionSelectorSoftmax;
+import thts.treesearch.backup.BackupLabelledFullBelmanCap;
+import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.heuristic.Heuristic;
+import thts.treesearch.heuristic.MultiAgentHeuristic;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
-import thts.OutcomeSelector.OutcomeSelector;
-import thts.OutcomeSelector.OutcomeSelectorProbSkipSolved;
-import thts.OutcomeSelector.OutcomeSelectorRandom;
-import thts.OutcomeSelector.OutcomeSelectorRandomSkipSolved;
-import thts.RewardHelper.RewardCalculation;
-import thts.RewardHelper.RewardHelper;
-import thts.RewardHelper.RewardHelperMultiAgent;
-import thts.TreeSearch.THTSRunInfo;
-import thts.TreeSearch.TrialBasedTreeSearch;
-import thts.VI.SingleAgentSolverMaxExpTask;
+import thts.treesearch.outcomeselector.OutcomeSelector;
+import thts.treesearch.outcomeselector.OutcomeSelectorProbSkipSolved;
+import thts.treesearch.outcomeselector.OutcomeSelectorRandom;
+import thts.treesearch.outcomeselector.OutcomeSelectorRandomSkipSolved;
+import thts.treesearch.rewardhelper.RewardCalculation;
+import thts.treesearch.rewardhelper.RewardHelper;
+import thts.treesearch.rewardhelper.RewardHelperMultiAgent;
+import thts.treesearch.utils.THTSRunInfo;
+import thts.treesearch.TrialBasedTreeSearch;
+import thts.vi.SingleAgentSolverMaxExpTask;
 
 public class TestLRTDPNestedMultiAgentSAS {
 
