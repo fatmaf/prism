@@ -135,8 +135,8 @@ public class TestLRTDPNestedMultiAgentSAS {
 			duration = endTime - startTime;
 			durestimate+=duration;
 			if (rinfo != null)
-			{	result += sep + duration + sep + rinfo.goalFound + sep+rinfo.goalOnProbablePath+sep + rinfo.initialStateSolved + sep 
-						+ rinfo.numRolloutsTillSolved+sep
+			{	result += sep + duration + sep + rinfo.isGoalFound() + sep+rinfo.isGoalOnProbablePath()+sep + rinfo.isInitialStateSolved() + sep
+						+ rinfo.getNumRolloutsTillSolved()+sep
 						+rinfo.getBoundsString(Objectives.TaskCompletion, sep)+sep
 						+rinfo.getBoundsString(Objectives.Cost, sep);
 			csvRes = new PrismFileLog(resultsLocation + fn,true);
