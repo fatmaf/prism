@@ -27,11 +27,11 @@
 
 package simulator;
 
-import java.util.Date;
-
 import cern.jet.random.Exponential;
 import cern.jet.random.Uniform;
 import cern.jet.random.engine.MersenneTwister;
+
+import java.util.Date;
 
 /**
  * Random number generator for the simulator.

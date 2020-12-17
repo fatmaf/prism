@@ -1,8 +1,7 @@
-package thts.treesearch.configs.elugreedy;
+package thts.treesearch.configs.egreedy.elugreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
-import thts.treesearch.backup.BackupLabelledFullBelmanCap;
 import thts.treesearch.backup.BackupLabelledFullBelmanCapRelPenalty;
 import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTC;
@@ -29,7 +28,7 @@ public class ConfigeLUGreedyRelFiniteCost extends Configuration {
         setDomaxcost(true);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "LUGreedyRelFC";
+        String configname = "eLUGreedyRelFC";
         createConfigName(configname);
     }
 

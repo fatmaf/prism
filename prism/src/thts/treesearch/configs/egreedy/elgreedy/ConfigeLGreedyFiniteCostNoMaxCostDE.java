@@ -1,7 +1,5 @@
-package thts.treesearch.configs.elgreedy;
+package thts.treesearch.configs.egreedy.elgreedy;
 
-
-import thts.treesearch.configs.lgreedy.ConfigLGreedy;
 
 public class ConfigeLGreedyFiniteCostNoMaxCostDE extends ConfigeLGreedy {
 

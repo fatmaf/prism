@@ -1,8 +1,7 @@
-package thts.treesearch.configs.lgreedy;
+package thts.treesearch.configs.greedy.lgreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
-import thts.treesearch.backup.BackupLabelledFullBelmanCap;
 import thts.treesearch.backup.BackupLabelledFullBelmanCapRelPenalty;
 import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTC;

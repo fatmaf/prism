@@ -1,4 +1,4 @@
-package thts.treesearch.configs.uctl;
+package thts.treesearch.configs.uct.uctl;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;

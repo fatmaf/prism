@@ -1,4 +1,4 @@
-package thts.treesearch.configs.elugreedy;
+package thts.treesearch.configs.egreedy.elugreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
@@ -24,7 +24,7 @@ public class ConfigeLUGreedy extends Configuration {
         setDomaxcost(domaxcost);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "LUGreedy";
+        String configname = "eLUGreedy";
         createConfigName(configname);
     }
     public void doGreedyPolActSel()

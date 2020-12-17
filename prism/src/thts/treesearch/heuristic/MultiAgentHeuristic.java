@@ -99,7 +99,7 @@ public class MultiAgentHeuristic implements Heuristic {
 				if (valshere.get(obj).containsKey(rs.get(i))) {
 					valstoret.add(valshere.get(obj).get(rs.get(i)));
 				} else {
-					System.out.println("Unable to find state " + rs.get(i));
+//					System.out.println("Unable to find state " + rs.get(i));
 //					valstoret.add(Double.NaN);
 					double toadd = Double.NaN;
 					switch (obj) {
@@ -116,7 +116,7 @@ public class MultiAgentHeuristic implements Heuristic {
 					valstoret.add(toadd);
 				}
 			} else {
-				System.out.println("No such objective in single agent sol " + obj.toString());
+//				System.out.println("No such objective in single agent sol " + obj.toString());
 				valstoret.add(Double.NaN);
 			}
 		}

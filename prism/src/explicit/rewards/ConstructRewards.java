@@ -184,6 +184,7 @@ public class ConstructRewards extends PrismComponent
 					if (!allowNegative && rew < 0)
 						throw new PrismException("Transition reward is negative (" + rew + ") at state " + stateIndex + "");
 					rewSimple.addToTransitionReward(s, k, rew);
+				
 				}
 			}
 		}

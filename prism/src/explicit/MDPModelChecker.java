@@ -42,7 +42,6 @@ import java.util.Vector;
 
 import common.IterableStateSet;
 import common.StopWatch;
-import thts.PolicyCreator;
 import parser.State;
 import parser.VarList;
 import parser.ast.Declaration;
@@ -66,7 +65,6 @@ import acceptance.AcceptanceType;
 import automata.DA;
 import common.IntSet;
 import common.IterableBitSet;
-import explicit.ProbModelChecker.TermCrit;
 import explicit.modelviews.EquivalenceRelationInteger;
 import explicit.modelviews.MDPDroppedAllChoices;
 import explicit.modelviews.MDPEquiv;
@@ -75,6 +73,7 @@ import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.MDPRewardsSimple;
 import explicit.rewards.Rewards;
+import thts.utils.PolicyCreator;
 
 /**
  * Explicit-state model checker for Markov decision processes (MDPs).
@@ -89,7 +88,7 @@ public class MDPModelChecker extends ProbModelChecker
 		super(parent);
 	}
 	public HashMap<String, HashMap<State, Double>> checkPartialSatForBounds(MDP model, Expression expression,
-			Object object, ArrayList<VarList> varlist, boolean exportAdv, String savePlace, thts.PolicyCreator pc)
+																			Object object, ArrayList<VarList> varlist, boolean exportAdv, String savePlace, PolicyCreator pc)
 			throws PrismException {
 		HashMap<String, HashMap<State, Double>> solutionValues = new HashMap<String, HashMap<State, Double>>();
 		LTLModelChecker mcLtl;

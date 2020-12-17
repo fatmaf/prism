@@ -116,7 +116,7 @@ public class TestBRTDPNestedMultiAgent {
 				endTime = System.currentTimeMillis();
 				duration = endTime - startTime;
 				if (rinfo != null) {
-					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.goalOnProbablePath + sep
+					result += sep + duration + sep + rinfo.isGoalFound() + sep + rinfo.goalOnProbablePath + sep
 							+ rinfo.initialStateSolved + sep + rinfo.numRolloutsTillSolved;
 					csvRes = new PrismFileLog(resultsLocation + "warehouse_fs_.csv", true);
 					csvRes.print(result);
@@ -169,7 +169,7 @@ public class TestBRTDPNestedMultiAgent {
 				endTime = System.currentTimeMillis();
 				duration = endTime - startTime;
 				if (rinfo != null)
-					result += sep + duration + sep + rinfo.goalFound + sep + rinfo.initialStateSolved + sep
+					result += sep + duration + sep + rinfo.isGoalFound() + sep + rinfo.initialStateSolved + sep
 							+ rinfo.numRolloutsTillSolved;
 				results += result;
 //System.in.read();
@@ -430,7 +430,7 @@ public class TestBRTDPNestedMultiAgent {
 		fileLog.close();
 
 		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
+		rinfo.isGoalFound() = goalack[0];
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
@@ -586,7 +586,7 @@ public class TestBRTDPNestedMultiAgent {
 
 		THTSRunInfo rinfo = new THTSRunInfo();
 		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
+		rinfo.isGoalFound() = goalack[0];
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
@@ -748,7 +748,7 @@ public class TestBRTDPNestedMultiAgent {
 
 		THTSRunInfo rinfo = new THTSRunInfo();
 		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
+		rinfo.isGoalFound() = goalack[0];
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
@@ -908,7 +908,7 @@ public class TestBRTDPNestedMultiAgent {
 
 		THTSRunInfo rinfo = new THTSRunInfo();
 		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
+		rinfo.isGoalFound() = goalack[0];
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 
@@ -1071,7 +1071,7 @@ public class TestBRTDPNestedMultiAgent {
 
 		THTSRunInfo rinfo = new THTSRunInfo();
 		rinfo.numRolloutsTillSolved = numRolloutsTillSolved;
-		rinfo.goalFound = goalack[0];
+		rinfo.isGoalFound() = goalack[0];
 		rinfo.initialStateSolved = goalack[1];
 		return rinfo;
 

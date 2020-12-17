@@ -1,4 +1,4 @@
-package thts.treesearch.configs.uctlu;
+package thts.treesearch.configs.uct.uctlu;
 
 
 public class ConfigUCTLUFiniteCost extends ConfigUCTLU {

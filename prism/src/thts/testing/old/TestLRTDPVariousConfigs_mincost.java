@@ -1,4 +1,4 @@
-package thts.testing;
+package thts.testing.old;
 
 import java.io.BufferedWriter;
 import java.io.File;

@@ -1,7 +1,5 @@
-package thts.treesearch.configs.elgreedy;
+package thts.treesearch.configs.egreedy.elgreedy;
 
-
-import thts.treesearch.configs.lgreedy.ConfigLGreedyRandom;
 
 public class ConfigeLGreedyRandomFiniteCostNoMaxCostDE extends ConfigeLGreedyRandom {
     public ConfigeLGreedyRandomFiniteCostNoMaxCostDE(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean policyActSelGreedy)

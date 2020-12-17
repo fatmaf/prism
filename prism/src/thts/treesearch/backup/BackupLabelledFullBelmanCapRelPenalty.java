@@ -1,19 +1,20 @@
 package thts.treesearch.backup;
 
+import prism.PrismException;
+import prism.PrismLog;
+import thts.modelgens.MultiAgentNestedProductModelGenerator;
+import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.utils.Bounds;
+import thts.treesearch.utils.ChanceNode;
+import thts.treesearch.utils.DecisionNode;
+import thts.treesearch.utils.Objectives;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Stack;
 
-import prism.PrismException;
-import prism.PrismLog;
-import thts.treesearch.utils.Bounds;
-import thts.treesearch.utils.Objectives;
-import thts.treesearch.actionselector.ActionSelector;
-import thts.treesearch.utils.ChanceNode;
-import thts.treesearch.utils.DecisionNode;
-
-public class BackupLabelledFullBelmanCap extends BackupNVI {
+public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
 
     //	ArrayList<Objectives> tieBreakingOrder;
     float epsilon;
@@ -21,9 +22,21 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
     HashMap<Objectives, Entry<Double, Double>> minMaxVals;
     boolean doUpdatePerActSel;
     PrismLog debugLog = null;
+    MultiAgentNestedProductModelGenerator mapmg;
 
-    public BackupLabelledFullBelmanCap(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
-                                       HashMap<Objectives, Entry<Double, Double>> minMaxVals, PrismLog backUpLog, boolean doUpdatePerActSel) {
+    boolean markMaxCostAsDeadend = true;
+
+    public boolean isMarkMaxCostAsDeadend() {
+        return markMaxCostAsDeadend;
+    }
+
+    public void setMarkMaxCostAsDeadend(boolean markMaxCostAsDeadend) {
+        this.markMaxCostAsDeadend = markMaxCostAsDeadend;
+    }
+
+    public BackupLabelledFullBelmanCapRelPenalty(MultiAgentNestedProductModelGenerator mapmg,
+                                                 ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
+                                                 HashMap<Objectives, Entry<Double, Double>> minMaxVals, PrismLog backUpLog, boolean doUpdatePerActSel) {
 //		this.tieBreakingOrder = tieBreakingOrder;
         super(tieBreakingOrder);
         this.epsilon = epsilon;
@@ -31,16 +44,19 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
         this.minMaxVals = minMaxVals;
         this.debugLog = backUpLog;
         this.doUpdatePerActSel = doUpdatePerActSel;
+        this.mapmg = mapmg;
     }
 
-    public BackupLabelledFullBelmanCap(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
-                                       HashMap<Objectives, Entry<Double, Double>> minMaxVals, boolean doUpdatePerActSel) {
+    public BackupLabelledFullBelmanCapRelPenalty(MultiAgentNestedProductModelGenerator mapmg,
+            ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
+                                                 HashMap<Objectives, Entry<Double, Double>> minMaxVals, boolean doUpdatePerActSel) {
 //		this.tieBreakingOrder = tieBreakingOrder;
         super(tieBreakingOrder);
         this.epsilon = epsilon;
         this.actSel = actSel;
         this.minMaxVals = minMaxVals;
         this.doUpdatePerActSel = doUpdatePerActSel;
+        this.mapmg = mapmg;
     }
 
 
@@ -199,6 +215,13 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
                     case Progression: {
                         double lb = 0.0;
                         double ub = 0.0;
+                        if(dn.isDeadend && obj == Objectives.Progression)
+                        {
+                            if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
+                                lb = dn.getBounds(obj).getLower();
+                                ub = lb;
+                            }
+                        }
                         b = new Bounds(ub, lb);
                         break;
                     }
@@ -206,8 +229,8 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
                 }
                 if (dn.isDeadend && obj == Objectives.Cost) {
 
-                    double lb = minMaxVals.get(obj).getValue();//this.maxCost;
-                    double ub = minMaxVals.get(obj).getValue();//this.maxCost;
+                    double lb = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
+                    double ub = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
                     b = new Bounds(ub, lb);
 
                 }
@@ -241,6 +264,13 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
                     case Progression: {
                         double lb = 0.0;
                         double ub = 0.0;
+                        if(dn.isDeadend && obj == Objectives.Progression)
+                        {
+                            if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
+                                lb = dn.getBounds(obj).getLower();
+                                ub = lb;
+                            }
+                        }
                         b = new Bounds(ub, lb);
                         break;
                     }
@@ -248,8 +278,8 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
                 }
                 if (dn.isDeadend && obj == Objectives.Cost) {
 
-                    double lb = minMaxVals.get(obj).getValue();//this.maxCost;
-                    double ub = minMaxVals.get(obj).getValue();//this.maxCost;
+                    double lb = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
+                    double ub = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
                     b = new Bounds(ub, lb);
 
                 }
@@ -343,20 +373,24 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
             try {
                 updateDecisionNodeAccordingToActSel(dn);
             } catch (Exception e) {
+                if (debugLog != null)
+                    debugLog.println(e.getStackTrace());
+                else
                 System.out.println(e.getStackTrace());
                 updateDecisionNodeNoActSel(dn);
             }
         else
             updateDecisionNodeNoActSel(dn);
         //if decision node has cost
-        if(dn.hasBounds())
-        {
-            if(dn.bounds.containsKey(Objectives.Cost))
-            {
-                if(dn.getBounds(Objectives.Cost).diff() == 0 && dn.getBounds(Objectives.Cost).getUpper()==minMaxVals.get(Objectives.Cost).getValue())
-                {
-                    //mark it as a deadend
-                    dn.isDeadend  = true;
+        if(isMarkMaxCostAsDeadend()) {
+            if (dn.hasBounds()) {
+                if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
+                    if (dn.bounds.containsKey(Objectives.Cost)) {
+                        if (dn.getBounds(Objectives.Cost).diff() == 0 && dn.getBounds(Objectives.Cost).getUpper() == minMaxVals.get(Objectives.Cost).getValue()) {
+                            //mark it as a deadend
+                            dn.isDeadend = true;
+                        }
+                    }
                 }
             }
         }

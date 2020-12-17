@@ -1,4 +1,4 @@
-package thts.treesearch.configs.lgreedy;
+package thts.treesearch.configs.greedy.lgreedy;
 
 
 public class ConfigLGreedyRandomFiniteCostNoMaxCostDE extends ConfigLGreedyRandom{

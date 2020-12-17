@@ -1,4 +1,4 @@
-package thts.treesearch.configs.elugreedy;
+package thts.treesearch.configs.egreedy.elugreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
@@ -31,7 +31,7 @@ public class ConfigeLUGreedyRandomRelFiniteCostJustCost extends Configuration {
         setDomaxcost(true);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "Cost_LUGreedyRandomRelFC";
+        String configname = "Cost_eLUGreedyRandomRelFC";
         createConfigName(configname);
     }
     @Override

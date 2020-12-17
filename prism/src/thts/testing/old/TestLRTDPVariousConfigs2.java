@@ -1,4 +1,4 @@
-package thts.testing;
+package thts.testing.old;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -197,7 +197,6 @@ public class TestLRTDPVariousConfigs2 {
                 initialiseConfigLUGreedy(minMaxVals, fileLog);
                 break;
             case LUGreedyFixedLen:
-
                 initialiseConfigLUGreedyFixedLen(minMaxVals, fileLog);
                 break;
             default:

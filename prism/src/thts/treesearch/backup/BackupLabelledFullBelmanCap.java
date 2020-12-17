@@ -21,6 +21,15 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
     HashMap<Objectives, Entry<Double, Double>> minMaxVals;
     boolean doUpdatePerActSel;
     PrismLog debugLog = null;
+    boolean markMaxCostAsDeadend = true;
+
+    public boolean isMarkMaxCostAsDeadend() {
+        return markMaxCostAsDeadend;
+    }
+
+    public void setMarkMaxCostAsDeadend(boolean markMaxCostAsDeadend) {
+        this.markMaxCostAsDeadend = markMaxCostAsDeadend;
+    }
 
     public BackupLabelledFullBelmanCap(ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
                                        HashMap<Objectives, Entry<Double, Double>> minMaxVals, PrismLog backUpLog, boolean doUpdatePerActSel) {
@@ -199,6 +208,12 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
                     case Progression: {
                         double lb = 0.0;
                         double ub = 0.0;
+                        if (dn.isDeadend && obj == Objectives.Progression) {
+                            if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
+                                lb = dn.getBounds(obj).getLower();
+                                ub = lb;
+                            }
+                        }
                         b = new Bounds(ub, lb);
                         break;
                     }
@@ -241,7 +256,14 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
                     case Progression: {
                         double lb = 0.0;
                         double ub = 0.0;
+                        if (dn.isDeadend && obj == Objectives.Progression) {
+                            if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
+                                lb = dn.getBounds(obj).getLower();
+                                ub = lb;
+                            }
+                        }
                         b = new Bounds(ub, lb);
+
                         break;
                     }
 
@@ -343,20 +365,24 @@ public class BackupLabelledFullBelmanCap extends BackupNVI {
             try {
                 updateDecisionNodeAccordingToActSel(dn);
             } catch (Exception e) {
-                System.out.println(e.getStackTrace());
+                if (debugLog != null)
+                    debugLog.println(e.getStackTrace());
+                else
+                    System.out.println(e.getStackTrace());
                 updateDecisionNodeNoActSel(dn);
             }
         else
             updateDecisionNodeNoActSel(dn);
-        //if decision node has cost
-        if(dn.hasBounds())
-        {
-            if(dn.bounds.containsKey(Objectives.Cost))
-            {
-                if(dn.getBounds(Objectives.Cost).diff() == 0 && dn.getBounds(Objectives.Cost).getUpper()==minMaxVals.get(Objectives.Cost).getValue())
-                {
-                    //mark it as a deadend
-                    dn.isDeadend  = true;
+        if (isMarkMaxCostAsDeadend()) {
+            //if decision node has cost
+            if (dn.hasBounds()) {
+                if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
+                    if (dn.bounds.containsKey(Objectives.Cost)) {
+                        if (dn.getBounds(Objectives.Cost).diff() == 0 && dn.getBounds(Objectives.Cost).getUpper() == minMaxVals.get(Objectives.Cost).getValue()) {
+                            //mark it as a deadend
+                            dn.isDeadend = true;
+                        }
+                    }
                 }
             }
         }

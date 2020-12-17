@@ -1,4 +1,4 @@
-package thts.treesearch.configs.lugreedy;
+package thts.treesearch.configs.greedy.lugreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
@@ -6,10 +6,6 @@ import thts.treesearch.backup.BackupLabelledFullBelmanCap;
 import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTC;
 import thts.treesearch.outcomeselector.OutcomeSelectorProb;
-import thts.treesearch.utils.Objectives;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ConfigLUGreedy extends Configuration {
 
