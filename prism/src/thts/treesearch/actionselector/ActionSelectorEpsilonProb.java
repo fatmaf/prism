@@ -7,13 +7,13 @@ import java.util.ArrayList;
 import java.util.Random;
 
 //takes as input an action selection class and a value for softmax 
-public class ActionSelectorSoftmax implements ActionSelector {
+public class ActionSelectorEpsilonProb implements ActionSelector {
 
 	ActionSelector actSel;
 	double epsilon;
 	Random rgen;
 
-	public ActionSelectorSoftmax(ActionSelector actSel, double epsilon) {
+	public ActionSelectorEpsilonProb(ActionSelector actSel, double epsilon) {
 		this.actSel = actSel;
 		this.epsilon = epsilon;
 	}
