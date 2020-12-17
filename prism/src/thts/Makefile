@@ -13,8 +13,9 @@ THIS_DIR = thts
 PRISM_DIR_REL = ../..
 
 JNI_GEN_HEADER_DIR=$(THIS_DIR)/$(PRISM_DIR_REL)/$(PRISM_INCLUDE_DIR)/jni
-
-JAVA_FILES_ALL = $(wildcard *.java)
+JAVA_SUB_FILES = $(wildcard modelgens/*.java) $(wildcard scratch/*.java) $(wildcard testing/*.java) $(wildcard testing/testsuitehelper/*.java) $(wildcard utils/*.java) $(wildcard vi/*.java)
+JAVA_TREESEARCH_FILES = $(wildcard treesearch/*.java) $(wildcard treesearch/actionselector/*.java) $(wildcard treesearch/backup/*.java) $(wildcard treesearch/configs/*.java) $(wildcard treesearch/heuristic/*.java) $(wildcard treesearch/outcomeselector/*.java) $(wildcard treesearch/rewardhelper/*.java) $(wildcard treesearch/utils/*.java)
+JAVA_FILES_ALL = $(wildcard *.java) $(JAVA_SUB_FILES) $(JAVA_TREESEARCH_FILES)
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)/$(THIS_DIR)/%.class)
 

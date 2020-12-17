@@ -117,7 +117,7 @@ public class SingleAgentSolverMaxExpTask {
 		}
 		for (int i = 0; i < goals.size()/*propertiesFile.getNumProperties()*/; i++) {
 			int propNum = goals.get(i);
-			System.out.println(propertiesFile.getProperty(propNum));
+			mainLog.println(propertiesFile.getProperty(propNum));
 //				// so reward + safety
 			Expression exprHere = propertiesFile.getProperty(propNum);
 			if (exprHere instanceof ExpressionReward) {
@@ -166,7 +166,7 @@ public class SingleAgentSolverMaxExpTask {
 		// lets process all the expressions here
 		// cuz we want to do nvi
 		for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
-			System.out.println(propertiesFile.getProperty(i));
+			mainLog.println(propertiesFile.getProperty(i));
 //				// so reward + safety
 			Expression exprHere = propertiesFile.getProperty(i);
 			if (exprHere instanceof ExpressionReward) {
