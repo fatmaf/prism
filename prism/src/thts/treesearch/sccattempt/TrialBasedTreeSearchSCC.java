@@ -319,7 +319,11 @@ public class TrialBasedTreeSearchSCC {
 					trialMDP.saveMDP(resultsLocation, name + "_r" + numRollouts + "_t" + trialLen);
 
 			}
-
+			if (fixSCCs) {
+				SCCFinder sccfinder = new SCCFinder(new ActionSelectorGreedySimpleLowerBound(tieBreakingOrder,false));
+//				
+				sccfinder.findSCCs((DecisionNode) n0, fixSCCs);
+			}
 			mainLog.println("Trial Ended with steps:" + trialLen);
 			fileLog.println("Trial Ended with steps:" + trialLen);
 			trialLenArray.add(trialLen);
@@ -390,7 +394,9 @@ public class TrialBasedTreeSearchSCC {
 				// so we've got to check all the actions associated with this node
 				// and randomly select one
 
-				ChanceNodeSCC selectedAction = selectAction(n);
+				if (n.getState().toString().contains("2,-1,1,0,1,0"))
+					mainLog.println("hmm");
+				ChanceNode selectedAction = selectAction(n);
 				// lrtdp has a forward backup
 //				backup.backupDecisionNodeSCC(n);
 
@@ -981,7 +987,7 @@ public class TrialBasedTreeSearchSCC {
 						: " is a goal or deadend"));
 			}
 		}
-		tempMDP.saveMDP(resultsLocation, getName() + extra + "_runthru.dot");
+		tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
 		boolean[] toRet = { goalFound, n0.isSolved() };
 		vl.endRollout();
 		vl.closeLog();
