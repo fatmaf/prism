@@ -1,1 +1,1 @@
-PRISM_MAINCLASS=thtsNew.TestLRTDPVariousConfigs_testsets_mincost prism/bin/prism -javamaxmem 10g
+PRISM_MAINCLASS=thts.treesearch.configs.RunTest prism/bin/prism -javamaxmem 10g
