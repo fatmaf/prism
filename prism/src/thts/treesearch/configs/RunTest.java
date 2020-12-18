@@ -299,6 +299,7 @@ public class RunTest {
                 Configuration config = configs.get(i);
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
                 RunConfiguration runconfig = new RunConfiguration();
+                config.setJustLogs(true);
                 try {
                     runconfig.run(resFolderExt, config,
                             numRobots, numGoals, filename, hasSharedState, debug, resSuffix, propsuffix, maxRuns, fsp);
