@@ -314,9 +314,9 @@ public class RunTest {
 
     public static void main(String[] args) {
 
-        testGridExample();
+	//        testGridExample();
         //       runSmallExample();
-        // runSmallExampleSelConfigs();
+         runSmallExampleSelConfigs();
         //       runSmallExampleUCT();
     }
 

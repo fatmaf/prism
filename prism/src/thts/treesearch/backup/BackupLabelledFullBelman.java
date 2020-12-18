@@ -102,7 +102,7 @@ public class BackupLabelledFullBelman extends BackupNVI {
 			updateDecisionNode(dn);
 		}
 		
-		debugLog.println("--------LRTDP Backup End "+dn.toString()+"-------------");
+		//debugLog.println("--------LRTDP Backup End "+dn.toString()+"-------------");
 		return backupToRet;
 
 	}
