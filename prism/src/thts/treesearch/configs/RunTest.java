@@ -283,7 +283,7 @@ public class RunTest {
             boolean[] boolvals = new boolean[]{true, false};
             int numRobots = 3;
             int numGoals = 3;
-            int maxRuns = 3;
+            int maxRuns = 10;
             boolean debug = false;
             boolean hasSharedState = false;
             boolean timeBound = true;
@@ -314,9 +314,9 @@ public class RunTest {
 
     public static void main(String[] args) {
 
-	//        testGridExample();
+	        testGridExample();
         //       runSmallExample();
-         runSmallExampleSelConfigs();
+        // runSmallExampleSelConfigs();
         //       runSmallExampleUCT();
     }
 
