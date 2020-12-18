@@ -53,6 +53,15 @@ public abstract class Configuration {
     private boolean domaxcost;
     private boolean maxcostdeadends;
     private boolean policyActSelGreedy;
+    private boolean justLogs=false;
+
+    public boolean isJustLogs() {
+        return justLogs;
+    }
+
+    public void setJustLogs(boolean justLogs) {
+        this.justLogs = justLogs;
+    }
 
     public boolean isDomaxcost() {
         return domaxcost;
@@ -178,7 +187,11 @@ public abstract class Configuration {
 
         String runName = configname + "_" + tfi.getFilename() + "_r" + run;
         Prism prism = new Prism(mainLog);
-        PrismLog fileLog = new PrismFileLog(logFilesLocation + "log_" + runName + "_justmdp" + ".txt");
+        PrismLog fileLog;
+        if(isJustLogs())
+            fileLog = new PrismDevNullLog();
+        else
+         fileLog= new PrismFileLog(logFilesLocation + "log_" + runName + "_justmdp" + ".txt");
 
         prism.initialise();
         prism.setEngine(Prism.EXPLICIT);
