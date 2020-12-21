@@ -1,8 +1,7 @@
-package thts.treesearch.configs.labelled.greedy.lugreedy;
+package thts.treesearch.configs.plain.greedy.lugreedy;
 
 
-
-public class ConfigLUGreedyFiniteCostNoMaxCostDE extends ConfigLUGreedy{
+public class ConfigLUGreedyFiniteCostNoMaxCostDE extends ConfigLUGreedy {
 
 
     public ConfigLUGreedyFiniteCostNoMaxCostDE(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi,boolean greedyActSel) {

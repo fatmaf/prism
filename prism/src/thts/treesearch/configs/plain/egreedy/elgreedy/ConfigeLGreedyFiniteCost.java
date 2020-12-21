@@ -1,4 +1,4 @@
-package thts.treesearch.configs.labelled.egreedy.elgreedy;
+package thts.treesearch.configs.plain.egreedy.elgreedy;
 
 
 public class ConfigeLGreedyFiniteCost extends ConfigeLGreedy {

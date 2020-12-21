@@ -1,24 +1,19 @@
 package thts.treesearch.configs;
 
 
-import thts.treesearch.configs.egreedy.elgreedy.*;
-import thts.treesearch.configs.egreedy.elugreedy.*;
-import thts.treesearch.configs.greedy.lgreedy.*;
-import thts.treesearch.configs.greedy.lugreedy.ConfigLUGreedy;
-import thts.treesearch.configs.greedy.lugreedy.ConfigLUGreedyRandom;
-import thts.treesearch.configs.greedy.lugreedy.ConfigLUGreedyRandomRelFiniteCostJustCost;
-import thts.treesearch.configs.uct.ConfigUCTRelFiniteCostJustCost;
-import thts.treesearch.configs.uct.uctl.ConfigUCTL;
-import thts.treesearch.configs.uct.uctl.ConfigUCTLFiniteCost;
-import thts.treesearch.configs.uct.uctl.ConfigUCTLFiniteCostNoMaxCostDE;
-import thts.treesearch.configs.uct.uctl.ConfigUCTLRelFiniteCost;
-import thts.treesearch.configs.uct.uctlu.*;
+import thts.treesearch.configs.labelled.egreedy.elgreedy.*;
+import thts.treesearch.configs.labelled.egreedy.elugreedy.*;
+import thts.treesearch.configs.labelled.uct.ConfigUCTRelFiniteCostJustCost;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTL;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTLFiniteCost;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTLFiniteCostNoMaxCostDE;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTLRelFiniteCost;
+import thts.treesearch.configs.labelled.uct.uctlu.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 //PRISM_MAINCLASS=thts.treesearch.configs.RunTest prism/bin/prism
-public class RunTest {
+public class RunInitialTests {
 
     public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
         ArrayList<Configuration> configs = new ArrayList<>();
@@ -87,7 +82,7 @@ public class RunTest {
 //                System.out.println(config.getConfigname());
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
                 runconfig.run(resFolderExt, config,
-                        2, 2, filename, hasSharedState, debug, resSuffix, maxRuns);
+                        2, 2, filename,  debug, resSuffix, maxRuns);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -179,7 +174,7 @@ public class RunTest {
                         RunConfiguration runconfig = new RunConfiguration();
                         try {
                             runconfig.run(resFolderExt, config,
-                                    2, 2, filename, hasSharedState, false, resSuffix, maxruns);
+                                    2, 2, filename,  false, resSuffix, maxruns);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -257,7 +252,7 @@ public class RunTest {
                         RunConfiguration runconfig = new RunConfiguration();
                         try {
                             runconfig.run(resFolderExt, config,
-                                    2, 2, filename, hasSharedState, false, resSuffix, maxRuns);
+                                    2, 2, filename,  false, resSuffix, maxRuns);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -301,8 +296,9 @@ public class RunTest {
                 RunConfiguration runconfig = new RunConfiguration();
                 config.setJustLogs(true);
                 try {
+
                     runconfig.run(resFolderExt, config,
-                            numRobots, numGoals, filename, hasSharedState, debug, resSuffix, propsuffix, maxRuns, fsp);
+                            numRobots, numGoals, filename, debug, resSuffix, propsuffix, maxRuns,0,0);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

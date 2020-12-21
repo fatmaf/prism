@@ -8,25 +8,11 @@ import thts.treesearch.utils.Objectives;
 import thts.treesearch.utils.ChanceNode;
 import thts.treesearch.utils.DecisionNode;
 
-public abstract class BackupNVI implements Backup {
+public  class BackupHelper {
 
-	
-	ArrayList<Objectives> tieBreakingOrder;
-	// take in a decisionnode
-	// take in a chancenode
-	// just update them
-	// the boolean dobackup is always true // except for lrtdp style backups
-	// just return whether a node has been backed up or not
-	// again always true unless lrtdp style
-	public BackupNVI(ArrayList<Objectives> tieBreakingOrder)
-	{
-		this.tieBreakingOrder = tieBreakingOrder;
-	}
-	public abstract boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws Exception;
 
-	public abstract boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception;
 
-	boolean isBetter(double b1, double b2, Objectives obj) {
+	public static boolean isBetter(double b1, double b2, Objectives obj) {
 		boolean isBetter = false;
 		switch (obj) {
 		case Cost:
@@ -42,7 +28,7 @@ public abstract class BackupNVI implements Backup {
 		return isBetter;
 	}
 
-	double getObjectiveExtremeValueInit(Objectives obj) {
+	public static double getObjectiveExtremeValueInit(Objectives obj) {
 		double toret = 0;
 		switch (obj) {
 		case Cost:
@@ -58,11 +44,11 @@ public abstract class BackupNVI implements Backup {
 		return toret;
 	}
 
-	boolean isEqual(double b1, double b2) {
+	public static boolean isEqual(double b1, double b2) {
 		return (b1 == b2);
 	}
 
-	HashMap<Objectives, Bounds> residualDecision(DecisionNode n) {
+	public static HashMap<Objectives, Bounds> residualDecision(DecisionNode n,ArrayList<Objectives> tieBreakingOrder) {
 		HashMap<Objectives, Bounds> residual = null;
 		// returns the difference
 		// current bounds
@@ -153,7 +139,7 @@ public abstract class BackupNVI implements Backup {
 		return residual;
 	}
 
-	boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds, double epsilon,
+	public static boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds, double epsilon,
 			ArrayList<Objectives> tieBreakingOrder) {
 		boolean toret = true;
 		for (Objectives obj : tieBreakingOrder) {

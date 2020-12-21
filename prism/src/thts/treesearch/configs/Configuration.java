@@ -15,18 +15,21 @@ import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.testing.testsuitehelper.TestFileInfo;
 import thts.treesearch.TrialBasedTreeSearch;
 import thts.treesearch.actionselector.ActionSelector;
-import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.backup.Backup;
+import thts.treesearch.backup.BackupHelper;
 import thts.treesearch.heuristic.Heuristic;
 import thts.treesearch.outcomeselector.OutcomeSelector;
 import thts.treesearch.rewardhelper.RewardCalculation;
 import thts.treesearch.rewardhelper.RewardHelper;
 import thts.treesearch.rewardhelper.RewardHelperMultiAgent;
+import thts.treesearch.utils.HelperClass;
 import thts.treesearch.utils.Objectives;
 import thts.treesearch.utils.THTSRunInfo;
 import thts.vi.SingleAgentSolverMaxExpTask;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public abstract class Configuration {
     final static int DEFAULTMAXROLLOUTS = 10000;
@@ -38,7 +41,7 @@ public abstract class Configuration {
     String configname;
     ActionSelector actSel;
     Heuristic heuristic;
-    BackupNVI backup;
+    Backup backup;
     ActionSelector polActSel;
     OutcomeSelector outSel;
     boolean useSASH;
@@ -53,8 +56,26 @@ public abstract class Configuration {
     private boolean domaxcost;
     private boolean maxcostdeadends;
     private boolean policyActSelGreedy;
-    private boolean justLogs=false;
+    private boolean justLogs = false;
 
+    ArrayList<ConfigCategory> categories;
+    protected  void addCategory(ConfigCategory c)
+    {
+        if(categories==null)
+            categories = new ArrayList<>();
+        if(!categories.contains(c))
+            categories.add(c);
+    }
+    protected abstract void setCategories();
+    public boolean isCategory(ConfigCategory c)
+    {
+        if(categories!=null)
+        {
+            return categories.contains(c);
+        }
+        else
+            return false;
+    }
     public boolean isJustLogs() {
         return justLogs;
     }
@@ -97,19 +118,20 @@ public abstract class Configuration {
 
     protected void createConfigName(String configname) {
 
-        if (domaxcost){
-            if(!configname.contains("FC"))
-            configname += "FC";}
-        if (maxcostdeadends){
-            if(!configname.contains("MCD"))
-            configname += "_MCD";}
-        if (policyActSelGreedy) {
-            if(!configname.contains("GP"))
-            configname += "_GP";
+        if (domaxcost) {
+            if (!configname.contains("FC"))
+                configname += "FC";
         }
-        else {
-            if(!configname.contains("_GAllActions"))
-            configname += "_GAllActions";
+        if (maxcostdeadends) {
+            if (!configname.contains("MCD"))
+                configname += "_MCD";
+        }
+        if (policyActSelGreedy) {
+            if (!configname.contains("GP"))
+                configname += "_GP";
+        } else {
+            if (!configname.contains("_GAllActions"))
+                configname += "_GAllActions";
         }
         setConfigname(configname);
     }
@@ -129,6 +151,10 @@ public abstract class Configuration {
     }
 
     public void setTimeTimeLimitInMS(long timeTimeLimitInMS) {
+        if (!isTimeBound()) {
+            if (timeTimeLimitInMS > 0)
+                setTimeBound(true);
+        }
         this.timeTimeLimitInMS = timeTimeLimitInMS;
     }
 
@@ -167,16 +193,16 @@ public abstract class Configuration {
         setTimeTimeLimitInMS(DEFAULTTIMELIMITINMS);
         setDovipolcheckonintervals(false);
         setTieBreakingOrder();
+        setCategories();
 
 
     }
 
-    public double estimateModelStateSize()
-    {
+    public double estimateModelStateSize() {
         return stateActions.get(0).size() * Math.pow(maModelGen.numModels, 2);
     }
 
-    THTSRunInfo run(TestFileInfo tfi, String logFilesLocation, boolean debug, int run) throws Exception {
+    THTSRunInfo run(TestFileInfo tfi, String logFilesLocation, boolean debug, int run,String runPrefix) throws Exception {
         THTSRunInfo runInfo = new THTSRunInfo();
 
         PrismLog mainLog;
@@ -185,52 +211,60 @@ public abstract class Configuration {
         else
             mainLog = new PrismDevNullLog();
 
-        String runName = configname + "_" + tfi.getFilename() + "_r" + run;
+        String runName = configname + "_" + tfi.getFilename() +"_"+runPrefix+ "_" + run;
         Prism prism = new Prism(mainLog);
         PrismLog fileLog;
-        if(isJustLogs())
+        if (isJustLogs())
             fileLog = new PrismDevNullLog();
         else
-         fileLog= new PrismFileLog(logFilesLocation + "log_" + runName + "_justmdp" + ".txt");
+            fileLog = new PrismFileLog(logFilesLocation + "log_" + runName + "_justmdp" + ".txt");
 
         prism.initialise();
         prism.setEngine(Prism.EXPLICIT);
 
-        mainLog.println("Initialised Prism");
-
+        mainLog.println(HelperClass.getTString()+"Initialised Prism");
+        fileLog.println(HelperClass.getTString()+"Initialised Prism");
         stateActions = new ArrayList<>();
+        fileLog.println(HelperClass.getTString()+"Beginning solutions for single agents");
+        mainLog.println(HelperClass.getTString()+"Beginning solutions for single agents");
+        long startTime = System.currentTimeMillis();
         singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, mainLog, logFilesLocation, tfi.getFilenames(),
                 tfi.getPropertiesfile(), stateActions);
-
+        long endTime = System.currentTimeMillis();
+        long duration = endTime-startTime;
+        fileLog.println(HelperClass.getTString()+"Finished Single Agent Solutions: " + duration + " ms ("
+                + TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) + " s)");
+        mainLog.println(HelperClass.getTString()+"Finished Single Agent Solutions: " + duration + " ms ("
+                + TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) + " s)");
         maModelGen = createNestedMultiAgentModelGen(prism, mainLog, tfi.getFilenames(),
                 tfi.getPropertiesfile(), logFilesLocation,
-                tfi.isHasSharedState());
+                tfi.getNumDoors());
 
 
-        mainLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
-        fileLog.println("Tie Breaking Order " + tieBreakingOrder.toString());
+        mainLog.println(HelperClass.getTString()+"Tie Breaking Order " + tieBreakingOrder.toString());
+        fileLog.println(HelperClass.getTString()+"Tie Breaking Order " + tieBreakingOrder.toString());
 
-        initialiseConfiguration(fileLog);
+        initialiseConfiguration(mainLog);
 
         RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
 
-        mainLog.println("Max Rollouts: " + maxRollouts);
-        mainLog.println("Max TrialLen: " + trialLength);
-        fileLog.println("Max Rollouts: " + maxRollouts);
-        fileLog.println("Max TrialLen: " + trialLength);
+        mainLog.println(HelperClass.getTString()+"Max Rollouts: " + maxRollouts);
+        mainLog.println(HelperClass.getTString()+"Max TrialLen: " + trialLength);
+        fileLog.println(HelperClass.getTString()+"Max Rollouts: " + maxRollouts);
+        fileLog.println(HelperClass.getTString()+"Max TrialLen: " + trialLength);
 
-        mainLog.println("\nInitialising THTS");
-        fileLog.println("\nInitialising THTS");
+        mainLog.println(HelperClass.getTString()+"Initialising THTS");
+        fileLog.println(HelperClass.getTString()+"Initialising THTS");
         boolean doForwardBackup = true;
-        mainLog.println("Running thts");
+        mainLog.println(HelperClass.getTString()+"Running thts");
         TrialBasedTreeSearch thts = new TrialBasedTreeSearch(maModelGen, maxRollouts,
                 trialLength, heuristic, actSel, outSel, rewardH, backup, doForwardBackup, tieBreakingOrder, mainLog,
                 fileLog);
         if (dovipolcheckonintervals) {
             thts.enablePolCheckAtIntervals(getViOnPolIntervalInMS(), prism);
         }
-        mainLog.println("\nBeginning THTS");
-        fileLog.println("\nBeginning THTS");
+        mainLog.println(HelperClass.getTString()+"Beginning THTS");
+        fileLog.println(HelperClass.getTString()+"Beginning THTS");
         thts.setName(runName);
         thts.setResultsLocation(logFilesLocation);
         if (this.timeBound) {
@@ -249,9 +283,9 @@ public abstract class Configuration {
             thts.trialLenArray.add(thts.trialLen);
 
         }
-        mainLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-        fileLog.println("\nGetting actions with Greedy Lower Bound Action Selector");
-        mainLog.println("Attempting Value Iteration on Policy");
+        mainLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
+        fileLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
+        mainLog.println(HelperClass.getTString()+"Attempting Value Iteration on Policy");
         HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism);
         mainLog.println(tempres);
 
@@ -267,6 +301,7 @@ public abstract class Configuration {
         runInfo.setChanceNodesExp(thts.chanceNodesExplored);
         runInfo.setDecisionNodesExp(thts.decisionNodesExplored);
         runInfo.setVipolAtIntervals(thts.timeValues);
+        fileLog.println(HelperClass.getTString()+"Final Values: "+runInfo);
 
         return runInfo;
     }
@@ -280,7 +315,9 @@ public abstract class Configuration {
     }
 
     public MultiAgentNestedProductModelGenerator createNestedMultiAgentModelGen(Prism prism, PrismLog mainLog,
-                                                                                ArrayList<String> filenames, String propertiesFileName, String resultsLocation, boolean hasSharedState)
+                                                                                ArrayList<String> filenames,
+                                                                                String propertiesFileName,
+                                                                                String resultsLocation, int numDoors)
             throws PrismException, IOException {
 
         AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN, AcceptanceType.REACH};
@@ -368,8 +405,8 @@ public abstract class Configuration {
         }
 
         ArrayList<String> sharedStateVars = new ArrayList<String>();
-        if (hasSharedState)
-            sharedStateVars.add("door0");
+        for (int i = 0; i < numDoors; i++)
+            sharedStateVars.add("door" + i);
 
         MultiAgentNestedProductModelGenerator mapmg = new MultiAgentNestedProductModelGenerator(mfmodgens, das,
                 labelExprsList, safetydaind, sharedStateVars);
@@ -407,12 +444,12 @@ public abstract class Configuration {
     public void setConfigname(String configname) {
 
         if (isUseSASH()) {
-            if(!configname.contains("SASH"))
-            configname += "_SASH";
+            if (!configname.contains("SASH"))
+                configname += "_SASH";
         }
         if (isUseActSelForBackupUpdate()) {
-            if(!configname.contains("ASBU"))
-            configname += "_ASBU";
+            if (!configname.contains("ASBU"))
+                configname += "_ASBU";
         }
         this.configname = configname;
     }
@@ -433,11 +470,11 @@ public abstract class Configuration {
         this.heuristic = heuristic;
     }
 
-    public BackupNVI getBackup() {
+    public Backup getBackup() {
         return backup;
     }
 
-    public void setBackup(BackupNVI backup) {
+    public void setBackup(Backup backup) {
         this.backup = backup;
     }
 

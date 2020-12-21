@@ -13,8 +13,8 @@ public interface Backup {
 	boolean forwardbackupChanceNode(ChanceNode cn) throws Exception;
 
 	boolean forwardbackupDecisionNode(DecisionNode dn) throws Exception;
+    boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws Exception;
 
-	boolean backupChanceNode(ChanceNode cn, boolean doBackup) throws Exception;
+    boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception;
 
-	boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception;
 }

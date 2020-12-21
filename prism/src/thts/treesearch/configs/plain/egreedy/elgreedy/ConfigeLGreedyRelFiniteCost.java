@@ -1,8 +1,8 @@
-package thts.treesearch.configs.labelled.egreedy.elgreedy;
+package thts.treesearch.configs.plain.egreedy.elgreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
-import thts.treesearch.backup.BackupLabelledFullBelmanCapRelPenalty;
+import thts.treesearch.backup.BackupFullBelmanCapRelPenalty;
 import thts.treesearch.configs.ConfigCategory;
 import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTCRelPenalty;
@@ -57,8 +57,8 @@ public class ConfigeLGreedyRelFiniteCost extends Configuration {
         ActionSelector egreedyActSel = new ActionSelectorEpsilonProb(greedyActSel,getEgreedy());
         setActSel(new ActionSelectorMCTS(egreedyActSel, rolloutPol));
         setOutSel(new OutcomeSelectorProb());
-        setBackup(new BackupLabelledFullBelmanCapRelPenalty(getMaModelGen(), getTieBreakingOrder(), greedyActSel, getEpsilon(), getMinMaxVals(), fileLog, isUseActSelForBackupUpdate()));
-        ((BackupLabelledFullBelmanCapRelPenalty) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
+        setBackup(new BackupFullBelmanCapRelPenalty(getMaModelGen(), getTieBreakingOrder(), greedyActSel, getEpsilon(), getMinMaxVals(), fileLog, isUseActSelForBackupUpdate()));
+        ((BackupFullBelmanCapRelPenalty) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
         setPolActSel(new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));
         if (isPolicyActSelGreedy())
             setPolActSel(greedyActSel);

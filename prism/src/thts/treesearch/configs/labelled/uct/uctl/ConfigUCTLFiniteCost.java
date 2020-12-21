@@ -1,4 +1,4 @@
-package thts.treesearch.configs.uct.uctl;
+package thts.treesearch.configs.labelled.uct.uctl;
 
 
 public class ConfigUCTLFiniteCost extends ConfigUCTL {

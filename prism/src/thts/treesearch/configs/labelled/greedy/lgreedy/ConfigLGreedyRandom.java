@@ -1,4 +1,4 @@
-package thts.treesearch.configs.greedy.lgreedy;
+package thts.treesearch.configs.labelled.greedy.lgreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;

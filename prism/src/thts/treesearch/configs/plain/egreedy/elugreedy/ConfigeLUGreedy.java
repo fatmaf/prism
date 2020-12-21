@@ -1,8 +1,8 @@
-package thts.treesearch.configs.labelled.egreedy.elugreedy;
+package thts.treesearch.configs.plain.egreedy.elugreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
-import thts.treesearch.backup.BackupLabelledFullBelmanCap;
+import thts.treesearch.backup.BackupFullBelmanCap;
 import thts.treesearch.configs.ConfigCategory;
 import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTC;
@@ -59,8 +59,8 @@ public class ConfigeLUGreedy extends Configuration {
         ActionSelector egreedyActSel = new ActionSelectorEpsilonProb(greedyActSel,getEgreedy());
         setActSel(new ActionSelectorMCTS(egreedyActSel, rolloutPol));
         setOutSel(new OutcomeSelectorProb());
-        setBackup( new BackupLabelledFullBelmanCap(getTieBreakingOrder(), greedyActSel, getEpsilon(), getMinMaxVals(), fileLog, isUseActSelForBackupUpdate()));
-        ((BackupLabelledFullBelmanCap) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
+        setBackup( new BackupFullBelmanCap(getTieBreakingOrder(), greedyActSel, getEpsilon(), getMinMaxVals(), fileLog, isUseActSelForBackupUpdate()));
+        ((BackupFullBelmanCap) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
         setPolActSel( new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));
         if (isPolicyActSelGreedy())
             setPolActSel(greedyActSel);

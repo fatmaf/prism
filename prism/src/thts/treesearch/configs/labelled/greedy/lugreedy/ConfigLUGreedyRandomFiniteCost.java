@@ -1,4 +1,4 @@
-package thts.treesearch.configs.greedy.lugreedy;
+package thts.treesearch.configs.labelled.greedy.lugreedy;
 
 
 public class ConfigLUGreedyRandomFiniteCost extends ConfigLUGreedyRandom{

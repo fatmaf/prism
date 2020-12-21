@@ -1,4 +1,4 @@
-package thts.treesearch.configs.egreedy.elugreedy;
+package thts.treesearch.configs.labelled.egreedy.elugreedy;
 
 import prism.PrismLog;
 import thts.treesearch.actionselector.*;
