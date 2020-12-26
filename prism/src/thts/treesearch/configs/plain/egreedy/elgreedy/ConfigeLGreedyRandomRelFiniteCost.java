@@ -40,7 +40,7 @@ public class ConfigeLGreedyRandomRelFiniteCost extends Configuration {
         setDomaxcost(true);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "LGreedyRandomRelFC";
+        String configname = "P_LGreedyRandomRelFC";
         createConfigName(configname);
 
     }

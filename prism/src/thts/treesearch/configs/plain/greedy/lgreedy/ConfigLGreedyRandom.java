@@ -28,7 +28,7 @@ public class ConfigLGreedyRandom extends Configuration {
         setDomaxcost(domaxcost);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "LGreedyRandom";
+        String configname = "P_LGreedyRandom";
         createConfigName(configname);
     }
     @Override

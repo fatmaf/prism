@@ -31,7 +31,7 @@ public class ConfigUCTLU extends Configuration {
         setDomaxcost(domaxcost);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "UCTLU";
+        String configname = "L_UCTLU";
         createConfigName(configname);
     }
 

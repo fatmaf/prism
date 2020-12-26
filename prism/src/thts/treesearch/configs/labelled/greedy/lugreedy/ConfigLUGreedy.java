@@ -25,7 +25,7 @@ public class ConfigLUGreedy extends Configuration {
         setDomaxcost(domaxcost);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "LUGreedy";
+        String configname = "L_LUGreedy";
         createConfigName(configname);
     }
     @Override

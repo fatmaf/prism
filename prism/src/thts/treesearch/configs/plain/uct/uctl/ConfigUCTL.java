@@ -31,7 +31,7 @@ public class ConfigUCTL extends Configuration {
         setDomaxcost(domaxcost);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "UCTL";
+        String configname = "P_UCTL";
         createConfigName(configname);
     }
     @Override

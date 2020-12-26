@@ -151,10 +151,10 @@ public abstract class Configuration {
     }
 
     public void setTimeTimeLimitInMS(long timeTimeLimitInMS) {
-        if (!isTimeBound()) {
-            if (timeTimeLimitInMS > 0)
-                setTimeBound(true);
-        }
+//        if (!isTimeBound()) {
+//            if (timeTimeLimitInMS > 0)
+//                setTimeBound(true);
+//        }
         this.timeTimeLimitInMS = timeTimeLimitInMS;
     }
 
@@ -289,9 +289,7 @@ public abstract class Configuration {
         HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism);
         mainLog.println(tempres);
 
-        mainLog.close();
-        fileLog.close();
-        prism.closeDown();
+
         runInfo.setInitialStateSolved(thts.getRootNode(0).isSolved());
         runInfo.setVipol(tempres);
         runInfo.setNumRolloutsTillSolved(thts.numRollouts);
@@ -302,7 +300,9 @@ public abstract class Configuration {
         runInfo.setDecisionNodesExp(thts.decisionNodesExplored);
         runInfo.setVipolAtIntervals(thts.timeValues);
         fileLog.println(HelperClass.getTString()+"Final Values: "+runInfo);
-
+        mainLog.close();
+        fileLog.close();
+        prism.closeDown();
         return runInfo;
     }
 

@@ -96,7 +96,11 @@ public class BackupLabelledFullBelmanCap implements Backup {
                     }
 
                 }
-                HashMap<Objectives, Bounds> bounds = BackupHelper.residualDecision((DecisionNode) s,tieBreakingOrder);
+                HashMap<Objectives, Bounds> bounds;
+                if (doUpdatePerActSel)
+                    bounds = BackupHelper.residualDecision((DecisionNode) s, tieBreakingOrder, actSel);
+                else
+                    bounds = BackupHelper.residualDecision((DecisionNode) s, tieBreakingOrder);
 
                 if (bounds != null && boundsLessThanEpsilon(bounds)) {
                     // get the best action

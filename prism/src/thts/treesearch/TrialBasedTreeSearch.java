@@ -325,6 +325,8 @@ public class TrialBasedTreeSearch {
         boolean doBackup = true;
         if (!n.isSolved() & notTimedOutTrial()) {
 
+            if(n.getState().toString().contentEquals("(2,0,3,-1,0,1,0)"))
+                mainLog.println();
             doBackup = true;
             trialLen++;
             prevTrialLen = trialLen;
@@ -381,6 +383,9 @@ public class TrialBasedTreeSearch {
         int prevTrialLen = trialLen; // just for book keeping
         boolean doBackup = true;
         if (!n.isSolved() & notTimedOutTrial()) {
+            if (n.numVisits == 0 && !n.hasBounds()) {
+                setNodeHeuristics(n);
+            }
             vl.chanceNodeString(n);
             doBackup = true;
             n.numVisits++;
@@ -459,6 +464,7 @@ public class TrialBasedTreeSearch {
         }
     }
     void setNodeHeuristics(Node n0) throws PrismException {
+
         if (!n0.boundsInitialised()) {
             vl.beginHeuristicAssignment();
 
@@ -471,6 +477,7 @@ public class TrialBasedTreeSearch {
                 ((DecisionNode) n0).setBounds(nodehs);
 
             } else if (n0 instanceof ChanceNode) {
+           ///     generateChildrenChanceNode((ChanceNode)n0);
                 hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNode) n0);
                 mainLog.println(n0.getShortName() + " Set Node H: " + n0.getBoundsString());
             }
@@ -490,8 +497,8 @@ public class TrialBasedTreeSearch {
         // i think its better to do it here
 
         // so first we've got to see if it has no children
+        generateChildrenDecisionNode((DecisionNode) n0);
 
-            generateChildrenDecisionNode(n0);
         // then we've got to make sure we initialise
         // the bounds for all children
 
@@ -519,6 +526,8 @@ public class TrialBasedTreeSearch {
     }
 
     ArrayList<DecisionNode> selectOutcome(ChanceNode n) throws Exception {
+
+
 
         generateChildrenChanceNode(n);
 
@@ -548,7 +557,7 @@ public class TrialBasedTreeSearch {
             }
             // TODO: double check if we need this???
             // I dont think we do // cuz we do two levels
-            if (backup instanceof BackupHelper) {
+            if (backup instanceof Backup) {
                 for (DecisionNode child : n0.getChildren()) {
                     setNodeHeuristics(child);
                 }
@@ -600,7 +609,7 @@ public class TrialBasedTreeSearch {
                     n0.addChild(action, cn);
 
                 }
-                if (backup instanceof BackupHelper) {
+                if (backup instanceof Backup) {
                     for (Object a : n0.getChildren().keySet()) {
                         ChanceNode cn = n0.getChild(a);
                         // got to do this for full bellman backups

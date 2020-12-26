@@ -72,7 +72,11 @@ public class BackupFullBelmanCap implements Backup {
     @Override
     public boolean backupDecisionNode(DecisionNode dn, boolean doBackup) throws Exception {
 
-        HashMap<Objectives, Bounds> bounds = BackupHelper.residualDecision((DecisionNode) dn, tieBreakingOrder);
+        HashMap<Objectives, Bounds> bounds;
+        if (doUpdatePerActSel)
+            bounds = BackupHelper.residualDecision((DecisionNode) dn, tieBreakingOrder, actSel);
+        else
+            bounds = BackupHelper.residualDecision((DecisionNode) dn, tieBreakingOrder);
 
         if (bounds != null && boundsLessThanEpsilon(bounds)) {
             dn.setSolved();

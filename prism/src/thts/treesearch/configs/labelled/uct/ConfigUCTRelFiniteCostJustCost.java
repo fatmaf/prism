@@ -32,7 +32,7 @@ public class ConfigUCTRelFiniteCostJustCost extends Configuration {
         setDomaxcost(true);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "Cost_UCTRelFC";
+        String configname = "L_Cost_UCTRelFC";
         createConfigName(configname);
     }
     @Override

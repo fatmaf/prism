@@ -41,7 +41,7 @@ public class ConfigUCTLURelFiniteCost extends Configuration {
         setDomaxcost(true);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "UCTLURelFC";
+        String configname = "L_UCTLURelFC";
         createConfigName(configname);
 
     }

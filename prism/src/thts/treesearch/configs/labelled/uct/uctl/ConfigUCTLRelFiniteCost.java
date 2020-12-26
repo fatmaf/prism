@@ -33,7 +33,7 @@ public class ConfigUCTLRelFiniteCost extends Configuration {
         setDomaxcost(true);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "UCTLRelFC";
+        String configname = "L_UCTLRelFC";
         createConfigName(configname);
 
     }

@@ -12,8 +12,8 @@ import thts.treesearch.configs.labelled.uct.uctlu.*;
 
 import java.util.ArrayList;
 
-//PRISM_MAINCLASS=thts.treesearch.configs.RunTest prism/bin/prism
-public class RunInitialTests {
+//PRISM_MAINCLASS=thts.treesearch.configs.RunInitialTestsLabelled prism/bin/prism
+public class RunInitialTestsLabelled {
 
     public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
         ArrayList<Configuration> configs = new ArrayList<>();
@@ -70,7 +70,7 @@ public class RunInitialTests {
         boolean timeBound = false;
         boolean dointervalvi = false;
         int maxRuns = 100;
-        boolean debug = false;
+        boolean debug =false;
         String resSuffix = "_re" + maxRuns + "_";
 
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, 0);
@@ -79,10 +79,12 @@ public class RunInitialTests {
             Configuration config = configs.get(i);
             RunConfiguration runconfig = new RunConfiguration();
             try {
+//               if(!config.getConfigname().contentEquals("Cost_UCTRelFC_MCD_ASBU_GP"))
+//                    continue;
 //                System.out.println(config.getConfigname());
-                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
+                System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
                 runconfig.run(resFolderExt, config,
-                        2, 2, filename,  debug, resSuffix, maxRuns);
+                        2, 3, filename,  debug, resSuffix, "_mult", maxRuns,0,1);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -174,7 +176,7 @@ public class RunInitialTests {
                         RunConfiguration runconfig = new RunConfiguration();
                         try {
                             runconfig.run(resFolderExt, config,
-                                    2, 2, filename,  false, resSuffix, maxruns);
+                                    2, 2, filename,  false, resSuffix,"_mult", maxruns,0,1);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -252,7 +254,7 @@ public class RunInitialTests {
                         RunConfiguration runconfig = new RunConfiguration();
                         try {
                             runconfig.run(resFolderExt, config,
-                                    2, 2, filename,  false, resSuffix, maxRuns);
+                                    2, 2, filename,  false, resSuffix,"_mult", maxRuns,0,1);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -265,7 +267,23 @@ public class RunInitialTests {
 
     public static void testGridExample() {
         int fsp = 0;
-        for (fsp = 30; fsp < 110; fsp += 30) {
+        int fsps[] = {30,60,90};
+        boolean[] boolvals = new boolean[]{true, false};
+        int numRobots = 3;
+        int numGoals = 3;
+        int maxRuns = 5;
+        boolean debug = false;
+        boolean hasSharedState = false;
+        boolean timeBound = true;
+        boolean dointervalvi = false;
+        long timeLimit = 30 * 60 * 1000;
+        String propsuffix = "mult";
+        int maxTests = maxRuns*fsps.length*10;
+        int numTets = 0;
+        ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
+
+        for(int fspNum = 0; fspNum < fsps.length; fspNum++) {
+            fsp = fsps[fspNum];
             String[] examples = {"r10_g10_a1_grid_5_fsp_0_0_", "r10_g10_a1_grid_5_fsp_10_1_",
                     "r10_g10_a1_grid_5_fsp_20_2_", "r10_g10_a1_grid_5_fsp_30_3_", "r10_g10_a1_grid_5_fsp_40_4_",
                     "r10_g10_a1_grid_5_fsp_50_5_", "r10_g10_a1_grid_5_fsp_60_6_", "r10_g10_a1_grid_5_fsp_70_7_",
@@ -273,32 +291,25 @@ public class RunInitialTests {
 
             String filename = examples[fsp / 10];
 
-            String propsuffix = "mult";
+
             String resFolderExt = "grid5/" + fsp + "/";
-            boolean[] boolvals = new boolean[]{true, false};
-            int numRobots = 3;
-            int numGoals = 3;
-            int maxRuns = 3;
-            boolean debug = false;
-            boolean hasSharedState = false;
-            boolean timeBound = true;
-            boolean dointervalvi = false;
-            long timeLimit = 30 * 60 * 1000;
-
-            String resSuffix = "_gridruns" + maxRuns + "_";
-
-            ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
 
 
+            String resSuffix = "_reruns" + maxRuns + "_";
+
+            System.out.println(String.format("\nRunning Tests on FSP %3d (%2d/%2d)",fsp,fspNum,fsps.length));
+            System.out.println(String.format("\t %5d/%5d of total",numTets,maxTests));
             for (int i = 0; i < configs.size(); i++) {
                 Configuration config = configs.get(i);
-                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
+                System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
+                System.out.println(String.format("\t %5d/%5d of total",numTets,maxTests));
                 RunConfiguration runconfig = new RunConfiguration();
                 config.setJustLogs(true);
                 try {
 
                     runconfig.run(resFolderExt, config,
-                            numRobots, numGoals, filename, debug, resSuffix, propsuffix, maxRuns,0,0);
+                            numRobots, numGoals, filename, debug, resSuffix, propsuffix, maxRuns,fsp,0);
+                    numTets+=maxRuns;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -311,9 +322,10 @@ public class RunInitialTests {
 
     public static void main(String[] args) {
 
-        //        testGridExample();
+               testGridExample();
         //       runSmallExample();
-        runSmallExampleSelConfigs();
+//        runSmallExampleSelConfigs();
+
         //       runSmallExampleUCT();
     }
 

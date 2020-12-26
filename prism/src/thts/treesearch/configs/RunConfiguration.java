@@ -31,6 +31,8 @@ public class RunConfiguration {
             {
                 testSet.generateSubTestConfigs();
             }
+
+
             System.out.println("\nRunning Test Set "+testSetID+" ("+i+"/"+ts.testSets.size()+")");
             i++;
             runTestSet(testSet,config,debug,fnSuffix,ts.suitID);
@@ -76,6 +78,7 @@ public class RunConfiguration {
                    fsp,numDoors );
             config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
             String configID = testSet.getConfigID(singleTest);
+
             System.out.print("Running Test "+i+"/"+numTests+" "+configID+" : "+filename+"\n");
             long startTime = System.currentTimeMillis();
             THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i,testSuiteID+"_"+configID);
@@ -95,6 +98,10 @@ public class RunConfiguration {
                     String fnSuffix,String propsuffix,
                     int maxRuns,int fsp,int numdoors) throws Exception
     {
+        //formaking things pretty
+        int numConsoleChars = 80;
+        int numCharsSoFar = 0;
+
         String logFilesExt = "results/configs/" + config.getConfigname() + "/";
         String resFileName = filename + "_" + config.getConfigname() + fnSuffix;
         initialiseResultsLocations(resFolderExt, logFilesExt);
@@ -104,8 +111,16 @@ public class RunConfiguration {
         if (!openResultsFile(resFileName))
             printResultsHeader();
         closeResultsFile();
+
         for (int i = 0; i < maxRuns; i++) {
-            System.out.print("Running Test "+i+"/"+maxRuns+"\t");
+            String outputString = String.format("Running Test %4d/%4d%4s",i,maxRuns,"");
+            numCharsSoFar+=outputString.length();
+            if(numCharsSoFar>numConsoleChars)
+            {
+                numCharsSoFar = 0;
+                outputString="\n"+outputString;
+            }
+            System.out.print(outputString);
             long startTime = System.currentTimeMillis();
 
             THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i,"");

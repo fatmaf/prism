@@ -26,7 +26,7 @@ public class ConfigeLGreedyRelFiniteCost extends Configuration {
         setDomaxcost(true);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "LGreedyRelFC";
+        String configname = "P_LGreedyRelFC";
         createConfigName(configname);
 
 

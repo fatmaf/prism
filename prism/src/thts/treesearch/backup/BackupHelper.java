@@ -3,153 +3,183 @@ package thts.treesearch.backup;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import thts.treesearch.actionselector.ActionSelector;
 import thts.treesearch.utils.Bounds;
 import thts.treesearch.utils.Objectives;
 import thts.treesearch.utils.ChanceNode;
 import thts.treesearch.utils.DecisionNode;
 
-public  class BackupHelper {
+public class BackupHelper {
 
 
+    public static boolean isBetter(double b1, double b2, Objectives obj) {
+        boolean isBetter = false;
+        switch (obj) {
+            case Cost:
+                isBetter = b1 < b2;
+                break;
+            case Progression:
+            case TaskCompletion:
+            case Probability:
+                isBetter = b1 > b2;
+                break;
 
-	public static boolean isBetter(double b1, double b2, Objectives obj) {
-		boolean isBetter = false;
-		switch (obj) {
-		case Cost:
-			isBetter = b1 < b2;
-			break;
-		case Progression:
-		case TaskCompletion:
-		case Probability:
-			isBetter = b1 > b2;
-			break;
+        }
+        return isBetter;
+    }
 
-		}
-		return isBetter;
-	}
+    public static double getObjectiveExtremeValueInit(Objectives obj) {
+        double toret = 0;
+        switch (obj) {
+            case Cost:
+                toret = Double.MAX_VALUE;
+                break;
+            case Progression:
+            case TaskCompletion:
+            case Probability:
+                toret = 0;
+                break;
 
-	public static double getObjectiveExtremeValueInit(Objectives obj) {
-		double toret = 0;
-		switch (obj) {
-		case Cost:
-			toret = Double.MAX_VALUE;
-			break;
-		case Progression:
-		case TaskCompletion:
-		case Probability:
-			toret = 0;
-			break;
+        }
+        return toret;
+    }
 
-		}
-		return toret;
-	}
+    public static boolean isEqual(double b1, double b2) {
+        return (b1 == b2);
+    }
 
-	public static boolean isEqual(double b1, double b2) {
-		return (b1 == b2);
-	}
+    public static HashMap<Objectives, Bounds> residualDecision(DecisionNode n, ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel) throws Exception {
+        HashMap<Objectives, Bounds> residual = null;
+        // returns the difference
+        // current bounds
 
-	public static HashMap<Objectives, Bounds> residualDecision(DecisionNode n,ArrayList<Objectives> tieBreakingOrder) {
-		HashMap<Objectives, Bounds> residual = null;
-		// returns the difference
-		// current bounds
-		if (n.getChildren() != null) {
-			if (n.allChildrenInitialised()) {
-				HashMap<Objectives, Bounds> bestBoundsH = new HashMap<>();
-				for (Objectives obj : tieBreakingOrder) {
-					Bounds bestBounds = new Bounds();
-					bestBounds.setUpper(getObjectiveExtremeValueInit(obj));
-					bestBounds.setLower(getObjectiveExtremeValueInit(obj));
-					bestBoundsH.put(obj, bestBounds);
-				}
 
-				for (Object a : n.getChildren().keySet()) {
-					ChanceNode cn = n.getChild(a);
-					if(cn.ignoreAction)
-						continue;
-					boolean updateUpperBounds = false;
+        if (n.getChildren() != null) {
 
-					for (Objectives obj : tieBreakingOrder) {
+            ChanceNode cn = actSel.selectAction(n, false);
 
-						Bounds bestBounds = bestBoundsH.get(obj);
-						if (cn.hasBounds()) {
-							Bounds b = cn.getBounds(obj);
-							if (isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
+            if (cn.hasBounds()) {
+                residual = new HashMap<>();
+                for (Objectives obj : tieBreakingOrder) {
 
-								updateUpperBounds = true;
-								break;
-							} else {
-								if (!isEqual(b.getUpper(), bestBounds.getUpper()))
-									break;
-							}
+                    Bounds currentBounds = n.getBounds(obj);
 
-						}
 
-					}
-					if (updateUpperBounds) {
-						for (Objectives obj : tieBreakingOrder) {
-							Bounds b = cn.getBounds(obj);
-							Bounds bestBounds = bestBoundsH.get(obj);
-							bestBounds.setUpper(b.getUpper());
-						}
-					}
+                    Bounds bestBounds = cn.getBounds(obj);
 
-				}
-				for (Object a : n.getChildren().keySet()) {
-					ChanceNode cn = n.getChild(a);
-					if(cn.ignoreAction)
-						continue;
-					boolean updateLowerBounds = false;
-					for (Objectives obj : tieBreakingOrder) {
+                    Bounds boundDiff = (currentBounds.subtract(bestBounds)).abs();
 
-						Bounds bestBounds = bestBoundsH.get(obj);
-						if (cn.hasBounds()) {
-							Bounds b = cn.getBounds(obj);
+                    residual.put(obj, boundDiff);
+                }
+            }
+        }
 
-							if (isBetter(b.getLower(), bestBounds.getLower(), obj)) {
-								updateLowerBounds = true;
-								break;
-							} else {
-								if (!isEqual(b.getLower(), bestBounds.getLower()))
-									break;
-							}
-						}
 
-					}
-					if (updateLowerBounds) {
+        return residual;
+    }
 
-						for (Objectives obj : tieBreakingOrder) {
-							Bounds b = cn.getBounds(obj);
-							Bounds bestBounds = bestBoundsH.get(obj);
-							bestBounds.setLower(b.getLower());
-						}
-					}
+    public static HashMap<Objectives, Bounds> residualDecision(DecisionNode n, ArrayList<Objectives> tieBreakingOrder) {
+        HashMap<Objectives, Bounds> residual = null;
+        // returns the difference
+        // current bounds
+        if (n.getChildren() != null) {
+            if (n.allChildrenInitialised()) {
+                HashMap<Objectives, Bounds> bestBoundsH = new HashMap<>();
+                for (Objectives obj : tieBreakingOrder) {
+                    Bounds bestBounds = new Bounds();
+                    bestBounds.setUpper(getObjectiveExtremeValueInit(obj));
+                    bestBounds.setLower(getObjectiveExtremeValueInit(obj));
+                    bestBoundsH.put(obj, bestBounds);
+                }
 
-				}
-				residual = new HashMap<>();
-				for (Objectives obj : tieBreakingOrder) {
+                for (Object a : n.getChildren().keySet()) {
+                    ChanceNode cn = n.getChild(a);
+                    if (cn.ignoreAction)
+                        continue;
+                    boolean updateUpperBounds = false;
 
-					Bounds currentBounds = n.getBounds(obj);
-					Bounds bestBounds = bestBoundsH.get(obj);
-					Bounds boundDiff = (currentBounds.subtract(bestBounds)).abs();
+                    for (Objectives obj : tieBreakingOrder) {
 
-					residual.put(obj, boundDiff);
-				}
-			}
-		}
-		return residual;
-	}
+                        Bounds bestBounds = bestBoundsH.get(obj);
+                        if (cn.hasBounds()) {
+                            Bounds b = cn.getBounds(obj);
+                            if (isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
 
-	public static boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds, double epsilon,
-			ArrayList<Objectives> tieBreakingOrder) {
-		boolean toret = true;
-		for (Objectives obj : tieBreakingOrder) {
-			Bounds b = bounds.get(obj);
-			if (b.getLower() > epsilon) {
-				toret = false;
-				break;
-			}
-		}
-		return toret;
+                                updateUpperBounds = true;
+                                break;
+                            } else {
+                                if (!isEqual(b.getUpper(), bestBounds.getUpper()))
+                                    break;
+                            }
 
-	}
+                        }
+
+                    }
+                    if (updateUpperBounds) {
+                        for (Objectives obj : tieBreakingOrder) {
+                            Bounds b = cn.getBounds(obj);
+                            Bounds bestBounds = bestBoundsH.get(obj);
+                            bestBounds.setUpper(b.getUpper());
+                        }
+                    }
+
+                }
+                for (Object a : n.getChildren().keySet()) {
+                    ChanceNode cn = n.getChild(a);
+                    if (cn.ignoreAction)
+                        continue;
+                    boolean updateLowerBounds = false;
+                    for (Objectives obj : tieBreakingOrder) {
+
+                        Bounds bestBounds = bestBoundsH.get(obj);
+                        if (cn.hasBounds()) {
+                            Bounds b = cn.getBounds(obj);
+
+                            if (isBetter(b.getLower(), bestBounds.getLower(), obj)) {
+                                updateLowerBounds = true;
+                                break;
+                            } else {
+                                if (!isEqual(b.getLower(), bestBounds.getLower()))
+                                    break;
+                            }
+                        }
+
+                    }
+                    if (updateLowerBounds) {
+
+                        for (Objectives obj : tieBreakingOrder) {
+                            Bounds b = cn.getBounds(obj);
+                            Bounds bestBounds = bestBoundsH.get(obj);
+                            bestBounds.setLower(b.getLower());
+                        }
+                    }
+
+                }
+                residual = new HashMap<>();
+                for (Objectives obj : tieBreakingOrder) {
+
+                    Bounds currentBounds = n.getBounds(obj);
+                    Bounds bestBounds = bestBoundsH.get(obj);
+                    Bounds boundDiff = (currentBounds.subtract(bestBounds)).abs();
+
+                    residual.put(obj, boundDiff);
+                }
+            }
+        }
+        return residual;
+    }
+
+    public static boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds, double epsilon,
+                                                ArrayList<Objectives> tieBreakingOrder) {
+        boolean toret = true;
+        for (Objectives obj : tieBreakingOrder) {
+            Bounds b = bounds.get(obj);
+            if (b.getLower() > epsilon) {
+                toret = false;
+                break;
+            }
+        }
+        return toret;
+
+    }
 }

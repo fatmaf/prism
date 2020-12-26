@@ -29,7 +29,7 @@ public class ConfigeLGreedy extends Configuration {
         setDomaxcost(domaxcost);
         setMaxcostdeadends(maxcostdeadends);
         setPolicyActSelGreedy(policyActSelGreedy);
-        String configname = "eLGreedy";
+        String configname = "P_eLGreedy";
         createConfigName(configname);
     }
     @Override
