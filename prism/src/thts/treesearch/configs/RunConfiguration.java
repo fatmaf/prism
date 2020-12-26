@@ -61,18 +61,21 @@ public class RunConfiguration {
             int numGoals = singleTest.numGoals;
             int fsp = singleTest.fsp;
             int numDoors = singleTest.numdoors;
-
-
-                if(config.isCategory(ConfigCategory.COST))
-                {
-
-                   if(fsp < 90) {
-//                       if(!config.isCategory(ConfigCategory.RELATIVECOST)) {
-                           System.out.print("Skipping Test " + i + "/" + numTests + " " + testSet.getConfigID(singleTest) + " : " + filename + "\n");
-                           continue;
-//                       }
-                   }
-                }
+            if(!testSuiteID.contentEquals("Failstates"))
+            {
+                if(fsp< 90)
+                    continue;
+            }
+//                if(config.isCategory(ConfigCategory.COST))
+//                {
+//
+//                   if(fsp < 90) {
+////                       if(!config.isCategory(ConfigCategory.RELATIVECOST)) {
+//                           System.out.print("Skipping Test " + i + "/" + numTests + " " + testSet.getConfigID(singleTest) + " : " + filename + "\n");
+//                           continue;
+////                       }
+//                   }
+//                }
 
             TestFileInfo tfi = new TestFileInfo(testLoc,filename,propsuffix,testLoc,numRobots,
                    fsp,numDoors );
