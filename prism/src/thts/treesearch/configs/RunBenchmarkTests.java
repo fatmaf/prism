@@ -24,54 +24,28 @@ public class RunBenchmarkTests {
 
     }
 
-    public ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
+    public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
         ArrayList<Configuration> configs = new ArrayList<>();
-        //1        Cost_UCTRelFC_MCD_GP	FALSE	FALSE
-
-        Configuration costUCTRelFC_MCD_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, false, false, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_GP).doGreedyPolActSel();
 
         //2        Cost_UCTRelFC_MCD_ASBU_GP	FALSE	TRUE
         Configuration costUCTRelFC_MCD_ASBU_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
         ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_ASBU_GP).doGreedyPolActSel();
-
-        //3        Cost_UCTRelFC_MCD_SASH_GP	TRUE	FALSE
-        Configuration costUCTRelFC_MCD_SASH_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, true, false, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_GP).doGreedyPolActSel();
+        configs.add(costUCTRelFC_MCD_ASBU_GP);
 
         //4        Cost_UCTRelFC_MCD_SASH_ASBU_GP	TRUE	TRUE
         Configuration costUCTRelFC_MCD_SASH_ASBU_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, true, true, dointervalvi);
         ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_ASBU_GP).doGreedyPolActSel();
-
-        //5        UCTLU_GAllActions_ASBU	FALSE	TRUE
-        Configuration uctlu_GAllActions_ASBU = new ConfigUCTLU(timeBound, false, true, dointervalvi);
-
-        //6        eLUGreedyRandomRelFC_MCD_GAllActions	FALSE	FALSE
-        Configuration eluGreedyRandomRelFC_MCD_GAllActions = new ConfigeLUGreedyRandomRelFiniteCost(timeBound, false, false, dointervalvi);
-
-        //7        eLUGreedyRandomFC_GAllActions	FALSE	FALSE
-
-        Configuration eluGreedyRandomFC_GAllActions = new ConfigeLUGreedyRandom(timeBound, false, false, dointervalvi, true, false);
+        configs.add(costUCTRelFC_MCD_SASH_ASBU_GP);
 
         //  8      eLUGreedyRandomFC_MCD_GAllActions_SASH	TRUE	FALSE
         Configuration eLUGreedyRandomFC_MCD_GAllActions_SASH = new ConfigeLUGreedyRandom(timeBound, true, false, dointervalvi, true, true);
+        configs.add(eLUGreedyRandomFC_MCD_GAllActions_SASH);
 
-        //  9      Cost_eLUGreedyRandomRelFC_MCD_SASH_GP	TRUE	FALSE
-        Configuration cost_eLUGreedyRandomRelFC_MCD_SASH_GP = new ConfigeLUGreedyRandomRelFiniteCostJustCost(timeBound, true, false, dointervalvi);
-        ((ConfigeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_SASH_GP).doGreedyPolActSel();
-        configs.add(cost_eLUGreedyRandomRelFC_MCD_SASH_GP);
         //  10     Cost_eLUGreedyRandomRelFC_MCD_ASBU_GP	FALSE	TRUE
         Configuration cost_eLUGreedyRandomRelFC_MCD_ASBU_GP = new ConfigeLUGreedyRandomRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
         ((ConfigeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_ASBU_GP).doGreedyPolActSel();
         configs.add(cost_eLUGreedyRandomRelFC_MCD_ASBU_GP);
-        configs.add(uctlu_GAllActions_ASBU);
-        configs.add(costUCTRelFC_MCD_GP);
-        configs.add(costUCTRelFC_MCD_ASBU_GP);
-        configs.add(costUCTRelFC_MCD_SASH_GP);
-        configs.add(costUCTRelFC_MCD_SASH_ASBU_GP);
-        configs.add(eluGreedyRandomRelFC_MCD_GAllActions);
-        configs.add(eluGreedyRandomFC_GAllActions);
-        configs.add(eLUGreedyRandomFC_MCD_GAllActions_SASH);
+
         if (timeBound && timeLimit > 0) {
             for (Configuration config : configs) {
                 config.setTimeTimeLimitInMS(timeLimit);
@@ -94,6 +68,7 @@ public class RunBenchmarkTests {
                 Configuration config = configs.get(i);
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite "+fts+ "\n");
                 RunConfiguration runconfig = new RunConfiguration();
+                config.setJustLogs(true);
                 try {
                     runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix);
                 }
