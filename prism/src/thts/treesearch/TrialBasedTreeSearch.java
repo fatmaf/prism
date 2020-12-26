@@ -18,10 +18,11 @@ import prism.PrismLog;
 import prism.DefaultModelGenerator;
 import prism.Prism;
 
+import thts.treesearch.backup.Backup;
 import thts.utils.MDPCreator;
 import thts.treesearch.actionselector.ActionSelector;
 import thts.treesearch.actionselector.ActionSelectorMultiGreedySimpleLowerBound;
-import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.backup.BackupHelper;
 import thts.treesearch.heuristic.Heuristic;
 import thts.treesearch.utils.*;
 import thts.vi.MDPValIter;
@@ -38,7 +39,7 @@ public class TrialBasedTreeSearch {
     ActionSelector actSel;
     OutcomeSelector outSel;
     RewardHelper rewH;
-    BackupNVI backup;
+    Backup backup;
     protected PrismLog mainLog;
     protected PrismLog fileLog;
 
@@ -123,6 +124,7 @@ public class TrialBasedTreeSearch {
     public boolean hasReachedTimeLimit() {
         calculateDuration();
         if (doPolicyCheckAtIntervals) {
+            fileLog.println(HelperClass.getTString()+"Doing VI At Interval:");
             long timePassedSincePrevCheck = duration - timeAtPrevPolCheck;
             long timeInterval = timePassedSincePrevCheck - polCheckIntervalInMS;
 
@@ -146,7 +148,7 @@ public class TrialBasedTreeSearch {
 
     public TrialBasedTreeSearch(DefaultModelGenerator pmg, int maxRollouts, int maxTrialLen,
                                 Heuristic heuristicFunction, ActionSelector actionSelection, OutcomeSelector outcomeSelection,
-                                RewardHelper rewardHelper, BackupNVI backupFunction, boolean doForwardBackup,
+                                RewardHelper rewardHelper, Backup backupFunction, boolean doForwardBackup,
                                 ArrayList<Objectives> tieBreakingOrder, PrismLog ml, PrismLog fileLog) {
         productModelGen = pmg;
         this.maxRollouts = maxRollouts;
@@ -275,17 +277,19 @@ public class TrialBasedTreeSearch {
 
         boolean initStateSolved = false;
 
-        while (this.numRollouts < this.maxRollouts && !initStateSolved) {
-            mainLog.println("Rollout: " + numRollouts);
-            fileLog.println("Rollout: " + numRollouts);
+        while ( notTimedOutRollout() && !initStateSolved) {
+            mainLog.println(HelperClass.getTString()+"Rollout: " + numRollouts);
+            fileLog.println(HelperClass.getTString()+"Rollout: " + numRollouts);
             vl.newRollout(numRollouts);
 
             Node n0 = getRootNode(rootNodeNum);
 
             visitDecisionNode((DecisionNode) n0);
 
-            mainLog.println("Trial Ended with steps:" + trialLen);
-            fileLog.println("Trial Ended with steps:" + trialLen);
+            mainLog.println(HelperClass.getTString()+"Trial Ended with steps:" + trialLen);
+            fileLog.println(HelperClass.getTString()+"Trial Ended with steps:" + trialLen);
+            fileLog.println(HelperClass.getTString()+"Initial State:"+n0);
+            mainLog.println(HelperClass.getTString()+"Initial State:"+n0);
             trialLenArray.add(trialLen);
 
 
@@ -293,8 +297,11 @@ public class TrialBasedTreeSearch {
                 initStateSolved = true;
 
             vl.endRollout();
+
+
             numRollouts++;
             trialLen = 0;
+
         }
         Node n0 = getRootNode(rootNodeNum);
         if (!n0.isSolved()) {
@@ -316,8 +323,10 @@ public class TrialBasedTreeSearch {
 
         int prevTrialLen = trialLen;
         boolean doBackup = true;
-        if (!n.isSolved() & notTimedOut()) {
+        if (!n.isSolved() & notTimedOutTrial()) {
 
+            if(n.getState().toString().contentEquals("(2,0,3,-1,0,1,0)"))
+                mainLog.println();
             doBackup = true;
             trialLen++;
             prevTrialLen = trialLen;
@@ -373,7 +382,10 @@ public class TrialBasedTreeSearch {
 
         int prevTrialLen = trialLen; // just for book keeping
         boolean doBackup = true;
-        if (!n.isSolved() & notTimedOut()) {
+        if (!n.isSolved() & notTimedOutTrial()) {
+            if (n.numVisits == 0 && !n.hasBounds()) {
+                setNodeHeuristics(n);
+            }
             vl.chanceNodeString(n);
             doBackup = true;
             n.numVisits++;
@@ -424,7 +436,7 @@ public class TrialBasedTreeSearch {
         return doBackup;
     }
 
-    boolean notTimedOut() {
+    boolean notTimedOutTrial() {
         if (!isTimeBound()) {
             if (startTime == -1)
                 startTimer();
@@ -439,8 +451,20 @@ public class TrialBasedTreeSearch {
             return (!hasReachedTimeLimit());
         }
     }
+    boolean notTimedOutRollout() {
+        if (!isTimeBound()) {
+            if (startTime == -1)
+                startTimer();
 
+                return (this.numRollouts < this.maxRollouts);
+        } else {
+            if (startTime == -1)
+                startTimer();
+            return (!hasReachedTimeLimit());
+        }
+    }
     void setNodeHeuristics(Node n0) throws PrismException {
+
         if (!n0.boundsInitialised()) {
             vl.beginHeuristicAssignment();
 
@@ -453,6 +477,7 @@ public class TrialBasedTreeSearch {
                 ((DecisionNode) n0).setBounds(nodehs);
 
             } else if (n0 instanceof ChanceNode) {
+           ///     generateChildrenChanceNode((ChanceNode)n0);
                 hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNode) n0);
                 mainLog.println(n0.getShortName() + " Set Node H: " + n0.getBoundsString());
             }
@@ -470,10 +495,10 @@ public class TrialBasedTreeSearch {
         // perhaps thats a good idea
         // no I dont think so
         // i think its better to do it here
-//		if (actSel instanceof ActionSelectorGreedyBoundsDiff) {
+
         // so first we've got to see if it has no children
-        if (backup instanceof BackupNVI)
-            generateChildrenDecisionNode(n0);
+        generateChildrenDecisionNode((DecisionNode) n0);
+
         // then we've got to make sure we initialise
         // the bounds for all children
 
@@ -501,6 +526,8 @@ public class TrialBasedTreeSearch {
     }
 
     ArrayList<DecisionNode> selectOutcome(ChanceNode n) throws Exception {
+
+
 
         generateChildrenChanceNode(n);
 
@@ -530,7 +557,7 @@ public class TrialBasedTreeSearch {
             }
             // TODO: double check if we need this???
             // I dont think we do // cuz we do two levels
-            if (backup instanceof BackupNVI) {
+            if (backup instanceof Backup) {
                 for (DecisionNode child : n0.getChildren()) {
                     setNodeHeuristics(child);
                 }
@@ -582,7 +609,7 @@ public class TrialBasedTreeSearch {
                     n0.addChild(action, cn);
 
                 }
-                if (backup instanceof BackupNVI) {
+                if (backup instanceof Backup) {
                     for (Object a : n0.getChildren().keySet()) {
                         ChanceNode cn = n0.getChild(a);
                         // got to do this for full bellman backups
@@ -597,7 +624,7 @@ public class TrialBasedTreeSearch {
 
     public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism)
             throws Exception {
-        fileLog.println("Extracting Policy");
+        fileLog.println(HelperClass.getTString()+"Extracting Policy");
         long viStartTime = System.currentTimeMillis();
         // need a rewards structure
         // need a costs structure
@@ -609,9 +636,9 @@ public class TrialBasedTreeSearch {
         vl.beginPolRun();
 
         Node n0 = getRootNode(rnNum);
-        mainLog.println("Root node solved: " + n0.isSolved());
+        mainLog.println(HelperClass.getTString()+"Root node solved: " + n0.isSolved());
         MDPCreator tempMDP = new MDPCreator();
-        mainLog.println("Running through");
+        mainLog.println(HelperClass.getTString()+"Running through");
 
         Stack<DecisionNode> q = new Stack<DecisionNode>();
         ArrayList<DecisionNode> seen = new ArrayList<>();
@@ -633,7 +660,7 @@ public class TrialBasedTreeSearch {
             if (d.canHaveChildren() /*&& !d.isLeafNode()*/) {
                 if (d.isLeafNode()) {
 
-                    mainLog.println("unexplored node - exploring " + d.getState());
+                    mainLog.println(HelperClass.getTString()+"unexplored node - exploring " + d.getState());
                     setNodeHeuristics(d);
                     generateChildrenDecisionNode(d);
                 }
@@ -674,15 +701,15 @@ public class TrialBasedTreeSearch {
                             tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
                         }
                     } else {
-                        mainLog.println("no action for " + d.getState());
+                        mainLog.println(HelperClass.getTString()+"no action for " + d.getState());
                     }
 
                 }
                 vl.endActionSelectin();
             } else {
                 mainLog.println(d.getState() + (d.canHaveChildren()
-                        ? (d.isLeafNode() ? "unexplored" : "can have children so whats happeing here?")
-                        : " is a goal or deadend"));
+                        ? (d.isLeafNode() ? HelperClass.getTString()+"unexplored" : HelperClass.getTString()+"can have children so whats happeing here?")
+                        : HelperClass.getTString()+" is a goal or deadend"));
             }
         }
 
@@ -703,17 +730,18 @@ public class TrialBasedTreeSearch {
         minRewards.add(false);
         minRewards.add(true);
         long viduration = System.currentTimeMillis() - viStartTime;
-        fileLog.println("Extracting Policy: " + viduration + " ms ("
+        fileLog.println(HelperClass.getTString()+"Extracting Policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
-        fileLog.println("Beginning VI on Policy");
+        fileLog.println(HelperClass.getTString()+"Beginning VI on Policy");
         ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
                 /* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog);
        viduration = System.currentTimeMillis() - viStartTime;
-        fileLog.println("VI on Policy took + extracting policy: " + viduration + " ms ("
+        fileLog.println(HelperClass.getTString()+"VI on Policy took + extracting policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
         resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
+        fileLog.println(HelperClass.getTString()+"VI Results: "+resvals);
         return resvals;
 
     }

@@ -7,10 +7,36 @@ public class TestFileInfo {
     String filelocation;
     String propertiesfile;
     ArrayList<String> filenames;
-    boolean hasSharedState;
     int fsp;
+    int numDoors=0;
+    int numRobots;
+    int numGoals;
 
-    public TestFileInfo(String testsLocation, String fn, String propsuffix, String loc, int numModels, boolean hasSharedState) {
+    public int getNumGoals() {
+        return numGoals;
+    }
+
+    public void setNumGoals(int numGoals) {
+        this.numGoals = numGoals;
+    }
+
+    public int getNumRobots() {
+        return numRobots;
+    }
+
+    public void setNumRobots(int numRobots) {
+        this.numRobots = numRobots;
+    }
+
+    public int getNumDoors() {
+        return numDoors;
+    }
+
+    public void setNumDoors(int numDoors) {
+        this.numDoors = numDoors;
+    }
+
+    public TestFileInfo(String testsLocation, String fn, String propsuffix, String loc, int numModels,int numDoors) {
         filename = fn;
         filelocation = loc;
         filenames = new ArrayList<>();
@@ -20,10 +46,11 @@ public class TestFileInfo {
             filenames.add(modelFileName);
         }
         propertiesfile = testsLocation + fn + propsuffix + ".prop";
-        this.hasSharedState = hasSharedState;
+        this.numDoors = numDoors;
+
 
     }
-    public TestFileInfo(String testsLocation, String fn, String propsuffix, String loc, int numModels, boolean hasSharedState,int fsp) {
+    public TestFileInfo(String testsLocation, String fn, String propsuffix, String loc, int numModels, int fsp,int numDoors) {
         filename = fn;
         filelocation = loc;
         filenames = new ArrayList<>();
@@ -33,8 +60,9 @@ public class TestFileInfo {
             filenames.add(modelFileName);
         }
         propertiesfile = testsLocation + fn + propsuffix + ".prop";
-        this.hasSharedState = hasSharedState;
+
         this.fsp = fsp;
+        this.numDoors = numDoors;
 
     }
 
@@ -70,13 +98,6 @@ public class TestFileInfo {
         this.filenames = filenames;
     }
 
-    public boolean isHasSharedState() {
-        return hasSharedState;
-    }
-
-    public void setHasSharedState(boolean hasSharedState) {
-        this.hasSharedState = hasSharedState;
-    }
 
     public int getFsp() {
         return fsp;

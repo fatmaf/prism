@@ -5,6 +5,10 @@ import java.util.List;
 
 
 public class HelperClass<T> {
+    public static String getTString()
+    {
+        return "[T"+System.currentTimeMillis()+"]";
+    }
 	public int getNumCombsFromSizes(ArrayList<Integer> numElements)
 	{
 		int numcombs = 1; 

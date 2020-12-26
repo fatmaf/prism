@@ -25,6 +25,15 @@ public class THTSRunInfo {
     int numRobots;
     int numGoals;
     int fsp;
+    int numDoors=0;
+
+    public int getNumDoors() {
+        return numDoors;
+    }
+
+    public void setNumDoors(int numDoors) {
+        this.numDoors = numDoors;
+    }
 
     public boolean goalFoundAndSolved() {
         return (goalFound & initialStateSolved);

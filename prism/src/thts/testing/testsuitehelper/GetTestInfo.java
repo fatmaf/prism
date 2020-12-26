@@ -169,8 +169,11 @@ public class GetTestInfo {
 				} else
 					currentValNum++;
 				t.goalsList = goals;
-				t.numdoors = Integer.parseInt(vals[currentValNum]);
+				t.numdoors = Integer.parseInt(vals[currentValNum++]);
+				t.fsp = Integer.parseInt(vals[currentValNum++]);
+				t.timeInMS = Long.parseLong(vals[currentValNum]);
 				ts.addTest(t);
+
 				line = br.readLine();
 			}
 
@@ -207,7 +210,8 @@ public class GetTestInfo {
 	public static void main(String[] args) {
 
 		GetTestInfo gti = new GetTestInfo();
-		HashMap<String, TestSuite> testSuites = gti.readTestsAndWriteToCSV();
+        HashMap<String, TestSuite> testSuites= gti.readTestSuitesFromCSV();
+	//	HashMap<String, TestSuite> testSuites = gti.readTestsAndWriteToCSV();
 
 	}
 

@@ -14,9 +14,9 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Stack;
 
-public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
+public class BackupLabelledFullBelmanCapRelPenalty implements Backup {
 
-    //	ArrayList<Objectives> tieBreakingOrder;
+    ArrayList<Objectives> tieBreakingOrder;
     float epsilon;
     ActionSelector actSel;
     HashMap<Objectives, Entry<Double, Double>> minMaxVals;
@@ -37,8 +37,8 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
     public BackupLabelledFullBelmanCapRelPenalty(MultiAgentNestedProductModelGenerator mapmg,
                                                  ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
                                                  HashMap<Objectives, Entry<Double, Double>> minMaxVals, PrismLog backUpLog, boolean doUpdatePerActSel) {
-//		this.tieBreakingOrder = tieBreakingOrder;
-        super(tieBreakingOrder);
+        this.tieBreakingOrder = tieBreakingOrder;
+
         this.epsilon = epsilon;
         this.actSel = actSel;
         this.minMaxVals = minMaxVals;
@@ -48,10 +48,10 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
     }
 
     public BackupLabelledFullBelmanCapRelPenalty(MultiAgentNestedProductModelGenerator mapmg,
-            ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
+                                                 ArrayList<Objectives> tieBreakingOrder, ActionSelector actSel, float epsilon,
                                                  HashMap<Objectives, Entry<Double, Double>> minMaxVals, boolean doUpdatePerActSel) {
-//		this.tieBreakingOrder = tieBreakingOrder;
-        super(tieBreakingOrder);
+        this.tieBreakingOrder = tieBreakingOrder;
+
         this.epsilon = epsilon;
         this.actSel = actSel;
         this.minMaxVals = minMaxVals;
@@ -61,7 +61,7 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
 
 
     boolean boundsLessThanEpsilon(HashMap<Objectives, Bounds> bounds) {
-        return boundsLessThanEpsilon(bounds, epsilon, tieBreakingOrder);
+        return BackupHelper.boundsLessThanEpsilon(bounds, epsilon, tieBreakingOrder);
 
 
     }
@@ -103,7 +103,11 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                     }
 
                 }
-                HashMap<Objectives, Bounds> bounds = residualDecision((DecisionNode) s);
+                HashMap<Objectives, Bounds> bounds;
+                if (doUpdatePerActSel)
+                    bounds = BackupHelper.residualDecision((DecisionNode) s, tieBreakingOrder, actSel);
+                else
+                    bounds = BackupHelper.residualDecision((DecisionNode) s, tieBreakingOrder);
 
                 if (bounds != null && boundsLessThanEpsilon(bounds)) {
                     // get the best action
@@ -168,7 +172,8 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
             updateDecisionNode(dn);
         }
 
-        debugLog.println("--------LRTDP Backup End " + dn.toString() + "-------------");
+        if (debugLog != null)
+            debugLog.println("--------LRTDP Backup End " + dn.toString() + "-------------");
         return backupToRet;
 
     }
@@ -215,8 +220,7 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                     case Progression: {
                         double lb = 0.0;
                         double ub = 0.0;
-                        if(dn.isDeadend && obj == Objectives.Progression)
-                        {
+                        if (dn.isDeadend && obj == Objectives.Progression) {
                             if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
                                 lb = dn.getBounds(obj).getLower();
                                 ub = lb;
@@ -229,8 +233,8 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                 }
                 if (dn.isDeadend && obj == Objectives.Cost) {
 
-                    double lb = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
-                    double ub = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
+                    double lb = minMaxVals.get(obj).getValue() * mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
+                    double ub = minMaxVals.get(obj).getValue() * mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
                     b = new Bounds(ub, lb);
 
                 }
@@ -264,8 +268,7 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                     case Progression: {
                         double lb = 0.0;
                         double ub = 0.0;
-                        if(dn.isDeadend && obj == Objectives.Progression)
-                        {
+                        if (dn.isDeadend && obj == Objectives.Progression) {
                             if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
                                 lb = dn.getBounds(obj).getLower();
                                 ub = lb;
@@ -278,8 +281,8 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                 }
                 if (dn.isDeadend && obj == Objectives.Cost) {
 
-                    double lb = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
-                    double ub = minMaxVals.get(obj).getValue()*mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
+                    double lb = minMaxVals.get(obj).getValue() * mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
+                    double ub = minMaxVals.get(obj).getValue() * mapmg.getRemainingTasksFraction(dn.getState());//this.maxCost;
                     b = new Bounds(ub, lb);
 
                 }
@@ -294,8 +297,8 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                 HashMap<Objectives, Bounds> bestBoundsH = new HashMap<>();
                 for (Objectives obj : tieBreakingOrder) {
                     Bounds defaultBounds = new Bounds();
-                    defaultBounds.setUpper(getObjectiveExtremeValueInit(obj));
-                    defaultBounds.setLower(getObjectiveExtremeValueInit(obj));
+                    defaultBounds.setUpper(dn.getBounds(obj).getUpper());
+                    defaultBounds.setLower(dn.getBounds(obj).getLower());
                     defaultBoundsH.put(obj, defaultBounds);
                     bestBoundsH.put(obj, new Bounds(defaultBounds));
                 }
@@ -313,12 +316,12 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                         } else {
                             b = defaultBoundsH.get(obj);
                         }
-                        if (isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
+                        if (BackupHelper.isBetter(b.getUpper(), bestBounds.getUpper(), obj)) {
 
                             updateUpperBounds = true;
                             break;
                         } else {
-                            if (!isEqual(b.getUpper(), bestBounds.getUpper()))
+                            if (!BackupHelper.isEqual(b.getUpper(), bestBounds.getUpper()))
                                 break;
                         }
 
@@ -342,11 +345,11 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                         if (cn.hasBounds()) {
                             Bounds b = cn.getBounds(obj);
 
-                            if (isBetter(b.getLower(), bestBounds.getLower(), obj)) {
+                            if (BackupHelper.isBetter(b.getLower(), bestBounds.getLower(), obj)) {
                                 updateLowerBounds = true;
                                 break;
                             } else {
-                                if (!isEqual(b.getLower(), bestBounds.getLower()))
+                                if (!BackupHelper.isEqual(b.getLower(), bestBounds.getLower()))
                                     break;
                             }
                         }
@@ -376,13 +379,13 @@ public class BackupLabelledFullBelmanCapRelPenalty extends BackupNVI {
                 if (debugLog != null)
                     debugLog.println(e.getStackTrace());
                 else
-                System.out.println(e.getStackTrace());
+                    System.out.println(e.getStackTrace());
                 updateDecisionNodeNoActSel(dn);
             }
         else
             updateDecisionNodeNoActSel(dn);
         //if decision node has cost
-        if(isMarkMaxCostAsDeadend()) {
+        if (isMarkMaxCostAsDeadend()) {
             if (dn.hasBounds()) {
                 if (minMaxVals.get(Objectives.Cost).getValue() != 0) {
                     if (dn.bounds.containsKey(Objectives.Cost)) {

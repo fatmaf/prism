@@ -3,11 +3,16 @@ package thts.testing.testsuitehelper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class TestSet {
+
+    final static long DEFAULTTIMEINMS=30*60*1000;
     public String testSetID;
     public ArrayList<TestSuiteReadWrite> tests;
     public String location;
+    public HashMap<String,SubTestSetConfig> subtestconfigs;
+
 
     public TestSet(String fn) {
         setTestIDFromFileName(fn);
@@ -19,7 +24,15 @@ public class TestSet {
     {
         if(tests==null)
             tests = new ArrayList<>();
+        if(!tests.contains(t))
         tests.add(t);
+        else
+        {
+            //get the time and pick the one with the max
+            int tindex=tests.indexOf(t);
+            tests.get(tindex).timeInMS = Math.max(tests.get(tindex).timeInMS,t.timeInMS);
+            System.out.println("Multiple tests, just changing the max time on them.");
+        }
     }
     public void setTestSetID(String id)
     {
@@ -74,5 +87,49 @@ public class TestSet {
             toret.add(testSetID+ TestSuiteReadWrite.delim+t.getString());
         }
         return toret;
+    }
+
+    public void generateSubTestConfigs()
+    {
+        subtestconfigs = new HashMap<>();
+        for (TestSuiteReadWrite t: tests)
+        {
+            String id = SubTestSetConfig.getID(t.numRobots,t.numGoals,t.fsp,t.numdoors);
+            SubTestSetConfig c ;
+            if(subtestconfigs.containsKey(id))
+            {
+                c = subtestconfigs.get(id);
+            }
+            else {
+                c = new SubTestSetConfig(t.numRobots,t.numGoals,t.fsp,t.numdoors);
+                subtestconfigs.put(id,c);
+            }
+            c.addTest(t);
+        }
+        for(String id: subtestconfigs.keySet())
+        {
+            subtestconfigs.get(id).setMeanTestTimes();
+        }
+
+    }
+    public long getMeanSubConfigTime(TestSuiteReadWrite t)
+    {
+        String id = SubTestSetConfig.getID(t.numRobots,t.numGoals,t.fsp,t.numdoors);
+        if(subtestconfigs==null)
+            generateSubTestConfigs();
+
+            if(subtestconfigs.containsKey(id))
+            {
+                return subtestconfigs.get(id).getMeanTestTimes();
+            }
+            else
+                return DEFAULTTIMEINMS;
+
+    }
+
+    public String getConfigID(TestSuiteReadWrite t)
+    {
+        String id = SubTestSetConfig.getID(t.numRobots,t.numGoals,t.fsp,t.numdoors);
+        return id;
     }
 }

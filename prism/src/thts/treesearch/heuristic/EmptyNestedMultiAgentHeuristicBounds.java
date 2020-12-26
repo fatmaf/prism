@@ -7,9 +7,10 @@ import java.util.Map.Entry;
 
 import parser.State;
 import prism.PrismException;
+import thts.treesearch.backup.Backup;
 import thts.treesearch.utils.Bounds;
 import thts.treesearch.utils.Objectives;
-import thts.treesearch.backup.BackupNVI;
+import thts.treesearch.backup.BackupHelper;
 import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.treesearch.utils.ChanceNode;
 import thts.treesearch.utils.DecisionNode;
@@ -22,10 +23,10 @@ public class EmptyNestedMultiAgentHeuristicBounds implements Heuristic {
 	MultiAgentNestedProductModelGenerator ma;
 
 	HashMap<Objectives, Entry<Double, Double>> minMaxVals;
-	BackupNVI backup;
+	Backup backup;
 
 	public EmptyNestedMultiAgentHeuristicBounds(MultiAgentNestedProductModelGenerator ma, List<State> goalStates,
-			List<State> deadends, HashMap<Objectives, Entry<Double, Double>> minMaxVals, BackupNVI backupFunction) {
+			List<State> deadends, HashMap<Objectives, Entry<Double, Double>> minMaxVals, Backup backupFunction) {
 		this.goalStates = goalStates;
 		this.deadends = deadends;
 		this.minMaxVals = minMaxVals;

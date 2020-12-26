@@ -1,10 +1,14 @@
 package thts.treesearch.configs;
 
 import thts.testing.testsuitehelper.TestFileInfo;
+import thts.testing.testsuitehelper.TestSet;
+import thts.testing.testsuitehelper.TestSuite;
+import thts.testing.testsuitehelper.TestSuiteReadWrite;
 import thts.treesearch.utils.Objectives;
 import thts.treesearch.utils.THTSRunInfo;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class RunConfiguration {
 
@@ -17,41 +21,129 @@ public class RunConfiguration {
     BufferedWriter bw;
     PrintWriter out;
 
-    public void run(String resFolderExt, Configuration config, int numRobots, int numGoals,
-                    String filename, boolean hasSharedState, boolean debug,
-                    String fnSuffix,String propsuffix,
-                    int maxRuns,int fsp) throws Exception
+    public void runTestSuite(TestSuite ts,Configuration config,boolean debug,String fnSuffix) throws Exception
     {
-        String logFilesExt = "results/configs/" + config.getConfigname() + "/";
+        int i = 0;
+        for(String testSetID : ts.testSets.keySet())
+        {
+            TestSet testSet = ts.getTestSet(testSetID);
+            if (testSet.subtestconfigs==null)
+            {
+                testSet.generateSubTestConfigs();
+            }
 
+
+            System.out.println("\nRunning Test Set "+testSetID+" ("+i+"/"+ts.testSets.size()+")");
+            i++;
+            runTestSet(testSet,config,debug,fnSuffix,ts.suitID);
+
+        }
+    }
+    void runTestSet(TestSet testSet,Configuration config,boolean debug,String reslogSuffix,String testSuiteID) throws Exception
+    {
+
+        String propsuffix = "mult";
+        String testLoc = testSet.location;
+        String resFolderExt = "benchmarks/"+testSet.testSetID.replace(" ","_") + "/";
+        String logFilesExt = "results/configs/" + config.getConfigname() + "/";
+        String resFileName = testSet.testSetID+ "_" + config.getConfigname() + reslogSuffix;
         initialiseResultsLocations(resFolderExt, logFilesExt);
 
-        TestFileInfo tfi = new TestFileInfo(testsLocation, filename, propsuffix, testsLocation, numRobots, hasSharedState,fsp);
-        if (!openResultsFile(filename + "_" + config.getConfigname() + fnSuffix))
+        ArrayList<TestSuiteReadWrite> subtestset = testSet.tests;
+        if (!openResultsFile(resFileName))
             printResultsHeader();
         closeResultsFile();
-        for (int i = 0; i < maxRuns; i++) {
-            System.out.print("Running Test "+i+"/"+maxRuns+"\t");
-            long startTime = System.currentTimeMillis();
+        int numTests = subtestset.size();
+        for (int i = 0; i<numTests; i++) {
+            TestSuiteReadWrite singleTest = subtestset.get(i);
+            String filename = singleTest.id;
+            int numRobots = singleTest.numRobots;
+            int numGoals = singleTest.numGoals;
+            int fsp = singleTest.fsp;
+            int numDoors = singleTest.numdoors;
+            if(!testSuiteID.contentEquals("Failstates"))
+            {
+                if(fsp< 90)
+                    continue;
+            }
+//                if(config.isCategory(ConfigCategory.COST))
+//                {
+//
+//                   if(fsp < 90) {
+////                       if(!config.isCategory(ConfigCategory.RELATIVECOST)) {
+//                           System.out.print("Skipping Test " + i + "/" + numTests + " " + testSet.getConfigID(singleTest) + " : " + filename + "\n");
+//                           continue;
+////                       }
+//                   }
+//                }
 
-            THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i);
+            TestFileInfo tfi = new TestFileInfo(testLoc,filename,propsuffix,testLoc,numRobots,
+                   fsp,numDoors );
+            config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
+            String configID = testSet.getConfigID(singleTest);
+
+            System.out.print("Running Test "+i+"/"+numTests+" "+configID+" : "+filename+"\n");
+            long startTime = System.currentTimeMillis();
+            THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i,testSuiteID+"_"+configID);
+            rinfo.setNumDoors(numDoors);
             rinfo.setNumRobots(numRobots);
             rinfo.setNumGoals(numGoals);
             rinfo.setFsp(fsp);
             long endTime = System.currentTimeMillis();
-            openResultsFile(filename + "_" + config.getConfigname() + fnSuffix);
+            openResultsFile(resFileName);
+            printResult(config, i, rinfo, endTime - startTime);
+            closeResultsFile();
+        }
+    }
+
+    public void run(String resFolderExt, Configuration config, int numRobots, int numGoals,
+                    String filename, boolean debug,
+                    String fnSuffix,String propsuffix,
+                    int maxRuns,int fsp,int numdoors) throws Exception
+    {
+        //formaking things pretty
+        int numConsoleChars = 80;
+        int numCharsSoFar = 0;
+
+        String logFilesExt = "results/configs/" + config.getConfigname() + "/";
+        String resFileName = filename + "_" + config.getConfigname() + fnSuffix;
+        initialiseResultsLocations(resFolderExt, logFilesExt);
+
+        TestFileInfo tfi = new TestFileInfo(testsLocation, filename, propsuffix, testsLocation,
+                numRobots, fsp,numdoors);
+        if (!openResultsFile(resFileName))
+            printResultsHeader();
+        closeResultsFile();
+
+        for (int i = 0; i < maxRuns; i++) {
+            String outputString = String.format("Running Test %4d/%4d%4s",i,maxRuns,"");
+            numCharsSoFar+=outputString.length();
+            if(numCharsSoFar>numConsoleChars)
+            {
+                numCharsSoFar = 0;
+                outputString="\n"+outputString;
+            }
+            System.out.print(outputString);
+            long startTime = System.currentTimeMillis();
+
+            THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i,"");
+            rinfo.setNumRobots(numRobots);
+            rinfo.setNumGoals(numGoals);
+            rinfo.setFsp(fsp);
+            long endTime = System.currentTimeMillis();
+            openResultsFile(resFileName);
             printResult(config, i, rinfo, endTime - startTime);
             closeResultsFile();
         }
 
     }
     public void run(String resFolderExt, Configuration config, int numRobots, int numGoals,
-                    String filename, boolean hasSharedState, boolean debug,
+                    String filename, boolean debug,
                     String fnSuffix,
                     int maxRuns) throws Exception {
 
         String propsuffix = "_mult";
-        run(resFolderExt,config,numRobots,numGoals,filename,hasSharedState,debug,fnSuffix,propsuffix,maxRuns,0);
+        run(resFolderExt,config,numRobots,numGoals,filename,debug,fnSuffix,propsuffix,maxRuns,0,0);
 
 
     }
