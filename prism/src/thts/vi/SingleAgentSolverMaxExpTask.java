@@ -25,6 +25,7 @@ import prism.PrismFileLog;
 import prism.PrismLog;
 import prism.RewardGenerator;
 import simulator.ModulesFileModelGenerator;
+import thts.treesearch.utils.HelperClass;
 import thts.treesearch.utils.Objectives;
 import thts.vi.MDPValIter.ModelCheckerMultipleResult;
 
@@ -340,7 +341,7 @@ public class SingleAgentSolverMaxExpTask {
 			HashMap<Objectives, HashMap<State, Double>> stateValues,
 			HashMap<State,Object> stateAction) throws Exception {
 		
-		mainLog.println("Beginning NVI setup");
+		mainLog.println(HelperClass.getTString()+"Beginning NVI setup");
 		AcceptanceType[] allowedAcceptance = { AcceptanceType.RABIN, AcceptanceType.REACH };
 
 		// create the model generator thing for rewards
@@ -359,7 +360,7 @@ public class SingleAgentSolverMaxExpTask {
 		// an object to use to construct rewards
 		ConstructRewards constructRewards = new ConstructRewards(pmc);
 
-		mainLog.println("Creating nested product");
+		mainLog.println(HelperClass.getTString()+"Creating nested product");
 		// create a nestedmdp object for storing the nested mdp and doing stuff
 		NestedProductMDP npMDP = new NestedProductMDP(mdp);
 
@@ -370,17 +371,17 @@ public class SingleAgentSolverMaxExpTask {
 		{
 			Expression exprHere = exprOthers.get(exprnum);			
 			npMDP.constructProductModel(exprHere, ltlMC, pmc, allowedAcceptance, resLoc);
-			mainLog.println("Added "+exprHere.toString()+" to product \n"+npMDP.getProductModel().infoStringTable());
+//			mainLog.println("Added "+exprHere.toString()+" to product \n"+npMDP.getProductModel().infoStringTable());
 		}
 
 		npMDP.constructProductModel(exprSafety, ltlMC, pmc, allowedAcceptance, resLoc, true);
-		mainLog.println("Added "+exprSafety.toString()+" to product \n"+npMDP.getProductModel().infoStringTable());
+//		mainLog.println("Added "+exprSafety.toString()+" to product \n"+npMDP.getProductModel().infoStringTable());
 
 		ArrayList<MDPRewardsSimple> rewardsList = new ArrayList<>();
 		ArrayList<Boolean> minRewards = new ArrayList<>();
 		// now we're going to create our reward models
 		for (ExpressionReward rewExpr : exprRews) {
-			mainLog.println("Creating rewards model for " + rewExpr.toString());
+			mainLog.println(HelperClass.getTString()+"Creating rewards model for " + rewExpr.toString());
 			Object rewStructName = rewExpr.getRewardStructIndex();
 			int rewStructIndex = prismModelGen.getRewardStructIndex((String) rewStructName);
 			MDPRewardsSimple costsModel = (MDPRewardsSimple) constructRewards.buildRewardStructure(mdp,
@@ -392,7 +393,7 @@ public class SingleAgentSolverMaxExpTask {
 		}
 		// now get the max task prog stuff
 		// uff ye np wali cheez bohat kuch hai
-		mainLog.println("Building task rewards");
+		mainLog.println(HelperClass.getTString()+"Building task rewards");
 
 		MDPRewardsSimple taskProgRewards = npMDP.createTaskRewards();
 		rewardsList.add(0, taskProgRewards);
@@ -402,11 +403,11 @@ public class SingleAgentSolverMaxExpTask {
 		// haye haye!!!
 		// but furst v must get de target and remain
 
-		mainLog.println("Getting acc states and states to avoid");
+		mainLog.println(HelperClass.getTString()+"Getting acc states and states to avoid");
 		npMDP.createTargetStates();
 		BitSet remain = npMDP.getRemainStates();
 		BitSet target = npMDP.getTargetStates();
-		mainLog.println("Targets:"+target.cardinality()+" Remain:"+remain.cardinality());
+		mainLog.println(HelperClass.getTString()+"Targets:"+target.cardinality()+" Remain:"+remain.cardinality());
 		//	mainLog.println("Acc States: "+target.toString());
 		//	mainLog.println("Remain States: "+remain.toString());
 		// now we're ready for WAR ? what is it good for absolutely nothing
@@ -415,7 +416,7 @@ public class SingleAgentSolverMaxExpTask {
 		// just another thing we need and we should really look into changing this cuz
 		// liek why do you need this?
 		MDPModelChecker mdpmc = new MDPModelChecker(pmc);
-		mainLog.println("Performing NVI");
+		mainLog.println(HelperClass.getTString()+"Performing NVI");
 		ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, npMDP.getProductModel(), target, remain,
 				rewardsList, null, minRewards, null, 1, null, this.mainLog);
 		// now this is possibly the MOST important bit
@@ -443,7 +444,7 @@ public class SingleAgentSolverMaxExpTask {
 				currsolnmap.put(state, val);
 				if (npMDP.isInitialState(s)) {
 					// print the values
-					mainLog.println(currobj.toString() + " value in initial state " + state.toString() + " " + val);
+					mainLog.println(HelperClass.getTString()+currobj.toString() + " value in initial state " + state.toString() + " " + val);
 				}
 			}
 			stateValues.put(currobj, currsolnmap);
@@ -456,13 +457,7 @@ public class SingleAgentSolverMaxExpTask {
 			Object action = result.strat.getChoiceAction(s); 
 			stateAction.put(state, action); 
 		}
-		//		return solution;
-		
-//		if (name != null) {
-//		PolicyCreator pc = new PolicyCreator();
-//		pc.createPolicyAllStates(npMDP.getProductModel(), result.strat);
-//		pc.savePolicy(resLoc, "nvipol" + name);
-//	}
+
 
 	}
 

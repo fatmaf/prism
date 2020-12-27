@@ -21,32 +21,29 @@ public class RunConfiguration {
     BufferedWriter bw;
     PrintWriter out;
 
-    public void runTestSuite(TestSuite ts,Configuration config,boolean debug,String fnSuffix) throws Exception
-    {
+    public void runTestSuite(TestSuite ts, Configuration config, boolean debug, String fnSuffix) throws Exception {
         int i = 0;
-        for(String testSetID : ts.testSets.keySet())
-        {
+        for (String testSetID : ts.testSets.keySet()) {
             TestSet testSet = ts.getTestSet(testSetID);
-            if (testSet.subtestconfigs==null)
-            {
+            if (testSet.subtestconfigs == null) {
                 testSet.generateSubTestConfigs();
             }
 
 
-            System.out.println("\nRunning Test Set "+testSetID+" ("+i+"/"+ts.testSets.size()+")");
+            System.out.println("\nRunning Test Set " + testSetID + " (" + i + "/" + ts.testSets.size() + ")");
             i++;
-            runTestSet(testSet,config,debug,fnSuffix,ts.suitID);
+            runTestSet(testSet, config, debug, fnSuffix, ts.suitID);
 
         }
     }
-    void runTestSet(TestSet testSet,Configuration config,boolean debug,String reslogSuffix,String testSuiteID) throws Exception
-    {
+
+    void runTestSet(TestSet testSet, Configuration config, boolean debug, String reslogSuffix, String testSuiteID) throws Exception {
 
         String propsuffix = "mult";
         String testLoc = testSet.location;
-        String resFolderExt = "benchmarks/"+testSet.testSetID.replace(" ","_") + "/";
+        String resFolderExt = "benchmarks/" + testSet.testSetID.replace(" ", "_") + "/";
         String logFilesExt = "results/configs/" + config.getConfigname() + "/";
-        String resFileName = testSet.testSetID+ "_" + config.getConfigname() + reslogSuffix;
+        String resFileName = testSet.testSetID + "_" + config.getConfigname() + reslogSuffix;
         initialiseResultsLocations(resFolderExt, logFilesExt);
 
         ArrayList<TestSuiteReadWrite> subtestset = testSet.tests;
@@ -54,37 +51,31 @@ public class RunConfiguration {
             printResultsHeader();
         closeResultsFile();
         int numTests = subtestset.size();
-        for (int i = 0; i<numTests; i++) {
+        for (int i = 0; i < numTests; i++) {
             TestSuiteReadWrite singleTest = subtestset.get(i);
             String filename = singleTest.id;
             int numRobots = singleTest.numRobots;
             int numGoals = singleTest.numGoals;
             int fsp = singleTest.fsp;
             int numDoors = singleTest.numdoors;
-            if(!testSuiteID.contentEquals("Failstates"))
-            {
-                if(fsp< 90)
-                    continue;
-            }
-//                if(config.isCategory(ConfigCategory.COST))
-//                {
-//
-//                   if(fsp < 90) {
-////                       if(!config.isCategory(ConfigCategory.RELATIVECOST)) {
-//                           System.out.print("Skipping Test " + i + "/" + numTests + " " + testSet.getConfigID(singleTest) + " : " + filename + "\n");
-//                           continue;
-////                       }
-//                   }
-//                }
-
-            TestFileInfo tfi = new TestFileInfo(testLoc,filename,propsuffix,testLoc,numRobots,
-                   fsp,numDoors );
-            config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
             String configID = testSet.getConfigID(singleTest);
+            if (!testSuiteID.contentEquals("Failstates")) {
+                if (fsp < 90) {
+                    System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
+                    continue;
+                }
+            }
 
-            System.out.print("Running Test "+i+"/"+numTests+" "+configID+" : "+filename+"\n");
+            TestFileInfo tfi = new TestFileInfo(testLoc, filename, propsuffix, testLoc, singleTest.numModels,
+                    fsp, numDoors);
+            tfi.setGoals(singleTest.goalsList);
+            tfi.setRobots(singleTest.robotsList);
+            config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
+
+
+            System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
             long startTime = System.currentTimeMillis();
-            THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i,testSuiteID+"_"+configID);
+            THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i, testSuiteID + "_" + configID);
             rinfo.setNumDoors(numDoors);
             rinfo.setNumRobots(numRobots);
             rinfo.setNumGoals(numGoals);
@@ -98,9 +89,8 @@ public class RunConfiguration {
 
     public void run(String resFolderExt, Configuration config, int numRobots, int numGoals,
                     String filename, boolean debug,
-                    String fnSuffix,String propsuffix,
-                    int maxRuns,int fsp,int numdoors) throws Exception
-    {
+                    String fnSuffix, String propsuffix,
+                    int maxRuns, int fsp, int numdoors) throws Exception {
         //formaking things pretty
         int numConsoleChars = 80;
         int numCharsSoFar = 0;
@@ -110,23 +100,22 @@ public class RunConfiguration {
         initialiseResultsLocations(resFolderExt, logFilesExt);
 
         TestFileInfo tfi = new TestFileInfo(testsLocation, filename, propsuffix, testsLocation,
-                numRobots, fsp,numdoors);
+                numRobots, fsp, numdoors);
         if (!openResultsFile(resFileName))
             printResultsHeader();
         closeResultsFile();
 
         for (int i = 0; i < maxRuns; i++) {
-            String outputString = String.format("Running Test %4d/%4d%4s",i,maxRuns,"");
-            numCharsSoFar+=outputString.length();
-            if(numCharsSoFar>numConsoleChars)
-            {
+            String outputString = String.format("Running Test %4d/%4d%4s", i, maxRuns, "");
+            numCharsSoFar += outputString.length();
+            if (numCharsSoFar > numConsoleChars) {
                 numCharsSoFar = 0;
-                outputString="\n"+outputString;
+                outputString = "\n" + outputString;
             }
             System.out.print(outputString);
             long startTime = System.currentTimeMillis();
 
-            THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i,"");
+            THTSRunInfo rinfo = config.run(tfi, getLogFilesLocation(), debug, i, "");
             rinfo.setNumRobots(numRobots);
             rinfo.setNumGoals(numGoals);
             rinfo.setFsp(fsp);
@@ -137,13 +126,14 @@ public class RunConfiguration {
         }
 
     }
+
     public void run(String resFolderExt, Configuration config, int numRobots, int numGoals,
                     String filename, boolean debug,
                     String fnSuffix,
                     int maxRuns) throws Exception {
 
         String propsuffix = "_mult";
-        run(resFolderExt,config,numRobots,numGoals,filename,debug,fnSuffix,propsuffix,maxRuns,0,0);
+        run(resFolderExt, config, numRobots, numGoals, filename, debug, fnSuffix, propsuffix, maxRuns, 0, 0);
 
 
     }

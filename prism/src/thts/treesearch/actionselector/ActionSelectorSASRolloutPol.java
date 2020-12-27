@@ -31,6 +31,8 @@ public class ActionSelectorSASRolloutPol implements ActionSelector {
 		ArrayList<String> robotActions = new ArrayList<>(); 
 		for(int i = 0; i<robotStates.size();i++)
 		{
+		    if(!stateActions.get(i).containsKey(robotStates.get(i)))
+		        System.out.println(String.format("No state in Action selector sas rollout pol for robot %d, state %s",i,robotStates.get(i).toString()));
 			String sa = stateActions.get(i).get(robotStates.get(i)).toString();
 			if(sa.contentEquals("?"))
 				sa = "failed";

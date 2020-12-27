@@ -108,7 +108,7 @@ public class NestedProductMDP extends Product<MDP> {
 		}
 		das.add(daHere);
 
-		LTLProduct<MDP> product = ltlMC.constructProductModel(daHere, oldproduct, labelBS, null);
+		LTLProduct<MDP> product = ltlMC.constructProductModel(daHere, oldproduct, labelBS, null,true);
 //		VarList pvarlist = product.getProductModel().getVarList();
 
 //		int davarlistindex = pvarlist.getIndex("_da");

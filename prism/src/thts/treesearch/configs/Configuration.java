@@ -228,8 +228,14 @@ public abstract class Configuration {
         fileLog.println(HelperClass.getTString()+"Beginning solutions for single agents");
         mainLog.println(HelperClass.getTString()+"Beginning solutions for single agents");
         long startTime = System.currentTimeMillis();
-        singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, mainLog, logFilesLocation, tfi.getFilenames(),
-                tfi.getPropertiesfile(), stateActions);
+        if(tfi.getRobots()!=null && tfi.getGoals()!=null) {
+            singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, fileLog, logFilesLocation, tfi.getFilenames(),
+                    tfi.getPropertiesfile(), tfi.getRobots(), tfi.getGoals(), stateActions);
+        }
+            else {
+            singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, fileLog, logFilesLocation, tfi.getFilenames(),
+                    tfi.getPropertiesfile(), stateActions);
+        }
         long endTime = System.currentTimeMillis();
         long duration = endTime-startTime;
         fileLog.println(HelperClass.getTString()+"Finished Single Agent Solutions: " + duration + " ms ("
@@ -238,7 +244,7 @@ public abstract class Configuration {
                 + TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) + " s)");
         maModelGen = createNestedMultiAgentModelGen(prism, mainLog, tfi.getFilenames(),
                 tfi.getPropertiesfile(), logFilesLocation,
-                tfi.getNumDoors());
+                tfi.getNumDoors(),tfi.getRobots(),tfi.getGoals());
 
 
         mainLog.println(HelperClass.getTString()+"Tie Breaking Order " + tieBreakingOrder.toString());
@@ -317,7 +323,8 @@ public abstract class Configuration {
     public MultiAgentNestedProductModelGenerator createNestedMultiAgentModelGen(Prism prism, PrismLog mainLog,
                                                                                 ArrayList<String> filenames,
                                                                                 String propertiesFileName,
-                                                                                String resultsLocation, int numDoors)
+                                                                                String resultsLocation, int numDoors,ArrayList<Integer> robotsList,
+                                                                                ArrayList<Integer> goalsList)
             throws PrismException, IOException {
 
         AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN, AcceptanceType.REACH};
@@ -328,7 +335,13 @@ public abstract class Configuration {
         ArrayList<ModulesFileModelGenerator> mfmodgens = new ArrayList<>();
         ModulesFile modulesFile = null; // just here so we can use the last modules file for our properties
 
-        for (String modelFileName : filenames) {
+        for (int i = 0; i<filenames.size(); i++) {
+            if(robotsList!=null)
+            {
+                if(!robotsList.contains(i))
+                    continue;
+            }
+            String modelFileName = filenames.get(i);
             mainLog.println("Loading model gen for " + modelFileName);
             modulesFile = prism.parseModelFile(new File(modelFileName)); // because the models are uniform
             // we might have to find a way to change this later
@@ -344,8 +357,19 @@ public abstract class Configuration {
         List<Expression> processedExprs = new ArrayList<>();
         int safetydaind = -1;
         Expression safetyexpr = null;
+        if(goalsList!=null){
+        if(!goalsList.contains(propertiesFile.getNumProperties()-1))
+        {
+            goalsList.add(propertiesFile.getNumProperties()-1);
+        }}
         for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
+            if(goalsList!=null)
+            {
+                if(!goalsList.contains(i))
+                    continue;
+            }
             mainLog.println(propertiesFile.getProperty(i));
+
             // so reward + safety
             boolean isSafeExpr = false;
             Expression exprHere = propertiesFile.getProperty(i);
@@ -436,7 +460,35 @@ public abstract class Configuration {
         }
         return allStateValues;
     }
+    public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
+                                                                                                 PrismLog mainLog, String resultsLocation,
+                                                                                                 ArrayList<String> fns,
+                                                                                                 String propFilename,
+                                                                                                 ArrayList<Integer> robotsList,
+                                                                                                 ArrayList<Integer> goalsList,
+                                                                                                 ArrayList<HashMap<State, Object>> stateActions) throws Exception {
+        SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism, mainLog, resultsLocation);
+        // so now we can read in the model
+        ArrayList<HashMap<Objectives, HashMap<State, Double>>> allStateValues = new ArrayList<>();
+        for (int i = 0; i<fns.size() ; i++) {
+            if(!robotsList.contains(i))
+                continue;
+            String filename = fns.get(i);
+            String[] nameval = filename.split("/");
+            sas.setName(nameval[nameval.length - 1].replaceAll(".prism", ""));
+            sas.loadModel(filename);
+            sas.loadProperties(propFilename,goalsList);
+            // so we need to edit this bit
+            // so we need a new function with the strategy
 
+            HashMap<Objectives, HashMap<State, Double>> stateValues = new HashMap<>();
+            HashMap<State, Object> stateAction = new HashMap<>();
+            sas.getStateValuesAndStrategies(stateValues, stateAction);
+            stateActions.add(stateAction);
+            allStateValues.add(stateValues);
+        }
+        return allStateValues;
+    }
     public String getConfigname() {
         return configname;
     }

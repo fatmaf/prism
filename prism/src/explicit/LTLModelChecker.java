@@ -520,7 +520,12 @@ public class LTLModelChecker extends PrismComponent
 
 		return product;
 	}
-	
+
+    public <M extends Model> LTLProduct<M> constructProductModel(DA<BitSet,? extends AcceptanceOmega> da,
+                                                                 M model, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+    {
+        return constructProductModel(da,model,labelBS,statesOfInterest,false);
+    }
 	/**
 	 * Construct the product of a DA and a model.
 	 * @param da The DA
@@ -529,7 +534,9 @@ public class LTLModelChecker extends PrismComponent
 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
 	 * @return The product model
 	 */
-	 public <M extends Model> LTLProduct<M> constructProductModel(DA<BitSet,? extends AcceptanceOmega> da, M model, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	 public <M extends Model> LTLProduct<M> constructProductModel(DA<BitSet,? extends AcceptanceOmega> da,
+                                                                  M model, Vector<BitSet> labelBS, BitSet statesOfInterest,
+                                                                  boolean allDAStates) throws PrismException
 	{
 		ModelType modelType = model.getModelType();
 		int daSize = da.size();
@@ -611,31 +618,54 @@ public class LTLModelChecker extends PrismComponent
 		// (b) to later identify the corresponding product state for the original states
 		//     of interest
 		for (int s_0 : new IterableStateSet(statesOfInterest, model.getNumStates())) {
-			// Get BitSet representing APs (labels) satisfied by state s_0
-			for (int k = 0; k < numAPs; k++) {
-				s_labels.set(k, labelBS.get(Integer.parseInt(da.getAPList().get(k).substring(1))).get(s_0));
-			}
-			// Find corresponding initial state in DA
-			int q_0 = da.getEdgeDestByLabel(da.getStartState(), s_labels);
-			if (q_0 < 0) {
-				throw new PrismException("The deterministic automaton is not complete (state " + da.getStartState() + ")");
-			}
-			// Add (initial) state to product
-			queue.add(new Point(s_0, q_0));
-			switch (modelType) {
-			case STPG:
-				((STPGExplicit) prodModel).addState(((STPG) model).getPlayer(s_0));
-				break;
-			default:
-				prodModel.addState();
-			break;
-			}
-			prodModel.addInitialState(prodModel.getNumStates() - 1);
-			map[s_0 * daSize + q_0] = prodModel.getNumStates() - 1;
-			if (prodStatesList != null) {
-				// Store state information for the product
-				prodStatesList.add(new State(daStatesList.get(q_0), model.getStatesList().get(s_0)));
-			}
+		    if(allDAStates)
+            {
+                for(int q_0 = 0; q_0<da.size(); q_0++)
+                {
+                    queue.add(new Point(s_0, q_0));
+                    switch (modelType) {
+                        case STPG:
+                            ((STPGExplicit) prodModel).addState(((STPG) model).getPlayer(s_0));
+                            break;
+                        default:
+                            prodModel.addState();
+                            break;
+                    }
+                    prodModel.addInitialState(prodModel.getNumStates() - 1);
+                    map[s_0 * daSize + q_0] = prodModel.getNumStates() - 1;
+                    if (prodStatesList != null) {
+                        // Store state information for the product
+                        prodStatesList.add(new State(daStatesList.get(q_0), model.getStatesList().get(s_0)));
+                    }
+                }
+            }
+		    else {
+                // Get BitSet representing APs (labels) satisfied by state s_0
+                for (int k = 0; k < numAPs; k++) {
+                    s_labels.set(k, labelBS.get(Integer.parseInt(da.getAPList().get(k).substring(1))).get(s_0));
+                }
+                // Find corresponding initial state in DA
+                int q_0 = da.getEdgeDestByLabel(da.getStartState(), s_labels);
+                if (q_0 < 0) {
+                    throw new PrismException("The deterministic automaton is not complete (state " + da.getStartState() + ")");
+                }
+                // Add (initial) state to product
+                queue.add(new Point(s_0, q_0));
+                switch (modelType) {
+                    case STPG:
+                        ((STPGExplicit) prodModel).addState(((STPG) model).getPlayer(s_0));
+                        break;
+                    default:
+                        prodModel.addState();
+                        break;
+                }
+                prodModel.addInitialState(prodModel.getNumStates() - 1);
+                map[s_0 * daSize + q_0] = prodModel.getNumStates() - 1;
+                if (prodStatesList != null) {
+                    // Store state information for the product
+                    prodStatesList.add(new State(daStatesList.get(q_0), model.getStatesList().get(s_0)));
+                }
+            }
 		}
 
 		// Product states

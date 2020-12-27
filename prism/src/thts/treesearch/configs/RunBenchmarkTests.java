@@ -54,7 +54,7 @@ public class RunBenchmarkTests {
         return configs;
     }
 
-    public void runTestSuite(){
+    public void runTestSuite() throws Exception{
         for(String fts: filteredTestSuites.keySet())
         {
 //        String fts = "Failstates";
@@ -74,7 +74,7 @@ public class RunBenchmarkTests {
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                   throw e;// e.printStackTrace();
                 }
             }
         }
@@ -84,7 +84,11 @@ public class RunBenchmarkTests {
 
     public static void main(String[] args) {
         RunBenchmarkTests rbt = new RunBenchmarkTests();
-        rbt.runTestSuite();
+        try {
+            rbt.runTestSuite();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

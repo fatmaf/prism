@@ -12,6 +12,7 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategyArray;
+import thts.treesearch.utils.HelperClass;
 
 public class MDPValIter {
 
@@ -214,7 +215,7 @@ public class MDPValIter {
 						// get all rew vals
 						for (int rew = 0; rew < numRewards; rew++) {
 							if (rewards.get(rew) == null) {
-								mainLog.println("Reward null!!!" + rew);
+								mainLog.println(HelperClass.getTString()+"Reward null!!!" + rew);
 							}
 							currentCost = mdp.mvMultRewSingle(i, j, solnReward.get(rew), rewards.get(rew));
 							if (currentCostVal.size() > rew)
@@ -277,11 +278,11 @@ public class MDPValIter {
 
 		// Finished value iteration
 		timerVI = System.currentTimeMillis() - timerVI;
-		mainLog.print("Prioritised value iteration (" + (min ? "min" : "max") + ")");
+		mainLog.print(HelperClass.getTString()+"Prioritised value iteration (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timerVI / 1000.0 + " seconds.");
 
 		timerGlobal = System.currentTimeMillis() - timerGlobal;
-		mainLog.println("Overall policy calculation took  " + timerGlobal / 1000.0 + " seconds.");
+		mainLog.println(HelperClass.getTString()+"Overall policy calculation took  " + timerGlobal / 1000.0 + " seconds.");
 
 		// Non-convergence is an error (usually)
 		if (!done && mc.geterrorOnNonConverge())

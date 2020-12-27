@@ -11,6 +11,25 @@ public class TestFileInfo {
     int numDoors=0;
     int numRobots;
     int numGoals;
+    ArrayList<Integer> robots;
+
+    public ArrayList<Integer> getRobots() {
+        return robots;
+    }
+
+    public void setRobots(ArrayList<Integer> robots) {
+        this.robots = robots;
+    }
+
+    public ArrayList<Integer> getGoals() {
+        return goals;
+    }
+
+    public void setGoals(ArrayList<Integer> goals) {
+        this.goals = goals;
+    }
+
+    ArrayList<Integer> goals;
 
     public int getNumGoals() {
         return numGoals;
