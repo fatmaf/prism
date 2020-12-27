@@ -69,7 +69,7 @@ public class ConfigUCTRelFiniteCostJustCost extends Configuration {
         tieBreakingOrderBools.add(false);
         ActionSelector uctActSel = new ActionSelectorUCT(getTieBreakingOrder(),tieBreakingOrderBools);
         setActSel(new ActionSelectorMCTS(uctActSel, rolloutPol));
-        setActSel(new ActionSelectorMCTS(greedyActSelRandom, rolloutPol));
+	//        setActSel(new ActionSelectorMCTS(greedyActSelRandom, rolloutPol));
         setOutSel(new OutcomeSelectorProb());
         ActionSelector greedyActSel = new ActionSelectorGreedySimpleUpperLowerBound(getTieBreakingOrder(), false);
         setBackup(new BackupLabelledFullBelmanCapRelPenalty(getMaModelGen(), getTieBreakingOrder(), greedyActSel, getEpsilon(), getMinMaxVals(), fileLog, isUseActSelForBackupUpdate()));
