@@ -275,6 +275,7 @@ public abstract class Configuration {
         thts.setResultsLocation(logFilesLocation);
         if (this.timeBound) {
             thts.setTimeBound(true);
+            thts.setTimeLimitInMilliSeconds(getTimeTimeLimitInMS());
             runInfo.setTimeLimited(true);
             runInfo.setMaxTimeLimit(getTimeTimeLimitInMS());
 
@@ -282,6 +283,7 @@ public abstract class Configuration {
 
         try {
             thts.run(debug);
+
         } catch (StackOverflowError e) {
 
             runInfo.setStackoverflowerror(true);
@@ -289,15 +291,7 @@ public abstract class Configuration {
             thts.trialLenArray.add(thts.trialLen);
 
         }
-        mainLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
-        fileLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
-        mainLog.println(HelperClass.getTString()+"Attempting Value Iteration on Policy");
-        HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism);
-        mainLog.println(tempres);
-
-
         runInfo.setInitialStateSolved(thts.getRootNode(0).isSolved());
-        runInfo.setVipol(tempres);
         runInfo.setNumRolloutsTillSolved(thts.numRollouts);
         runInfo.setInitialStateValues(thts.getInitialStateBounds());
         runInfo.setDuration(thts.getDuration());
@@ -305,6 +299,19 @@ public abstract class Configuration {
         runInfo.setChanceNodesExp(thts.chanceNodesExplored);
         runInfo.setDecisionNodesExp(thts.decisionNodesExplored);
         runInfo.setVipolAtIntervals(thts.timeValues);
+
+
+        mainLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
+        fileLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
+        mainLog.println(HelperClass.getTString()+"Attempting Value Iteration on Policy");
+        fileLog.println(HelperClass.getTString()+"Attempting Value Iteration on Policy");
+        HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism);
+        mainLog.println(tempres);
+
+
+        runInfo.setVipol(tempres);
+        runInfo.setViTerminatedEarly(thts.isVionpolterminatedearly());
+
         fileLog.println(HelperClass.getTString()+"Final Values: "+runInfo);
         mainLog.close();
         fileLog.close();

@@ -25,7 +25,16 @@ public class THTSRunInfo {
     int numRobots;
     int numGoals;
     int fsp;
-    int numDoors=0;
+    int numDoors = 0;
+    boolean viTerminatedEarly = false;
+
+    public boolean isViTerminatedEarly() {
+        return viTerminatedEarly;
+    }
+
+    public void setViTerminatedEarly(boolean viTerminatedEarly) {
+        this.viTerminatedEarly = viTerminatedEarly;
+    }
 
     public int getNumDoors() {
         return numDoors;
@@ -46,6 +55,8 @@ public class THTSRunInfo {
             for (Objectives obj : initialStateValues.keySet())
                 toret += "\t" + obj + ":" + getBoundsString(obj, "\t");
         }
+        if (isViTerminatedEarly())
+            toret += "VI Terminated early";
         return toret;
     }
 

@@ -64,6 +64,15 @@ public class TrialBasedTreeSearch {
     int maxPolEvals = 0;
     boolean polEvals[];
     int currentPolEval = 0;
+    private boolean vionpolterminatedearly;
+
+    public boolean isVionpolterminatedearly() {
+        return vionpolterminatedearly;
+    }
+
+    public void setVionpolterminatedearly(boolean vionpolterminatedearly) {
+        this.vionpolterminatedearly = vionpolterminatedearly;
+    }
 
     public void setTimeBound(boolean t) {
         timeBound = t;
@@ -290,6 +299,8 @@ public class TrialBasedTreeSearch {
             fileLog.println(HelperClass.getTString()+"Trial Ended with steps:" + trialLen);
             fileLog.println(HelperClass.getTString()+"Initial State:"+n0);
             mainLog.println(HelperClass.getTString()+"Initial State:"+n0);
+            fileLog.println(HelperClass.getTString()+"Time passed: "+getDuration()+"ms ("+ TimeUnit.MINUTES.convert(getDuration(),
+                    TimeUnit.MILLISECONDS)+" min)");
             trialLenArray.add(trialLen);
 
 
@@ -625,7 +636,14 @@ public class TrialBasedTreeSearch {
     public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism)
             throws Exception {
         fileLog.println(HelperClass.getTString()+"Extracting Policy");
+        if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound)
+        {
+            fileLog.println(HelperClass.getTString()+"Selecting multiple actions");
+        }
+        fileLog.flush();
         long viStartTime = System.currentTimeMillis();
+        long viduration;
+        boolean viterminatedearly = false;
         // need a rewards structure
         // need a costs structure
         HashMap<Objectives, Double> resvals = new HashMap<Objectives, Double>();
@@ -655,18 +673,31 @@ public class TrialBasedTreeSearch {
             if (seen.contains(d))
                 continue;
             seen.add(d);
+            viduration = System.currentTimeMillis() - viStartTime;
+
+            fileLog.println(HelperClass.getTString()+"Nodes Explored: "+seen.size() + " Time Elapsed: "+viduration+"ms ("
+            +TimeUnit.MINUTES.convert(viduration,TimeUnit.MILLISECONDS)+"min)");
+            fileLog.println(HelperClass.getTString()+"Nodes In Queue: "+q.size());
+            if(viduration > 2*this.getTimeLimitInMilliSeconds()) {
+                fileLog.println(HelperClass.getTString() +
+                        String.format("Quitting VI Pol extraction due to too much time, %d goals found",accStates.cardinality()));
+                viterminatedearly = true;
+                break;
+            }
+
             mainLog.println(d.getShortName() + d.getBoundsString());
 //            fileLog.println(d.getShortName() + d.getBoundsString());
             if (d.canHaveChildren() /*&& !d.isLeafNode()*/) {
                 if (d.isLeafNode()) {
 
                     mainLog.println(HelperClass.getTString()+"unexplored node - exploring " + d.getState());
+                    fileLog.println(HelperClass.getTString()+"unexplored node - exploring " + d.getState());
                     setNodeHeuristics(d);
                     generateChildrenDecisionNode(d);
                 }
 
-                if (d.getChildren().size() < 5)
-                    mainLog.println(d.getChildren());
+//                if (d.getChildren().size() < 5)
+//                    mainLog.println(d.getChildren());
 
                 ArrayList<ChanceNode> as;
                 if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
@@ -729,7 +760,7 @@ public class TrialBasedTreeSearch {
         ArrayList<Boolean> minRewards = new ArrayList<>();
         minRewards.add(false);
         minRewards.add(true);
-        long viduration = System.currentTimeMillis() - viStartTime;
+       viduration = System.currentTimeMillis() - viStartTime;
         fileLog.println(HelperClass.getTString()+"Extracting Policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
         fileLog.println(HelperClass.getTString()+"Beginning VI on Policy");
@@ -741,7 +772,9 @@ public class TrialBasedTreeSearch {
         resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
+
         fileLog.println(HelperClass.getTString()+"VI Results: "+resvals);
+        this.vionpolterminatedearly = viterminatedearly;
         return resvals;
 
     }

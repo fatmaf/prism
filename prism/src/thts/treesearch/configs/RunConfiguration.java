@@ -9,6 +9,7 @@ import thts.treesearch.utils.THTSRunInfo;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class RunConfiguration {
 
@@ -71,7 +72,8 @@ public class RunConfiguration {
             tfi.setGoals(singleTest.goalsList);
             tfi.setRobots(singleTest.robotsList);
             config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
-
+            System.out.println("Setting max time to "+config.getTimeTimeLimitInMS()+"ms ("+ TimeUnit.MINUTES.convert(config.getTimeTimeLimitInMS(),
+                    TimeUnit.MILLISECONDS)+" min)");
 
             System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
             long startTime = System.currentTimeMillis();
@@ -181,7 +183,8 @@ public class RunConfiguration {
                 "CNExp\t" +
                 "TotalTime\t" +
                 "VIPolAtIntervals\t" +
-                "TLens";
+                "TLens\t"+
+                "PolVIEarlyTerm\t";
         if (out != null)
             out.println(header);
 
@@ -217,7 +220,8 @@ public class RunConfiguration {
                 + rinfo.getChanceNodesExp() + "\t"
                 + totalTime + "\t"
                 + rinfo.getVIPolIntervalString() +
-                "\t" + rinfo.gettLensString();
+                "\t" + rinfo.gettLensString()
+                + "\t" + rinfo.isViTerminatedEarly();
         if (out != null)
             out.println(resLine);
     }
