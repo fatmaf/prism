@@ -517,7 +517,7 @@ public class TrialBasedTreeSearch {
 
         vl.beginActionSelection();
         vl.writeActSelChoices(n0);
-        ChanceNode selected = actSel.selectAction(n0, doMin, fileLog);
+        ChanceNode selected = actSel.selectAction(n0, doMin, mainLog);
 
         vl.writeSelectedAction(selected);
         vl.endActionSelectin();
