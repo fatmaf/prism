@@ -133,7 +133,7 @@ public class TrialBasedTreeSearch {
     public boolean hasReachedTimeLimit() {
         calculateDuration();
         if (doPolicyCheckAtIntervals) {
-            fileLog.println(HelperClass.getTString()+"Doing VI At Interval:");
+            fileLog.println(HelperClass.getTString() + "Doing VI At Interval:");
             long timePassedSincePrevCheck = duration - timeAtPrevPolCheck;
             long timeInterval = timePassedSincePrevCheck - polCheckIntervalInMS;
 
@@ -279,28 +279,28 @@ public class TrialBasedTreeSearch {
 
         this.debug = debug;
         if (!debug)
-            vl = new VisualiserLog(/* resultsLocation + name + ".vl", */ this.tieBreakingOrder,!debug);
+            vl = new VisualiserLog(/* resultsLocation + name + ".vl", */ this.tieBreakingOrder, !debug);
         else
             vl = new VisualiserLog(resultsLocation + name + ".vl", this.tieBreakingOrder);
         vl.newRollout(numRollouts);
 
         boolean initStateSolved = false;
 
-        while ( notTimedOutRollout() && !initStateSolved) {
-            mainLog.println(HelperClass.getTString()+"Rollout: " + numRollouts);
-            fileLog.println(HelperClass.getTString()+"Rollout: " + numRollouts);
+        while (notTimedOutRollout() && !initStateSolved) {
+            mainLog.println(HelperClass.getTString() + "Rollout: " + numRollouts);
+            fileLog.println(HelperClass.getTString() + "Rollout: " + numRollouts);
             vl.newRollout(numRollouts);
 
             Node n0 = getRootNode(rootNodeNum);
 
             visitDecisionNode((DecisionNode) n0);
 
-            mainLog.println(HelperClass.getTString()+"Trial Ended with steps:" + trialLen);
-            fileLog.println(HelperClass.getTString()+"Trial Ended with steps:" + trialLen);
-            fileLog.println(HelperClass.getTString()+"Initial State:"+n0);
-            mainLog.println(HelperClass.getTString()+"Initial State:"+n0);
-            fileLog.println(HelperClass.getTString()+"Time passed: "+getDuration()+"ms ("+ TimeUnit.MINUTES.convert(getDuration(),
-                    TimeUnit.MILLISECONDS)+" min)");
+            mainLog.println(HelperClass.getTString() + "Trial Ended with steps:" + trialLen);
+            fileLog.println(HelperClass.getTString() + "Trial Ended with steps:" + trialLen);
+            fileLog.println(HelperClass.getTString() + "Initial State:" + n0);
+            mainLog.println(HelperClass.getTString() + "Initial State:" + n0);
+            fileLog.println(HelperClass.getTString() + "Time passed: " + getDuration() + "ms (" + TimeUnit.MINUTES.convert(getDuration(),
+                    TimeUnit.MILLISECONDS) + " min)");
             trialLenArray.add(trialLen);
 
 
@@ -336,7 +336,7 @@ public class TrialBasedTreeSearch {
         boolean doBackup = true;
         if (!n.isSolved() & notTimedOutTrial()) {
 
-            if(n.getState().toString().contentEquals("(2,0,3,-1,0,1,0)"))
+            if (n.getState().toString().contentEquals("(2,0,3,-1,0,1,0)"))
                 mainLog.println();
             doBackup = true;
             trialLen++;
@@ -346,8 +346,8 @@ public class TrialBasedTreeSearch {
                 setNodeHeuristics(n);
             }
             n.numVisits++;
-			mainLog.println(
-					"Step:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
+            mainLog.println(
+                    "Step:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
             vl.addStateBit(n);
 
             if (n.canHaveChildren()) {
@@ -362,27 +362,27 @@ public class TrialBasedTreeSearch {
 
                 doBackup = visitChanceNode(selectedAction);
 
-				mainLog.println("BackupStep:" + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
+                mainLog.println("BackupStep:" + "DN:" + n.getState() + "," + n.numVisits + ",B:" + n.getBoundsString());
 
 
             } else {
 
                 n.setSolved();
-				mainLog.println("Setting " + n.getState() + " to solved");
+                mainLog.println("Setting " + n.getState() + " to solved");
 
             }
 
             doBackup = backup.backupDecisionNode(n, doBackup);
-			mainLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
-					+ n.getBoundsString());
+            mainLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
+                    + n.getBoundsString());
 //            fileLog.println("BackupStep:" + prevTrialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
 //                    + n.getBoundsString() + (n.isSolved() ? ", solved" : ""));
 
         } else {
             if (n != null) {
                 mainLog.println("TimedOut/Solved:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
-						+ n.getBoundsString() + " solved:" + n.isSolved());
- //               fileLog.println("TimedOut/Solved:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
+                        + n.getBoundsString() + " solved:" + n.isSolved());
+                //               fileLog.println("TimedOut/Solved:" + trialLen + "DN:" + n.getState() + "," + n.numVisits + ",B:"
 //                        + n.getBoundsString() + " solved:" + n.isSolved());
             }
         }
@@ -400,8 +400,8 @@ public class TrialBasedTreeSearch {
             vl.chanceNodeString(n);
             doBackup = true;
             n.numVisits++;
-			mainLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
-					+ n.getBoundsString());
+            mainLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
+                    + n.getBoundsString());
 //            fileLog.println("Step:" + trialLen + "CN:" + n.getState() + "," + n.getAction() + "," + n.numVisits + ",B:"
 //                    + n.getBoundsString());
 
@@ -462,18 +462,20 @@ public class TrialBasedTreeSearch {
             return (!hasReachedTimeLimit());
         }
     }
+
     boolean notTimedOutRollout() {
         if (!isTimeBound()) {
             if (startTime == -1)
                 startTimer();
 
-                return (this.numRollouts < this.maxRollouts);
+            return (this.numRollouts < this.maxRollouts);
         } else {
             if (startTime == -1)
                 startTimer();
             return (!hasReachedTimeLimit());
         }
     }
+
     void setNodeHeuristics(Node n0) throws PrismException {
 
         if (!n0.boundsInitialised()) {
@@ -488,7 +490,7 @@ public class TrialBasedTreeSearch {
                 ((DecisionNode) n0).setBounds(nodehs);
 
             } else if (n0 instanceof ChanceNode) {
-           ///     generateChildrenChanceNode((ChanceNode)n0);
+                ///     generateChildrenChanceNode((ChanceNode)n0);
                 hf.setChanceNodeBounds(tieBreakingOrder, (ChanceNode) n0);
                 mainLog.println(n0.getShortName() + " Set Node H: " + n0.getBoundsString());
             }
@@ -537,7 +539,6 @@ public class TrialBasedTreeSearch {
     }
 
     ArrayList<DecisionNode> selectOutcome(ChanceNode n) throws Exception {
-
 
 
         generateChildrenChanceNode(n);
@@ -590,7 +591,7 @@ public class TrialBasedTreeSearch {
 
                 cn.setReward(obj, rew);
             }
-			mainLog.println(cn.getShortName()+" Set Rew: "+cn.rewards.toString());
+            mainLog.println(cn.getShortName() + " Set Rew: " + cn.rewards.toString());
 
             addNodeToHash(cn);
         }
@@ -635,28 +636,28 @@ public class TrialBasedTreeSearch {
 
     public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism)
             throws Exception {
-        fileLog.println(HelperClass.getTString()+"Extracting Policy");
-        if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound)
-        {
-            fileLog.println(HelperClass.getTString()+"Selecting multiple actions");
+        fileLog.println(HelperClass.getTString() + "Extracting Policy");
+        if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
+            fileLog.println(HelperClass.getTString() + "Selecting multiple actions");
         }
         fileLog.flush();
         long viStartTime = System.currentTimeMillis();
         long viduration;
         boolean viterminatedearly = false;
+        boolean skipunexplorednodes = false;
         // need a rewards structure
         // need a costs structure
         HashMap<Objectives, Double> resvals = new HashMap<Objectives, Double>();
         BitSet accStates = new BitSet();
         BitSet avoidStates = new BitSet();
         if (resultsLocation != null)
-            vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true,!debug);
+            vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true, !debug);
         vl.beginPolRun();
 
         Node n0 = getRootNode(rnNum);
-        mainLog.println(HelperClass.getTString()+"Root node solved: " + n0.isSolved());
+        mainLog.println(HelperClass.getTString() + "Root node solved: " + n0.isSolved());
         MDPCreator tempMDP = new MDPCreator();
-        mainLog.println(HelperClass.getTString()+"Running through");
+        mainLog.println(HelperClass.getTString() + "Running through");
 
         Stack<DecisionNode> q = new Stack<DecisionNode>();
         ArrayList<DecisionNode> seen = new ArrayList<>();
@@ -675,12 +676,17 @@ public class TrialBasedTreeSearch {
             seen.add(d);
             viduration = System.currentTimeMillis() - viStartTime;
 
-            fileLog.println(HelperClass.getTString()+"Nodes Explored: "+seen.size() + " Time Elapsed: "+viduration+"ms ("
-            +TimeUnit.MINUTES.convert(viduration,TimeUnit.MILLISECONDS)+"min)");
-            fileLog.println(HelperClass.getTString()+"Nodes In Queue: "+q.size());
-            if(viduration > 2*this.getTimeLimitInMilliSeconds()) {
+            fileLog.println(HelperClass.getTString() + "Nodes Explored: " + seen.size() + " Time Elapsed: " + viduration + "ms ("
+                    + TimeUnit.MINUTES.convert(viduration, TimeUnit.MILLISECONDS) + "min)");
+            fileLog.println(HelperClass.getTString() + "Nodes In Queue: " + q.size());
+            if (!skipunexplorednodes && (viduration > this.getTimeLimitInMilliSeconds())) {
                 fileLog.println(HelperClass.getTString() +
-                        String.format("Quitting VI Pol extraction due to too much time, %d goals found",accStates.cardinality()));
+                        String.format("Skipping unexplored nodes in VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
+                skipunexplorednodes = true;
+            }
+            if (viduration > 2 * this.getTimeLimitInMilliSeconds()) {
+                fileLog.println(HelperClass.getTString() +
+                        String.format("Quitting VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
                 viterminatedearly = true;
                 break;
             }
@@ -689,11 +695,12 @@ public class TrialBasedTreeSearch {
 //            fileLog.println(d.getShortName() + d.getBoundsString());
             if (d.canHaveChildren() /*&& !d.isLeafNode()*/) {
                 if (d.isLeafNode()) {
-
-                    mainLog.println(HelperClass.getTString()+"unexplored node - exploring " + d.getState());
-                    fileLog.println(HelperClass.getTString()+"unexplored node - exploring " + d.getState());
-                    setNodeHeuristics(d);
-                    generateChildrenDecisionNode(d);
+                    if (!skipunexplorednodes) {
+                        mainLog.println(HelperClass.getTString() + "unexplored node - exploring " + d.getState());
+                        fileLog.println(HelperClass.getTString() + "unexplored node - exploring " + d.getState());
+                        setNodeHeuristics(d);
+                        generateChildrenDecisionNode(d);
+                    }
                 }
 
 //                if (d.getChildren().size() < 5)
@@ -732,20 +739,20 @@ public class TrialBasedTreeSearch {
                             tempMDP.addAction(d.getState(), a.getAction(), successors, rews);
                         }
                     } else {
-                        mainLog.println(HelperClass.getTString()+"no action for " + d.getState());
+                        mainLog.println(HelperClass.getTString() + "no action for " + d.getState());
                     }
 
                 }
                 vl.endActionSelectin();
             } else {
                 mainLog.println(d.getState() + (d.canHaveChildren()
-                        ? (d.isLeafNode() ? HelperClass.getTString()+"unexplored" : HelperClass.getTString()+"can have children so whats happeing here?")
-                        : HelperClass.getTString()+" is a goal or deadend"));
+                        ? (d.isLeafNode() ? HelperClass.getTString() + "unexplored" : HelperClass.getTString() + "can have children so whats happeing here?")
+                        : HelperClass.getTString() + " is a goal or deadend"));
             }
         }
 
         tempMDP.setInitialState(n0.getState());
-        if(debug) {
+        if (debug) {
             if (resultsLocation != null)
                 tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
         }
@@ -760,20 +767,20 @@ public class TrialBasedTreeSearch {
         ArrayList<Boolean> minRewards = new ArrayList<>();
         minRewards.add(false);
         minRewards.add(true);
-       viduration = System.currentTimeMillis() - viStartTime;
-        fileLog.println(HelperClass.getTString()+"Extracting Policy: " + viduration + " ms ("
+        viduration = System.currentTimeMillis() - viStartTime;
+        fileLog.println(HelperClass.getTString() + "Extracting Policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
-        fileLog.println(HelperClass.getTString()+"Beginning VI on Policy");
+        fileLog.println(HelperClass.getTString() + "Beginning VI on Policy");
         ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
                 /* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog);
-       viduration = System.currentTimeMillis() - viStartTime;
-        fileLog.println(HelperClass.getTString()+"VI on Policy took + extracting policy: " + viduration + " ms ("
+        viduration = System.currentTimeMillis() - viStartTime;
+        fileLog.println(HelperClass.getTString() + "VI on Policy took + extracting policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
         resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
 
-        fileLog.println(HelperClass.getTString()+"VI Results: "+resvals);
+        fileLog.println(HelperClass.getTString() + "VI Results: " + resvals);
         this.vionpolterminatedearly = viterminatedearly;
         return resvals;
 
