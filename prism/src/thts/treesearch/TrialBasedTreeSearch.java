@@ -634,6 +634,7 @@ public class TrialBasedTreeSearch {
     }
 
 
+
     public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism)
             throws Exception {
         fileLog.println(HelperClass.getTString() + "Extracting Policy");
@@ -679,12 +680,12 @@ public class TrialBasedTreeSearch {
             fileLog.println(HelperClass.getTString() + "Nodes Explored: " + seen.size() + " Time Elapsed: " + viduration + "ms ("
                     + TimeUnit.MINUTES.convert(viduration, TimeUnit.MILLISECONDS) + "min)");
             fileLog.println(HelperClass.getTString() + "Nodes In Queue: " + q.size());
-            if (!skipunexplorednodes && (viduration > this.getTimeLimitInMilliSeconds())) {
+            if (!skipunexplorednodes && (viduration > this.getTimeLimitInMilliSeconds()/2)) {
                 fileLog.println(HelperClass.getTString() +
                         String.format("Skipping unexplored nodes in VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
                 skipunexplorednodes = true;
             }
-            if (viduration > 2 * this.getTimeLimitInMilliSeconds()) {
+            if (viduration >  this.getTimeLimitInMilliSeconds()) {
                 fileLog.println(HelperClass.getTString() +
                         String.format("Quitting VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
                 viterminatedearly = true;

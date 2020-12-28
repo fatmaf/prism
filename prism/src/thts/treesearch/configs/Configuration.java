@@ -15,6 +15,7 @@ import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.testing.testsuitehelper.TestFileInfo;
 import thts.treesearch.TrialBasedTreeSearch;
 import thts.treesearch.actionselector.ActionSelector;
+import thts.treesearch.actionselector.ActionSelectorMostVisited;
 import thts.treesearch.backup.Backup;
 import thts.treesearch.backup.BackupHelper;
 import thts.treesearch.heuristic.Heuristic;
@@ -59,23 +60,23 @@ public abstract class Configuration {
     private boolean justLogs = false;
 
     ArrayList<ConfigCategory> categories;
-    protected  void addCategory(ConfigCategory c)
-    {
-        if(categories==null)
+
+    protected void addCategory(ConfigCategory c) {
+        if (categories == null)
             categories = new ArrayList<>();
-        if(!categories.contains(c))
+        if (!categories.contains(c))
             categories.add(c);
     }
+
     protected abstract void setCategories();
-    public boolean isCategory(ConfigCategory c)
-    {
-        if(categories!=null)
-        {
+
+    public boolean isCategory(ConfigCategory c) {
+        if (categories != null) {
             return categories.contains(c);
-        }
-        else
+        } else
             return false;
     }
+
     public boolean isJustLogs() {
         return justLogs;
     }
@@ -202,7 +203,7 @@ public abstract class Configuration {
         return stateActions.get(0).size() * Math.pow(maModelGen.numModels, 2);
     }
 
-    THTSRunInfo run(TestFileInfo tfi, String logFilesLocation, boolean debug, int run,String runPrefix) throws Exception {
+    THTSRunInfo run(TestFileInfo tfi, String logFilesLocation, boolean debug, int run, String runPrefix) throws Exception {
         THTSRunInfo runInfo = new THTSRunInfo();
 
         PrismLog mainLog;
@@ -211,7 +212,7 @@ public abstract class Configuration {
         else
             mainLog = new PrismDevNullLog();
 
-        String runName = configname + "_" + tfi.getFilename() +"_"+runPrefix+ "_" + run;
+        String runName = configname + "_" + tfi.getFilename() + "_" + runPrefix + "_" + run;
         Prism prism = new Prism(mainLog);
         PrismLog fileLog;
         if (isJustLogs())
@@ -222,55 +223,54 @@ public abstract class Configuration {
         prism.initialise();
         prism.setEngine(Prism.EXPLICIT);
 
-        mainLog.println(HelperClass.getTString()+"Initialised Prism");
-        fileLog.println(HelperClass.getTString()+"Initialised Prism");
+        mainLog.println(HelperClass.getTString() + "Initialised Prism");
+        fileLog.println(HelperClass.getTString() + "Initialised Prism");
         stateActions = new ArrayList<>();
-        fileLog.println(HelperClass.getTString()+"Beginning solutions for single agents");
-        mainLog.println(HelperClass.getTString()+"Beginning solutions for single agents");
+        fileLog.println(HelperClass.getTString() + "Beginning solutions for single agents");
+        mainLog.println(HelperClass.getTString() + "Beginning solutions for single agents");
         long startTime = System.currentTimeMillis();
-        if(tfi.getRobots()!=null && tfi.getGoals()!=null) {
+        if (tfi.getRobots() != null && tfi.getGoals() != null) {
             singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, fileLog, logFilesLocation, tfi.getFilenames(),
                     tfi.getPropertiesfile(), tfi.getRobots(), tfi.getGoals(), stateActions);
-        }
-            else {
+        } else {
             singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, fileLog, logFilesLocation, tfi.getFilenames(),
                     tfi.getPropertiesfile(), stateActions);
         }
         long endTime = System.currentTimeMillis();
-        long duration = endTime-startTime;
-        fileLog.println(HelperClass.getTString()+"Finished Single Agent Solutions: " + duration + " ms ("
+        long duration = endTime - startTime;
+        fileLog.println(HelperClass.getTString() + "Finished Single Agent Solutions: " + duration + " ms ("
                 + TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) + " s)");
-        mainLog.println(HelperClass.getTString()+"Finished Single Agent Solutions: " + duration + " ms ("
+        mainLog.println(HelperClass.getTString() + "Finished Single Agent Solutions: " + duration + " ms ("
                 + TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) + " s)");
         maModelGen = createNestedMultiAgentModelGen(prism, mainLog, tfi.getFilenames(),
                 tfi.getPropertiesfile(), logFilesLocation,
-                tfi.getNumDoors(),tfi.getRobots(),tfi.getGoals());
+                tfi.getNumDoors(), tfi.getRobots(), tfi.getGoals());
 
 
-        mainLog.println(HelperClass.getTString()+"Tie Breaking Order " + tieBreakingOrder.toString());
-        fileLog.println(HelperClass.getTString()+"Tie Breaking Order " + tieBreakingOrder.toString());
+        mainLog.println(HelperClass.getTString() + "Tie Breaking Order " + tieBreakingOrder.toString());
+        fileLog.println(HelperClass.getTString() + "Tie Breaking Order " + tieBreakingOrder.toString());
 
         initialiseConfiguration(mainLog);
 
         RewardHelper rewardH = new RewardHelperMultiAgent(maModelGen, RewardCalculation.SUM);
 
-        mainLog.println(HelperClass.getTString()+"Max Rollouts: " + maxRollouts);
-        mainLog.println(HelperClass.getTString()+"Max TrialLen: " + trialLength);
-        fileLog.println(HelperClass.getTString()+"Max Rollouts: " + maxRollouts);
-        fileLog.println(HelperClass.getTString()+"Max TrialLen: " + trialLength);
+        mainLog.println(HelperClass.getTString() + "Max Rollouts: " + maxRollouts);
+        mainLog.println(HelperClass.getTString() + "Max TrialLen: " + trialLength);
+        fileLog.println(HelperClass.getTString() + "Max Rollouts: " + maxRollouts);
+        fileLog.println(HelperClass.getTString() + "Max TrialLen: " + trialLength);
 
-        mainLog.println(HelperClass.getTString()+"Initialising THTS");
-        fileLog.println(HelperClass.getTString()+"Initialising THTS");
+        mainLog.println(HelperClass.getTString() + "Initialising THTS");
+        fileLog.println(HelperClass.getTString() + "Initialising THTS");
         boolean doForwardBackup = true;
-        mainLog.println(HelperClass.getTString()+"Running thts");
+        mainLog.println(HelperClass.getTString() + "Running thts");
         TrialBasedTreeSearch thts = new TrialBasedTreeSearch(maModelGen, maxRollouts,
                 trialLength, heuristic, actSel, outSel, rewardH, backup, doForwardBackup, tieBreakingOrder, mainLog,
                 fileLog);
         if (dovipolcheckonintervals) {
             thts.enablePolCheckAtIntervals(getViOnPolIntervalInMS(), prism);
         }
-        mainLog.println(HelperClass.getTString()+"Beginning THTS");
-        fileLog.println(HelperClass.getTString()+"Beginning THTS");
+        mainLog.println(HelperClass.getTString() + "Beginning THTS");
+        fileLog.println(HelperClass.getTString() + "Beginning THTS");
         thts.setName(runName);
         thts.setResultsLocation(logFilesLocation);
         if (this.timeBound) {
@@ -301,18 +301,22 @@ public abstract class Configuration {
         runInfo.setVipolAtIntervals(thts.timeValues);
 
 
-        mainLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
-        fileLog.println(HelperClass.getTString()+"Getting actions with Greedy Lower Bound Action Selector");
-        mainLog.println(HelperClass.getTString()+"Attempting Value Iteration on Policy");
-        fileLog.println(HelperClass.getTString()+"Attempting Value Iteration on Policy");
+        mainLog.println(HelperClass.getTString() + "Getting actions with Greedy Lower Bound Action Selector");
+        fileLog.println(HelperClass.getTString() + "Getting actions with Greedy Lower Bound Action Selector");
+        mainLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+        fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
         HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism);
         mainLog.println(tempres);
-
-
+        if (thts.isVionpolterminatedearly()) {
+            fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+            fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
+            tempres = thts.doVIOnPolicy(new ActionSelectorMostVisited(), logFilesLocation, run, prism);
+        }
+        mainLog.println(tempres);
         runInfo.setVipol(tempres);
         runInfo.setViTerminatedEarly(thts.isVionpolterminatedearly());
 
-        fileLog.println(HelperClass.getTString()+"Final Values: "+runInfo);
+        fileLog.println(HelperClass.getTString() + "Final Values: " + runInfo);
         mainLog.close();
         fileLog.close();
         prism.closeDown();
@@ -330,7 +334,7 @@ public abstract class Configuration {
     public MultiAgentNestedProductModelGenerator createNestedMultiAgentModelGen(Prism prism, PrismLog mainLog,
                                                                                 ArrayList<String> filenames,
                                                                                 String propertiesFileName,
-                                                                                String resultsLocation, int numDoors,ArrayList<Integer> robotsList,
+                                                                                String resultsLocation, int numDoors, ArrayList<Integer> robotsList,
                                                                                 ArrayList<Integer> goalsList)
             throws PrismException, IOException {
 
@@ -342,10 +346,9 @@ public abstract class Configuration {
         ArrayList<ModulesFileModelGenerator> mfmodgens = new ArrayList<>();
         ModulesFile modulesFile = null; // just here so we can use the last modules file for our properties
 
-        for (int i = 0; i<filenames.size(); i++) {
-            if(robotsList!=null)
-            {
-                if(!robotsList.contains(i))
+        for (int i = 0; i < filenames.size(); i++) {
+            if (robotsList != null) {
+                if (!robotsList.contains(i))
                     continue;
             }
             String modelFileName = filenames.get(i);
@@ -364,15 +367,14 @@ public abstract class Configuration {
         List<Expression> processedExprs = new ArrayList<>();
         int safetydaind = -1;
         Expression safetyexpr = null;
-        if(goalsList!=null){
-        if(!goalsList.contains(propertiesFile.getNumProperties()-1))
-        {
-            goalsList.add(propertiesFile.getNumProperties()-1);
-        }}
+        if (goalsList != null) {
+            if (!goalsList.contains(propertiesFile.getNumProperties() - 1)) {
+                goalsList.add(propertiesFile.getNumProperties() - 1);
+            }
+        }
         for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
-            if(goalsList!=null)
-            {
-                if(!goalsList.contains(i))
+            if (goalsList != null) {
+                if (!goalsList.contains(i))
                     continue;
             }
             mainLog.println(propertiesFile.getProperty(i));
@@ -467,6 +469,7 @@ public abstract class Configuration {
         }
         return allStateValues;
     }
+
     public ArrayList<HashMap<Objectives, HashMap<State, Double>>> solveMaxTaskForAllSingleAgents(Prism prism,
                                                                                                  PrismLog mainLog, String resultsLocation,
                                                                                                  ArrayList<String> fns,
@@ -477,14 +480,14 @@ public abstract class Configuration {
         SingleAgentSolverMaxExpTask sas = new SingleAgentSolverMaxExpTask(prism, mainLog, resultsLocation);
         // so now we can read in the model
         ArrayList<HashMap<Objectives, HashMap<State, Double>>> allStateValues = new ArrayList<>();
-        for (int i = 0; i<fns.size() ; i++) {
-            if(!robotsList.contains(i))
+        for (int i = 0; i < fns.size(); i++) {
+            if (!robotsList.contains(i))
                 continue;
             String filename = fns.get(i);
             String[] nameval = filename.split("/");
             sas.setName(nameval[nameval.length - 1].replaceAll(".prism", ""));
             sas.loadModel(filename);
-            sas.loadProperties(propFilename,goalsList);
+            sas.loadProperties(propFilename, goalsList);
             // so we need to edit this bit
             // so we need a new function with the strategy
 
@@ -496,6 +499,7 @@ public abstract class Configuration {
         }
         return allStateValues;
     }
+
     public String getConfigname() {
         return configname;
     }
