@@ -703,6 +703,11 @@ public HashMap<Objectives, Double> doVIOnPolicyMostVisitedActSel(String resultsL
                         setNodeHeuristics(d);
                         generateChildrenDecisionNode(d);
                     }
+		    else
+			{
+fileLog.println(HelperClass.getTString() + "unexplored node - skipping " + d.getState());
+			    continue; 
+			}
                 }
 
 //                if (d.getChildren().size() < 5)
