@@ -18,6 +18,7 @@ import prism.PrismLog;
 import prism.DefaultModelGenerator;
 import prism.Prism;
 
+import thts.treesearch.actionselector.ActionSelectorMostVisited;
 import thts.treesearch.backup.Backup;
 import thts.utils.MDPCreator;
 import thts.treesearch.actionselector.ActionSelector;
@@ -634,8 +635,12 @@ public class TrialBasedTreeSearch {
     }
 
 
+public HashMap<Objectives, Double> doVIOnPolicyMostVisitedActSel(String resultsLocation, int rnNum, Prism prism,boolean skipunexplorednodes,boolean terminateearly)
+        throws Exception {
+        return doVIOnPolicy(new ActionSelectorMostVisited(),resultsLocation,rnNum,prism,skipunexplorednodes,terminateearly);
+        }
 
-    public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism)
+    public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism,boolean skipunexplorednodes,boolean terminateearly)
             throws Exception {
         fileLog.println(HelperClass.getTString() + "Extracting Policy");
         if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
@@ -645,7 +650,7 @@ public class TrialBasedTreeSearch {
         long viStartTime = System.currentTimeMillis();
         long viduration;
         boolean viterminatedearly = false;
-        boolean skipunexplorednodes = false;
+
         // need a rewards structure
         // need a costs structure
         HashMap<Objectives, Double> resvals = new HashMap<Objectives, Double>();
@@ -680,18 +685,14 @@ public class TrialBasedTreeSearch {
             fileLog.println(HelperClass.getTString() + "Nodes Explored: " + seen.size() + " Time Elapsed: " + viduration + "ms ("
                     + TimeUnit.MINUTES.convert(viduration, TimeUnit.MILLISECONDS) + "min)");
             fileLog.println(HelperClass.getTString() + "Nodes In Queue: " + q.size());
-            if (!skipunexplorednodes && (viduration > this.getTimeLimitInMilliSeconds()/2)) {
-                fileLog.println(HelperClass.getTString() +
-                        String.format("Skipping unexplored nodes in VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
-                skipunexplorednodes = true;
+            if(terminateearly) {
+                if (viduration > this.getTimeLimitInMilliSeconds()) {
+                    fileLog.println(HelperClass.getTString() +
+                            String.format("Quitting VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
+                    viterminatedearly = true;
+                    break;
+                }
             }
-            if (viduration >  this.getTimeLimitInMilliSeconds()) {
-                fileLog.println(HelperClass.getTString() +
-                        String.format("Quitting VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
-                viterminatedearly = true;
-                break;
-            }
-
             mainLog.println(d.getShortName() + d.getBoundsString());
 //            fileLog.println(d.getShortName() + d.getBoundsString());
             if (d.canHaveChildren() /*&& !d.isLeafNode()*/) {
@@ -795,7 +796,7 @@ public class TrialBasedTreeSearch {
     }
 
     public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, Prism prism) throws Exception {
-        return doVIOnPolicy(actSelrt, null, 0, prism);
+        return doVIOnPolicy(actSelrt, null, 0, prism,false,false);
 
     }
 

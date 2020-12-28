@@ -305,12 +305,18 @@ public abstract class Configuration {
         fileLog.println(HelperClass.getTString() + "Getting actions with Greedy Lower Bound Action Selector");
         mainLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
         fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
-        HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism);
+        //for a big model skip nodes
+        //what is big say 30000
+        boolean skipUnexploredNodes = false;
+        boolean terminateearly = true;
+        if(runInfo.getDecisionNodesExp() > 30000)
+            skipUnexploredNodes = true;
+        HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism,skipUnexploredNodes,terminateearly);
         mainLog.println(tempres);
         if (thts.isVionpolterminatedearly()) {
             fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
             fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
-            tempres = thts.doVIOnPolicy(new ActionSelectorMostVisited(), logFilesLocation, run, prism);
+            tempres = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism,false,false);
         }
         mainLog.println(tempres);
         runInfo.setVipol(tempres);
