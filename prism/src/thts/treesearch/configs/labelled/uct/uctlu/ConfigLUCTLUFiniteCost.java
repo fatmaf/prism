@@ -1,15 +1,15 @@
 package thts.treesearch.configs.labelled.uct.uctlu;
 
 
-public class ConfigUCTLUFiniteCost extends ConfigUCTLU {
+public class ConfigLUCTLUFiniteCost extends ConfigLUCTLU {
 
-    public ConfigUCTLUFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean polGreedyActSel)
+    public ConfigLUCTLUFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean polGreedyActSel)
     {
         super(timeBound,useSASH,useActSelForBackup,dointervalvi,true,true,polGreedyActSel);
 
     }
 
-    public ConfigUCTLUFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean polGreedyActSel, boolean maxCostDeadends)
+    public ConfigLUCTLUFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean polGreedyActSel, boolean maxCostDeadends)
     {
         super(timeBound,useSASH,useActSelForBackup,dointervalvi,true,maxCostDeadends,polGreedyActSel);
 

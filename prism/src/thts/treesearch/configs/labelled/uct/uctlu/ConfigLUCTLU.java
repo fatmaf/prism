@@ -10,21 +10,21 @@ import thts.treesearch.outcomeselector.OutcomeSelectorProb;
 
 import java.util.ArrayList;
 
-public class ConfigUCTLU extends Configuration {
+public class ConfigLUCTLU extends Configuration {
 
 
-    public ConfigUCTLU(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
+    public ConfigLUCTLU(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, false, false, false);
 
 
     }
 
 
-    public ConfigUCTLU(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends) {
+    public ConfigLUCTLU(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, domaxcost, maxcostdeadends, false);
     }
 
-    public ConfigUCTLU(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends
+    public ConfigLUCTLU(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends
             , boolean policyActSelGreedy) {
         super(timeBound, useSASH, useActSelForBackup);
         setDovipolcheckonintervals(dointervalvi);

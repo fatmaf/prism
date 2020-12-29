@@ -8,18 +8,18 @@ import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTCRelPenalty;
 import thts.treesearch.outcomeselector.OutcomeSelectorProb;
 
-public class ConfigeLGreedyRandomRelFiniteCost extends Configuration {
+public class ConfigLeLGreedyRandomRelFiniteCost extends Configuration {
 
 
 
-    public ConfigeLGreedyRandomRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
+    public ConfigLeLGreedyRandomRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, true);
 
 
     }
 
 
-    public ConfigeLGreedyRandomRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean maxcostdeadends) {
+    public ConfigLeLGreedyRandomRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean maxcostdeadends) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, maxcostdeadends, false);
 
     }
@@ -33,8 +33,8 @@ public class ConfigeLGreedyRandomRelFiniteCost extends Configuration {
 
 
     }
-    public ConfigeLGreedyRandomRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi,
-                                             boolean maxcostdeadends, boolean policyActSelGreedy) {
+    public ConfigLeLGreedyRandomRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi,
+                                              boolean maxcostdeadends, boolean policyActSelGreedy) {
         super(timeBound, useSASH, useActSelForBackup);
         setDovipolcheckonintervals(dointervalvi);
         setDomaxcost(true);

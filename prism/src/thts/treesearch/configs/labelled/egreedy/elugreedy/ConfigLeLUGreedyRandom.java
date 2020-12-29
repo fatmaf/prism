@@ -8,17 +8,17 @@ import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTC;
 import thts.treesearch.outcomeselector.OutcomeSelectorProb;
 
-public class ConfigeLUGreedyRandom extends Configuration {
+public class ConfigLeLUGreedyRandom extends Configuration {
 
-    public ConfigeLUGreedyRandom(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
+    public ConfigLeLUGreedyRandom(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, false, false, false);
     }
 
-    public ConfigeLUGreedyRandom(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends) {
+    public ConfigLeLUGreedyRandom(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, domaxcost, maxcostdeadends, false);
     }
 
-    public ConfigeLUGreedyRandom(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends, boolean policyActSelGreedy) {
+    public ConfigLeLUGreedyRandom(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends, boolean policyActSelGreedy) {
         super(timeBound, useSASH, useActSelForBackup);
         setDovipolcheckonintervals(dointervalvi);
         setDomaxcost(domaxcost);
@@ -63,7 +63,7 @@ public class ConfigeLUGreedyRandom extends Configuration {
         ((BackupLabelledFullBelmanCap) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
         setPolActSel( new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));
         if (isPolicyActSelGreedy())
-            setPolActSel(greedyActSel);
+            setPolActSel(  new ActionSelectorGreedySimpleLowerBound(getTieBreakingOrder(), false));
 
     }
 }

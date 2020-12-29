@@ -10,24 +10,24 @@ import thts.treesearch.outcomeselector.OutcomeSelectorProb;
 
 import java.util.ArrayList;
 
-public class ConfigUCTLRelFiniteCost extends Configuration {
+public class ConfigLUCTLRelFiniteCost extends Configuration {
 
 
 
-    public ConfigUCTLRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
+    public ConfigLUCTLRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, true);
 
 
     }
 
 
-    public ConfigUCTLRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean maxcostdeadends) {
+    public ConfigLUCTLRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean maxcostdeadends) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, maxcostdeadends, false);
 
     }
 
-    public ConfigUCTLRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi,
-                                   boolean maxcostdeadends, boolean policyActSelGreedy) {
+    public ConfigLUCTLRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi,
+                                    boolean maxcostdeadends, boolean policyActSelGreedy) {
         super(timeBound, useSASH, useActSelForBackup);
         setDovipolcheckonintervals(dointervalvi);
         setDomaxcost(true);

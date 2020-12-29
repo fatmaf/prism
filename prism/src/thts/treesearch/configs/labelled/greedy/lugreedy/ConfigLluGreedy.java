@@ -8,18 +8,18 @@ import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTC;
 import thts.treesearch.outcomeselector.OutcomeSelectorProb;
 
-public class ConfigLUGreedy extends Configuration {
+public class ConfigLluGreedy extends Configuration {
 
 
-    public ConfigLUGreedy(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
+    public ConfigLluGreedy(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, false, false, false);
     }
 
-    public ConfigLUGreedy(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends) {
+    public ConfigLluGreedy(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, domaxcost, maxcostdeadends, false);
     }
 
-    public ConfigLUGreedy(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends, boolean policyActSelGreedy) {
+    public ConfigLluGreedy(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean domaxcost, boolean maxcostdeadends, boolean policyActSelGreedy) {
         super(timeBound, useSASH, useActSelForBackup);
         setDovipolcheckonintervals(dointervalvi);
         setDomaxcost(domaxcost);
@@ -60,7 +60,7 @@ public class ConfigLUGreedy extends Configuration {
         ((BackupLabelledFullBelmanCap) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
         setPolActSel( new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));
         if (isPolicyActSelGreedy())
-            setPolActSel(greedyActSel);
+            setPolActSel(  new ActionSelectorGreedySimpleLowerBound(getTieBreakingOrder(), false));
 
     }
 }

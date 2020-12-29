@@ -8,22 +8,22 @@ import thts.treesearch.configs.Configuration;
 import thts.treesearch.heuristic.MultiAgentHeuristicTCRelPenalty;
 import thts.treesearch.outcomeselector.OutcomeSelectorProb;
 
-public class ConfigLUGreedyRelFiniteCost extends Configuration {
+public class ConfigLluGreedyRelFiniteCost extends Configuration {
 
 
     // boolean maxcostdeadends = true;
 
-    public ConfigLUGreedyRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
+    public ConfigLluGreedyRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, true, false);
     }
 
 
-    public ConfigLUGreedyRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean maxcostdeadends) {
+    public ConfigLluGreedyRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean maxcostdeadends) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, maxcostdeadends, false);
     }
 
-    public ConfigLUGreedyRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup,
-                                       boolean dointervalvi, boolean maxcostdeadends, boolean policyActSelGreedy) {
+    public ConfigLluGreedyRelFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup,
+                                        boolean dointervalvi, boolean maxcostdeadends, boolean policyActSelGreedy) {
         super(timeBound, useSASH, useActSelForBackup);
         setDovipolcheckonintervals(dointervalvi);
         setDomaxcost(true);
@@ -62,7 +62,7 @@ public class ConfigLUGreedyRelFiniteCost extends Configuration {
         ((BackupLabelledFullBelmanCapRelPenalty) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
         setPolActSel(new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));
         if (isPolicyActSelGreedy())
-            setPolActSel(greedyActSel);
+            setPolActSel(  new ActionSelectorGreedySimpleLowerBound(getTieBreakingOrder(), false));
 
     }
 }

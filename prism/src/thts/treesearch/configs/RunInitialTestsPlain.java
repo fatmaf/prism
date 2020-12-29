@@ -73,7 +73,7 @@ public class RunInitialTestsPlain {
         boolean timeBound = false;
         boolean dointervalvi = false;
         int maxRuns = 100;
-        boolean debug =false;
+        boolean debug = false;
         String resSuffix = "_plain_re" + maxRuns + "_";
 
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, 0);
@@ -85,7 +85,7 @@ public class RunInitialTestsPlain {
 
                 System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
                 runconfig.run(resFolderExt, config,
-                        2, 3, filename,  debug, resSuffix, "_mult", maxRuns,0,1);
+                        2, 3, filename, debug, resSuffix, "_mult", maxRuns, 0, 1);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -96,11 +96,9 @@ public class RunInitialTestsPlain {
     }
 
 
-
-
     public static void testGridExample() {
         int fsp = 0;
-        int fsps[] = {30,60,90};
+        int fsps[] = {30, 60, 90};
         boolean[] boolvals = new boolean[]{true, false};
         int numRobots = 3;
         int numGoals = 3;
@@ -111,11 +109,11 @@ public class RunInitialTestsPlain {
         boolean dointervalvi = false;
         long timeLimit = 30 * 60 * 1000;
         String propsuffix = "mult";
-        int maxTests = maxRuns*fsps.length*10;
+        int maxTests = maxRuns * fsps.length * 10;
         int numTets = 0;
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
 
-        for(int fspNum = 0; fspNum < fsps.length; fspNum++) {
+        for (int fspNum = 0; fspNum < fsps.length; fspNum++) {
             fsp = fsps[fspNum];
             String[] examples = {"r10_g10_a1_grid_5_fsp_0_0_", "r10_g10_a1_grid_5_fsp_10_1_",
                     "r10_g10_a1_grid_5_fsp_20_2_", "r10_g10_a1_grid_5_fsp_30_3_", "r10_g10_a1_grid_5_fsp_40_4_",
@@ -130,21 +128,21 @@ public class RunInitialTestsPlain {
 
             String resSuffix = "_plain_reruns" + maxRuns + "_";
 
-            System.out.println(String.format("\nRunning Tests on FSP %3d (%2d/%2d)",fsp,fspNum,fsps.length));
-            System.out.println(String.format("\t %5d/%5d of total",numTets,maxTests));
+            System.out.println(String.format("\nRunning Tests on FSP %3d (%2d/%2d)", fsp, fspNum, fsps.length));
+            System.out.println(String.format("\t %5d/%5d of total", numTets, maxTests));
             for (int i = 0; i < configs.size(); i++) {
                 Configuration config = configs.get(i);
-                if(config.getConfigname().contentEquals("P_UCTLU_GAllActions_ASBU"))
+                if (config.getConfigname().contentEquals("P_UCTLU_GAllActions_ASBU"))
                     continue;
                 System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
-                System.out.println(String.format("\t %5d/%5d of total",numTets,maxTests));
+                System.out.println(String.format("\t %5d/%5d of total", numTets, maxTests));
                 RunConfiguration runconfig = new RunConfiguration();
                 config.setJustLogs(true);
                 try {
 
                     runconfig.run(resFolderExt, config,
-                            numRobots, numGoals, filename, debug, resSuffix, propsuffix, maxRuns,fsp,0);
-                    numTets+=maxRuns;
+                            numRobots, numGoals, filename, debug, resSuffix, propsuffix, maxRuns, fsp, 0);
+                    numTets += maxRuns;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -157,7 +155,7 @@ public class RunInitialTestsPlain {
 
     public static void main(String[] args) {
 
-              testGridExample();
+        testGridExample();
 
         //runSmallExampleSelConfigs();
 

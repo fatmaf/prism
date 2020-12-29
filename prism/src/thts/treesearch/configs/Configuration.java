@@ -60,7 +60,14 @@ public abstract class Configuration {
     private boolean justLogs = false;
 
     ArrayList<ConfigCategory> categories;
+    boolean timeBound;
 
+    MultiAgentNestedProductModelGenerator maModelGen;
+    ArrayList<HashMap<State, Object>> stateActions;
+    ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentStateValues;
+
+    ArrayList<Objectives> tieBreakingOrder;
+    private boolean dovipolcheckonintervals;
     protected void addCategory(ConfigCategory c) {
         if (categories == null)
             categories = new ArrayList<>();
@@ -167,14 +174,7 @@ public abstract class Configuration {
         this.viOnPolIntervalInMS = viOnPolIntervalInMS;
     }
 
-    boolean timeBound;
 
-    MultiAgentNestedProductModelGenerator maModelGen;
-    ArrayList<HashMap<State, Object>> stateActions;
-    ArrayList<HashMap<Objectives, HashMap<State, Double>>> singleAgentStateValues;
-
-    ArrayList<Objectives> tieBreakingOrder;
-    private boolean dovipolcheckonintervals;
 
     public Configuration(boolean timeBound, boolean useSASH, boolean useActSelForBackup) {
         setTimeBound(timeBound);
@@ -330,6 +330,7 @@ public abstract class Configuration {
     }
 
     protected abstract void initialiseConfiguration(PrismLog fileLog);
+
 
     public void setTieBreakingOrder() {
         tieBreakingOrder = new ArrayList<>();

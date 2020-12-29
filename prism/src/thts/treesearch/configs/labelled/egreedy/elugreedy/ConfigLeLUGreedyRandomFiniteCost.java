@@ -1,16 +1,16 @@
 package thts.treesearch.configs.labelled.egreedy.elugreedy;
 
 
-public class ConfigeLUGreedyRandomFiniteCost extends ConfigeLUGreedyRandom {
+public class ConfigLeLUGreedyRandomFiniteCost extends ConfigLeLUGreedyRandom {
 
-    public ConfigeLUGreedyRandomFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean greedyActSel)
+    public ConfigLeLUGreedyRandomFiniteCost(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi, boolean greedyActSel)
     {
         super(timeBound,useSASH,useActSelForBackup,dointervalvi,true,true,greedyActSel);
 
     }
-    public ConfigeLUGreedyRandomFiniteCost(boolean timeBound, boolean useSASH,
-                                           boolean useActSelForBackup, boolean dointervalvi,
-                                           boolean greedyActSel, boolean domaxcostdeadend)
+    public ConfigLeLUGreedyRandomFiniteCost(boolean timeBound, boolean useSASH,
+                                            boolean useActSelForBackup, boolean dointervalvi,
+                                            boolean greedyActSel, boolean domaxcostdeadend)
     {
         super(timeBound,useSASH,useActSelForBackup,dointervalvi,true,domaxcostdeadend,greedyActSel);
 

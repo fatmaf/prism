@@ -11,6 +11,7 @@ import thts.treesearch.outcomeselector.OutcomeSelectorProb;
 public class ConfigeLUGreedy extends Configuration {
 
 
+
     public ConfigeLUGreedy(boolean timeBound, boolean useSASH, boolean useActSelForBackup, boolean dointervalvi) {
         this(timeBound, useSASH, useActSelForBackup, dointervalvi, false, false, false);
     }
@@ -63,7 +64,7 @@ public class ConfigeLUGreedy extends Configuration {
         ((BackupFullBelmanCap) getBackup()).setMarkMaxCostAsDeadend(isMaxcostdeadends());
         setPolActSel( new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));
         if (isPolicyActSelGreedy())
-            setPolActSel(greedyActSel);
+            setPolActSel(  new ActionSelectorGreedySimpleLowerBound(getTieBreakingOrder(), false));
 
     }
 }

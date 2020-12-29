@@ -4,8 +4,7 @@ package thts.treesearch.configs;
 import thts.testing.testsuitehelper.GetTestInfo;
 import thts.testing.testsuitehelper.TestSuite;
 import thts.treesearch.configs.labelled.egreedy.elugreedy.*;
-import thts.treesearch.configs.labelled.uct.ConfigUCTRelFiniteCostJustCost;
-import thts.treesearch.configs.labelled.uct.uctlu.ConfigUCTLU;
+import thts.treesearch.configs.labelled.uct.ConfigLUCTRelFiniteCostJustCost;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,22 +27,22 @@ public class RunBenchmarkTests {
         ArrayList<Configuration> configs = new ArrayList<>();
 
         //2        Cost_UCTRelFC_MCD_ASBU_GP	FALSE	TRUE
-        Configuration costUCTRelFC_MCD_ASBU_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_ASBU_GP).doGreedyPolActSel();
+        Configuration costUCTRelFC_MCD_ASBU_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
+        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_ASBU_GP).doGreedyPolActSel();
         configs.add(costUCTRelFC_MCD_ASBU_GP);
 
         //4        Cost_UCTRelFC_MCD_SASH_ASBU_GP	TRUE	TRUE
-        Configuration costUCTRelFC_MCD_SASH_ASBU_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, true, true, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_ASBU_GP).doGreedyPolActSel();
+        Configuration costUCTRelFC_MCD_SASH_ASBU_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, true, true, dointervalvi);
+        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_ASBU_GP).doGreedyPolActSel();
         configs.add(costUCTRelFC_MCD_SASH_ASBU_GP);
 
         //  8      eLUGreedyRandomFC_MCD_GAllActions_SASH	TRUE	FALSE
-        Configuration eLUGreedyRandomFC_MCD_GAllActions_SASH = new ConfigeLUGreedyRandom(timeBound, true, false, dointervalvi, true, true);
+        Configuration eLUGreedyRandomFC_MCD_GAllActions_SASH = new ConfigLeLUGreedyRandom(timeBound, true, false, dointervalvi, true, true);
         configs.add(eLUGreedyRandomFC_MCD_GAllActions_SASH);
 
         //  10     Cost_eLUGreedyRandomRelFC_MCD_ASBU_GP	FALSE	TRUE
-        Configuration cost_eLUGreedyRandomRelFC_MCD_ASBU_GP = new ConfigeLUGreedyRandomRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
-        ((ConfigeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_ASBU_GP).doGreedyPolActSel();
+        Configuration cost_eLUGreedyRandomRelFC_MCD_ASBU_GP = new ConfigLeLUGreedyRandomRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
+        ((ConfigLeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_ASBU_GP).doGreedyPolActSel();
         configs.add(cost_eLUGreedyRandomRelFC_MCD_ASBU_GP);
 
         if (timeBound && timeLimit > 0) {

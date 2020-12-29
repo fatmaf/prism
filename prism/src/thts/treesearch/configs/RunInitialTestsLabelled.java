@@ -3,11 +3,11 @@ package thts.treesearch.configs;
 
 import thts.treesearch.configs.labelled.egreedy.elgreedy.*;
 import thts.treesearch.configs.labelled.egreedy.elugreedy.*;
-import thts.treesearch.configs.labelled.uct.ConfigUCTRelFiniteCostJustCost;
-import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTL;
-import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTLFiniteCost;
-import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTLFiniteCostNoMaxCostDE;
-import thts.treesearch.configs.labelled.uct.uctl.ConfigUCTLRelFiniteCost;
+import thts.treesearch.configs.labelled.uct.ConfigLUCTRelFiniteCostJustCost;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigLUCTL;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigLUCTLFiniteCost;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigLUCTLFiniteCostNoMaxCostDE;
+import thts.treesearch.configs.labelled.uct.uctl.ConfigLUCTLRelFiniteCost;
 import thts.treesearch.configs.labelled.uct.uctlu.*;
 
 import java.util.ArrayList;
@@ -18,41 +18,41 @@ public class RunInitialTestsLabelled {
     public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
         ArrayList<Configuration> configs = new ArrayList<>();
         //1        Cost_UCTRelFC_MCD_GP	FALSE	FALSE
-        Configuration costUCTRelFC_MCD_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, false, false, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_GP).doGreedyPolActSel();
+        Configuration costUCTRelFC_MCD_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, false, false, dointervalvi);
+        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_GP).doGreedyPolActSel();
         configs.add(costUCTRelFC_MCD_GP);
         //2        Cost_UCTRelFC_MCD_ASBU_GP	FALSE	TRUE
-        Configuration costUCTRelFC_MCD_ASBU_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_ASBU_GP).doGreedyPolActSel();
+        Configuration costUCTRelFC_MCD_ASBU_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
+        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_ASBU_GP).doGreedyPolActSel();
         configs.add(costUCTRelFC_MCD_ASBU_GP);
         //3        Cost_UCTRelFC_MCD_SASH_GP	TRUE	FALSE
-        Configuration costUCTRelFC_MCD_SASH_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, true, false, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_GP).doGreedyPolActSel();
+        Configuration costUCTRelFC_MCD_SASH_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, true, false, dointervalvi);
+        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_GP).doGreedyPolActSel();
         configs.add(costUCTRelFC_MCD_SASH_GP);
         //4        Cost_UCTRelFC_MCD_SASH_ASBU_GP	TRUE	TRUE
-        Configuration costUCTRelFC_MCD_SASH_ASBU_GP = new ConfigUCTRelFiniteCostJustCost(timeBound, true, true, dointervalvi);
-        ((ConfigUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_ASBU_GP).doGreedyPolActSel();
+        Configuration costUCTRelFC_MCD_SASH_ASBU_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, true, true, dointervalvi);
+        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_ASBU_GP).doGreedyPolActSel();
         configs.add(costUCTRelFC_MCD_SASH_ASBU_GP);
         //5        UCTLU_GAllActions_ASBU	FALSE	TRUE
-        Configuration uctlu_GAllActions_ASBU = new ConfigUCTLU(timeBound, false, true, dointervalvi);
+        Configuration uctlu_GAllActions_ASBU = new ConfigLUCTLU(timeBound, false, true, dointervalvi);
         configs.add(uctlu_GAllActions_ASBU);
         //6        eLUGreedyRandomRelFC_MCD_GAllActions	FALSE	FALSE
-        Configuration eluGreedyRandomRelFC_MCD_GAllActions = new ConfigeLUGreedyRandomRelFiniteCost(timeBound, false, false, dointervalvi);
+        Configuration eluGreedyRandomRelFC_MCD_GAllActions = new ConfigLeLUGreedyRandomRelFiniteCost(timeBound, false, false, dointervalvi);
         configs.add(eluGreedyRandomRelFC_MCD_GAllActions);
         //7        eLUGreedyRandomFC_GAllActions	FALSE	FALSE
 
-        Configuration eluGreedyRandomFC_GAllActions = new ConfigeLUGreedyRandom(timeBound, false, false, dointervalvi, true, false);
+        Configuration eluGreedyRandomFC_GAllActions = new ConfigLeLUGreedyRandom(timeBound, false, false, dointervalvi, true, false);
         configs.add(eluGreedyRandomFC_GAllActions);
         //  8      eLUGreedyRandomFC_MCD_GAllActions_SASH	TRUE	FALSE
-        Configuration eLUGreedyRandomFC_MCD_GAllActions_SASH = new ConfigeLUGreedyRandom(timeBound, true, false, dointervalvi, true, true);
+        Configuration eLUGreedyRandomFC_MCD_GAllActions_SASH = new ConfigLeLUGreedyRandom(timeBound, true, false, dointervalvi, true, true);
         configs.add(eLUGreedyRandomFC_MCD_GAllActions_SASH);
         //  9      Cost_eLUGreedyRandomRelFC_MCD_SASH_GP	TRUE	FALSE
-        Configuration cost_eLUGreedyRandomRelFC_MCD_SASH_GP = new ConfigeLUGreedyRandomRelFiniteCostJustCost(timeBound, true, false, dointervalvi);
-        ((ConfigeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_SASH_GP).doGreedyPolActSel();
+        Configuration cost_eLUGreedyRandomRelFC_MCD_SASH_GP = new ConfigLeLUGreedyRandomRelFiniteCostJustCost(timeBound, true, false, dointervalvi);
+        ((ConfigLeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_SASH_GP).doGreedyPolActSel();
         configs.add(cost_eLUGreedyRandomRelFC_MCD_SASH_GP);
         //  10     Cost_eLUGreedyRandomRelFC_MCD_ASBU_GP	FALSE	TRUE
-        Configuration cost_eLUGreedyRandomRelFC_MCD_ASBU_GP = new ConfigeLUGreedyRandomRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
-        ((ConfigeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_ASBU_GP).doGreedyPolActSel();
+        Configuration cost_eLUGreedyRandomRelFC_MCD_ASBU_GP = new ConfigLeLUGreedyRandomRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
+        ((ConfigLeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_ASBU_GP).doGreedyPolActSel();
         configs.add(cost_eLUGreedyRandomRelFC_MCD_ASBU_GP);
         if (timeBound && timeLimit > 0) {
             for (Configuration config : configs) {
@@ -70,7 +70,7 @@ public class RunInitialTestsLabelled {
         boolean timeBound = false;
         boolean dointervalvi = false;
         int maxRuns = 100;
-        boolean debug =false;
+        boolean debug = false;
         String resSuffix = "_re" + maxRuns + "_";
 
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, 0);
@@ -84,7 +84,7 @@ public class RunInitialTestsLabelled {
 //                System.out.println(config.getConfigname());
                 System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
                 runconfig.run(resFolderExt, config,
-                        2, 3, filename,  debug, resSuffix, "_mult", maxRuns,0,1);
+                        2, 3, filename, debug, resSuffix, "_mult", maxRuns, 0, 1);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -109,50 +109,50 @@ public class RunInitialTestsLabelled {
                 for (boolean useSASH : boolvals) {
                     ArrayList<Configuration> configs = new ArrayList<>();
 
-                    Configuration configeLGreedyFC = new ConfigeLGreedyFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configeLGreedyFC = new ConfigLeLGreedyFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
 
 
-                    Configuration configeLGreedyRandomFC = new ConfigeLGreedyRandomFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configeLGreedyRandomFC = new ConfigLeLGreedyRandomFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
 
 
-                    Configuration configeLUGreedyFC = new ConfigeLUGreedyFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
-                    Configuration configeLUGreedyRandomFC = new ConfigeLUGreedyRandomFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
-                    Configuration configeLGreedy = new ConfigeLGreedy(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    Configuration configeLUGreedyFC = new ConfigLeLUGreedyFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configeLUGreedyRandomFC = new ConfigLeLUGreedyRandomFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configeLGreedy = new ConfigLeLGreedy(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigeLGreedy) configeLGreedy).doGreedyPolActSel();
-                    Configuration configeLGreedyRandom = new ConfigeLGreedyRandom(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                        ((ConfigLeLGreedy) configeLGreedy).doGreedyPolActSel();
+                    Configuration configeLGreedyRandom = new ConfigLeLGreedyRandom(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigeLGreedyRandom) configeLGreedyRandom).doGreedyPolActSel();
-
-                    //yay
-                    Configuration configeLUGreedy = new ConfigeLUGreedy(timeBound, useSASH, useActSelForBackup, dointervalvi);
-                    if (doPolGActSel)
-                        ((ConfigeLUGreedy) configeLUGreedy).doGreedyPolActSel();
-                    //yay
-                    Configuration configeLUGreedyRandom = new ConfigeLUGreedyRandom(timeBound, useSASH, useActSelForBackup, dointervalvi);
-                    if (doPolGActSel)
-                        ((ConfigeLUGreedyRandom) configeLUGreedyRandom).doGreedyPolActSel();
-                    Configuration configeLGreedyFCDE = new ConfigeLGreedyFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
-                    Configuration configeLGreedyRandomFCDE = new ConfigeLGreedyRandomFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
-                    Configuration configeLUGreedyFCDE = new ConfigeLUGreedyFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
-                    Configuration configeLUGreedyRandomFCDE = new ConfigeLUGreedyRandomFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
-                    Configuration aur = new ConfigeLGreedyRandomRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
-                    if (doPolGActSel)
-                        ((ConfigeLGreedyRandomRelFiniteCost) aur).doGreedyPolActSel();
-                    Configuration auraur = new ConfigeLGreedyRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
-                    if (doPolGActSel)
-                        ((ConfigeLGreedyRelFiniteCost) auraur).doGreedyPolActSel();
-                    Configuration aik = new ConfigeLUGreedyRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
-                    if (doPolGActSel)
-                        ((ConfigeLUGreedyRelFiniteCost) aik).doGreedyPolActSel();
-                    Configuration aikaik = new ConfigeLUGreedyRandomRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
-                    if (doPolGActSel)
-                        ((ConfigeLUGreedyRandomRelFiniteCost) aikaik).doGreedyPolActSel();
+                        ((ConfigLeLGreedyRandom) configeLGreedyRandom).doGreedyPolActSel();
 
                     //yay
-                    Configuration justcost = new ConfigeLUGreedyRandomRelFiniteCostJustCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    Configuration configeLUGreedy = new ConfigLeLUGreedy(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigeLUGreedyRandomRelFiniteCostJustCost) justcost).doGreedyPolActSel();
+                        ((ConfigLeLUGreedy) configeLUGreedy).doGreedyPolActSel();
+                    //yay
+                    Configuration configeLUGreedyRandom = new ConfigLeLUGreedyRandom(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    if (doPolGActSel)
+                        ((ConfigLeLUGreedyRandom) configeLUGreedyRandom).doGreedyPolActSel();
+                    Configuration configeLGreedyFCDE = new ConfigLeLGreedyFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configeLGreedyRandomFCDE = new ConfigLeLGreedyRandomFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configeLUGreedyFCDE = new ConfigLeLUGreedyFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configeLUGreedyRandomFCDE = new ConfigLeLUGreedyRandomFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration aur = new ConfigLeLGreedyRandomRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    if (doPolGActSel)
+                        ((ConfigLeLGreedyRandomRelFiniteCost) aur).doGreedyPolActSel();
+                    Configuration auraur = new ConfigLeLGreedyRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    if (doPolGActSel)
+                        ((ConfigLeLGreedyRelFiniteCost) auraur).doGreedyPolActSel();
+                    Configuration aik = new ConfigLeLUGreedyRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    if (doPolGActSel)
+                        ((ConfigLeLUGreedyRelFiniteCost) aik).doGreedyPolActSel();
+                    Configuration aikaik = new ConfigLeLUGreedyRandomRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    if (doPolGActSel)
+                        ((ConfigLeLUGreedyRandomRelFiniteCost) aikaik).doGreedyPolActSel();
+
+                    //yay
+                    Configuration justcost = new ConfigLeLUGreedyRandomRelFiniteCostJustCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    if (doPolGActSel)
+                        ((ConfigLeLUGreedyRandomRelFiniteCostJustCost) justcost).doGreedyPolActSel();
                     configs.add(configeLGreedy);
                     configs.add(configeLGreedyFC);
                     configs.add(configeLGreedyRandomFC);
@@ -176,7 +176,7 @@ public class RunInitialTestsLabelled {
                         RunConfiguration runconfig = new RunConfiguration();
                         try {
                             runconfig.run(resFolderExt, config,
-                                    2, 2, filename,  false, resSuffix,"_mult", maxruns,0,1);
+                                    2, 2, filename, false, resSuffix, "_mult", maxruns, 0, 1);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -201,38 +201,38 @@ public class RunInitialTestsLabelled {
                 for (boolean useSASH : boolvals) {
                     ArrayList<Configuration> configs = new ArrayList<>();
 
-                    Configuration configUCTFC = new ConfigUCTLFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configUCTFC = new ConfigLUCTLFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
 
 
-                    Configuration configUCTLUFC = new ConfigUCTLUFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configUCTLUFC = new ConfigLUCTLUFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
 
-                    Configuration configUCTL = new ConfigUCTL(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    Configuration configUCTL = new ConfigLUCTL(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigUCTL) configUCTL).doGreedyPolActSel();
+                        ((ConfigLUCTL) configUCTL).doGreedyPolActSel();
 
                     //yay
-                    Configuration configUCTLU = new ConfigUCTLU(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    Configuration configUCTLU = new ConfigLUCTLU(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigUCTLU) configUCTLU).doGreedyPolActSel();
+                        ((ConfigLUCTLU) configUCTLU).doGreedyPolActSel();
                     //yay
 
-                    Configuration configUCTLFCDE = new ConfigUCTLFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configUCTLFCDE = new ConfigLUCTLFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
 
-                    Configuration configUCTLUFCDE = new ConfigUCTLUFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
+                    Configuration configUCTLUFCDE = new ConfigLUCTLUFiniteCostNoMaxCostDE(timeBound, useSASH, useActSelForBackup, dointervalvi, doPolGActSel);
 
 
-                    Configuration auraur = new ConfigUCTLRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    Configuration auraur = new ConfigLUCTLRelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigUCTLRelFiniteCost) auraur).doGreedyPolActSel();
-                    Configuration aik = new ConfigUCTLURelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                        ((ConfigLUCTLRelFiniteCost) auraur).doGreedyPolActSel();
+                    Configuration aik = new ConfigLUCTLURelFiniteCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigUCTLURelFiniteCost) aik).doGreedyPolActSel();
+                        ((ConfigLUCTLURelFiniteCost) aik).doGreedyPolActSel();
 
 
                     //yay
-                    Configuration justcost = new ConfigUCTRelFiniteCostJustCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
+                    Configuration justcost = new ConfigLUCTRelFiniteCostJustCost(timeBound, useSASH, useActSelForBackup, dointervalvi);
                     if (doPolGActSel)
-                        ((ConfigUCTRelFiniteCostJustCost) justcost).doGreedyPolActSel();
+                        ((ConfigLUCTRelFiniteCostJustCost) justcost).doGreedyPolActSel();
                     configs.add(configUCTL);
 
                     configs.add(configUCTLUFC);
@@ -254,7 +254,7 @@ public class RunInitialTestsLabelled {
                         RunConfiguration runconfig = new RunConfiguration();
                         try {
                             runconfig.run(resFolderExt, config,
-                                    2, 2, filename,  false, resSuffix,"_mult", maxRuns,0,1);
+                                    2, 2, filename, false, resSuffix, "_mult", maxRuns, 0, 1);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -267,7 +267,7 @@ public class RunInitialTestsLabelled {
 
     public static void testGridExample() {
         int fsp = 0;
-        int fsps[] = {30,60,90};
+        int fsps[] = {30, 60, 90};
         boolean[] boolvals = new boolean[]{true, false};
         int numRobots = 3;
         int numGoals = 3;
@@ -278,11 +278,11 @@ public class RunInitialTestsLabelled {
         boolean dointervalvi = false;
         long timeLimit = 30 * 60 * 1000;
         String propsuffix = "mult";
-        int maxTests = maxRuns*fsps.length*10;
+        int maxTests = maxRuns * fsps.length * 10;
         int numTets = 0;
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
 
-        for(int fspNum = 0; fspNum < fsps.length; fspNum++) {
+        for (int fspNum = 0; fspNum < fsps.length; fspNum++) {
             fsp = fsps[fspNum];
             String[] examples = {"r10_g10_a1_grid_5_fsp_0_0_", "r10_g10_a1_grid_5_fsp_10_1_",
                     "r10_g10_a1_grid_5_fsp_20_2_", "r10_g10_a1_grid_5_fsp_30_3_", "r10_g10_a1_grid_5_fsp_40_4_",
@@ -291,24 +291,24 @@ public class RunInitialTestsLabelled {
 
             String filename = examples[fsp / 10];
 
- String resFolderExt = "grid5/" + fsp + "/";
+            String resFolderExt = "grid5/" + fsp + "/";
 
 
             String resSuffix = "_reruns" + maxRuns + "_";
 
-            System.out.println(String.format("\nRunning Tests on FSP %3d (%2d/%2d)",fsp,fspNum,fsps.length));
-            System.out.println(String.format("\t %5d/%5d of total",numTets,maxTests));
+            System.out.println(String.format("\nRunning Tests on FSP %3d (%2d/%2d)", fsp, fspNum, fsps.length));
+            System.out.println(String.format("\t %5d/%5d of total", numTets, maxTests));
             for (int i = 0; i < configs.size(); i++) {
                 Configuration config = configs.get(i);
                 System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
-                System.out.println(String.format("\t %5d/%5d of total",numTets,maxTests));
+                System.out.println(String.format("\t %5d/%5d of total", numTets, maxTests));
                 RunConfiguration runconfig = new RunConfiguration();
                 config.setJustLogs(true);
                 try {
 
                     runconfig.run(resFolderExt, config,
-                            numRobots, numGoals, filename, debug, resSuffix, propsuffix, maxRuns,fsp,0);
-                    numTets+=maxRuns;
+                            numRobots, numGoals, filename, debug, resSuffix, propsuffix, maxRuns, fsp, 0);
+                    numTets += maxRuns;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -322,13 +322,9 @@ public class RunInitialTestsLabelled {
     public static void main(String[] args) {
 
 
-	        testGridExample();
+        testGridExample();
         //       runSmallExample();
         // runSmallExampleSelConfigs();
-
-
-
-
 
 
         //       runSmallExampleUCT();
