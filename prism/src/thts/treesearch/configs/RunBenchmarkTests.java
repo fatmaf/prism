@@ -24,61 +24,53 @@ public class RunBenchmarkTests {
     }
 
     public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
-        ArrayList<Configuration> configs = new ArrayList<>();
+        String[] configNames = {
+                "L_Cost_LUGreedyRandomRelFC_GP_ASBU"
+                , "L_Cost_eLUGreedyRandomRelFC_GP_ASBU"
+        };
 
-        //2        Cost_UCTRelFC_MCD_ASBU_GP	FALSE	TRUE
-        Configuration costUCTRelFC_MCD_ASBU_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
-        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_ASBU_GP).doGreedyPolActSel();
-        configs.add(costUCTRelFC_MCD_ASBU_GP);
+        ArrayList<Configuration> allconfigs = RunSelConfigsOnSmallGrid.getAllConfigs(timeBound, timeLimit, dointervalvi);
+        ArrayList<String> selectedConfigNames = new ArrayList<>();
+        for (String cname : configNames)
+            selectedConfigNames.add(cname);
+        ArrayList<Configuration> filteredConfigs = new ArrayList<>();
+        ArrayList<String> filteredConfigNames = new ArrayList<>();
 
-        //4        Cost_UCTRelFC_MCD_SASH_ASBU_GP	TRUE	TRUE
-        Configuration costUCTRelFC_MCD_SASH_ASBU_GP = new ConfigLUCTRelFiniteCostJustCost(timeBound, true, true, dointervalvi);
-        ((ConfigLUCTRelFiniteCostJustCost) costUCTRelFC_MCD_SASH_ASBU_GP).doGreedyPolActSel();
-        configs.add(costUCTRelFC_MCD_SASH_ASBU_GP);
-
-        //  8      eLUGreedyRandomFC_MCD_GAllActions_SASH	TRUE	FALSE
-        Configuration eLUGreedyRandomFC_MCD_GAllActions_SASH = new ConfigLeLUGreedyRandom(timeBound, true, false, dointervalvi, true, true);
-        configs.add(eLUGreedyRandomFC_MCD_GAllActions_SASH);
-
-        //  10     Cost_eLUGreedyRandomRelFC_MCD_ASBU_GP	FALSE	TRUE
-        Configuration cost_eLUGreedyRandomRelFC_MCD_ASBU_GP = new ConfigLeLUGreedyRandomRelFiniteCostJustCost(timeBound, false, true, dointervalvi);
-        ((ConfigLeLUGreedyRandomRelFiniteCostJustCost) cost_eLUGreedyRandomRelFC_MCD_ASBU_GP).doGreedyPolActSel();
-        configs.add(cost_eLUGreedyRandomRelFC_MCD_ASBU_GP);
-
-        if (timeBound && timeLimit > 0) {
-            for (Configuration config : configs) {
-                config.setTimeTimeLimitInMS(timeLimit);
+        for (Configuration config : allconfigs) {
+            if (selectedConfigNames.contains(config.getConfigname())) {
+                if (!filteredConfigNames.contains(config.getConfigname())) {
+                    filteredConfigs.add(config);
+                    filteredConfigNames.add(config.getConfigname());
+                }
             }
         }
-        return configs;
+        return filteredConfigs;
     }
 
-    public void runTestSuite() throws Exception{
-        for(String fts: filteredTestSuites.keySet())
-        {
-//        String fts = "Failstates";
-            boolean timeBound = true;
-            boolean dointervalvi = false;
-            long timeLimit = 30 * 60 * 1000;
-            boolean debug = false;
-            String fnSuffix = fts;
-            ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
-            for (int i = 0; i < configs.size(); i++) {
+    public void runTestSuite() throws Exception {
+        boolean timeBound = true;
+        boolean dointervalvi = false;
+        long timeLimit = 30 * 60 * 1000;
+        boolean debug = false;
+        ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
+        for (int i = 0; i < configs.size(); i++) {
+            for (String fts : filteredTestSuites.keySet()) {
+
+
+                String fnSuffix = fts;
+
                 Configuration config = configs.get(i);
-                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite "+fts+ "\n");
+                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
                 RunConfiguration runconfig = new RunConfiguration();
-                //config.setJustLogs(true);
+
                 try {
                     runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix);
-                }
-                catch (Exception e)
-                {
-                   throw e;// e.printStackTrace();
+                } catch (Exception e) {
+                    throw e;// e.printStackTrace();
                 }
             }
         }
     }
-
 
 
     public static void main(String[] args) {

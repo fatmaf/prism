@@ -36,10 +36,14 @@ import java.util.ArrayList;
 
 //PRISM_MAINCLASS=thts.treesearch.configs.RunSelConfigsOnSmallGrid prism/bin/prism
 public class RunSelConfigsOnSmallGrid {
-    public static ArrayList<Configuration> getAllLabelledConfigs(boolean timeBound, long timeLimit) {
+    public static ArrayList<Configuration> getAllLabelledConfigs(boolean timeBound, long timeLimit)
+    {
+        return getAllLabelledConfigs(timeBound,timeLimit);
+    }
+    public static ArrayList<Configuration> getAllLabelledConfigs(boolean timeBound, long timeLimit,boolean dointervalvi) {
         //generating all possible configurations
         boolean[] boolvals = new boolean[]{true, false};
-        boolean dointervalvi = false;
+
         ArrayList<Configuration> allconfigs = new ArrayList<>();
         for (boolean doPolGActSel : boolvals) {
             for (boolean useActSelForBackup : boolvals) {
@@ -113,11 +117,14 @@ public class RunSelConfigsOnSmallGrid {
         }
         return allconfigs;
     }
-
-    public static ArrayList<Configuration> getAllPlainConfigs(boolean timeBound, long timeLimit) {
+    public static ArrayList<Configuration> getAllPlainConfigs(boolean timeBound, long timeLimit)
+    {
+        return getAllPlainConfigs(timeBound,timeLimit);
+    }
+    public static ArrayList<Configuration> getAllPlainConfigs(boolean timeBound, long timeLimit,boolean dointervalvi) {
         //generating all possible configurations
         boolean[] boolvals = new boolean[]{true, false};
-        boolean dointervalvi = false;
+
         ArrayList<Configuration> allconfigs = new ArrayList<>();
         for (boolean doPolGActSel : boolvals) {
             for (boolean useActSelForBackup : boolvals) {
@@ -199,7 +206,11 @@ public class RunSelConfigsOnSmallGrid {
         allconfigs.addAll(getAllLabelledConfigs(timeBound, timeLimit));
         return allconfigs;
     }
-
+    public static ArrayList<Configuration> getAllConfigs(boolean timeBound, long timeLimit,boolean dointervalvi) {
+        ArrayList<Configuration> allconfigs = getAllPlainConfigs(timeBound, timeLimit,dointervalvi);
+        allconfigs.addAll(getAllLabelledConfigs(timeBound, timeLimit,dointervalvi));
+        return allconfigs;
+    }
     public static ArrayList<Configuration> getSelectedConfigsFromFiltered(ArrayList<Configuration> allconfigs) {
         String[] configNames = {
                 "L_eLUGreedyRandomRelFC_GP_SASH"
@@ -227,10 +238,14 @@ public class RunSelConfigsOnSmallGrid {
         for (String cname : configNames)
             selectedConfigNames.add(cname);
         ArrayList<Configuration> filteredConfigs = new ArrayList<>();
+        ArrayList<String> filteredConfigNames = new ArrayList<>();
+
         for (Configuration config : allconfigs) {
             if (selectedConfigNames.contains(config.getConfigname())) {
-                if (!filteredConfigs.contains(config))
+                if (!filteredConfigNames.contains(config.getConfigname())) {
                     filteredConfigs.add(config);
+                    filteredConfigNames.add(config.getConfigname());
+                }
             }
         }
         return filteredConfigs;
