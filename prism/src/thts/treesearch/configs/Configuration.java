@@ -66,6 +66,7 @@ public abstract class Configuration {
 
     ArrayList<Objectives> tieBreakingOrder;
     private boolean dovipolcheckonintervals;
+
     protected void addCategory(ConfigCategory c) {
         if (categories == null)
             categories = new ArrayList<>();
@@ -171,7 +172,6 @@ public abstract class Configuration {
     public void setViOnPolIntervalInMS(long viOnPolIntervalInMS) {
         this.viOnPolIntervalInMS = viOnPolIntervalInMS;
     }
-
 
 
     public Configuration(boolean timeBound, boolean useSASH, boolean useActSelForBackup) {
@@ -307,19 +307,18 @@ public abstract class Configuration {
         //what is big say 30000
         boolean skipUnexploredNodes = false;
         boolean terminateearly = true;
-        if(runInfo.getDecisionNodesExp() > 30000)
+        if (runInfo.getDecisionNodesExp() > 30000)
             skipUnexploredNodes = true;
-        HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism,skipUnexploredNodes,terminateearly);
+        HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
         mainLog.println(tempres);
         runInfo.setViPolGreedyActSel(tempres);
-        if (thts.isVionpolterminatedearly()) {
-            fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
-            fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
-            tempres = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism,false,false);
-            mainLog.println(tempres);
-            runInfo.setViPolMostVisActSel(tempres);
-        }
 
+        fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+        fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
+        tempres = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism, false, false);
+        mainLog.println(tempres);
+        runInfo.setViPolMostVisActSel(tempres);
+        
 
         runInfo.setViTerminatedEarly(thts.isVionpolterminatedearly());
 
