@@ -15,9 +15,7 @@ import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.testing.testsuitehelper.TestFileInfo;
 import thts.treesearch.TrialBasedTreeSearch;
 import thts.treesearch.actionselector.ActionSelector;
-import thts.treesearch.actionselector.ActionSelectorMostVisited;
 import thts.treesearch.backup.Backup;
-import thts.treesearch.backup.BackupHelper;
 import thts.treesearch.heuristic.Heuristic;
 import thts.treesearch.outcomeselector.OutcomeSelector;
 import thts.treesearch.rewardhelper.RewardCalculation;
@@ -313,13 +311,16 @@ public abstract class Configuration {
             skipUnexploredNodes = true;
         HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism,skipUnexploredNodes,terminateearly);
         mainLog.println(tempres);
+        runInfo.setViPolGreedyActSel(tempres);
         if (thts.isVionpolterminatedearly()) {
             fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
             fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
             tempres = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism,false,false);
+            mainLog.println(tempres);
+            runInfo.setViPolMostVisActSel(tempres);
         }
-        mainLog.println(tempres);
-        runInfo.setVipol(tempres);
+
+
         runInfo.setViTerminatedEarly(thts.isVionpolterminatedearly());
 
         fileLog.println(HelperClass.getTString() + "Final Values: " + runInfo);

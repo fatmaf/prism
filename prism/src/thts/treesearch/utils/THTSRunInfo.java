@@ -10,7 +10,9 @@ public class THTSRunInfo {
     int numRolloutsTillSolved = -1;
     boolean goalOnProbablePath = false;
     HashMap<Objectives, Bounds> initialStateValues = null;
-    HashMap<Objectives, Double> vipol = null;
+    HashMap<Objectives, Double> viPolGreedyActSel = null;
+    HashMap<Objectives, Double> viPolMostVisActSel = null;
+
     boolean stackoverflowerror = false;
     boolean timeLimited = false;
     long maxTimeLimit = -1;
@@ -27,6 +29,14 @@ public class THTSRunInfo {
     int fsp;
     int numDoors = 0;
     boolean viTerminatedEarly = false;
+
+    public HashMap<Objectives, Double> getViPolMostVisActSel() {
+        return viPolMostVisActSel;
+    }
+
+    public void setViPolMostVisActSel(HashMap<Objectives, Double> viPolMostVisActSel) {
+        this.viPolMostVisActSel = viPolMostVisActSel;
+    }
 
     public boolean isViTerminatedEarly() {
         return viTerminatedEarly;
@@ -60,17 +70,26 @@ public class THTSRunInfo {
         return toret;
     }
 
-    public String getviInfo(Objectives obj) {
+    public String getVIPolGreedyActSelInfo(Objectives obj) {
         String toret = "";
-        if (vipol != null) {
-            if (vipol.containsKey(obj)) {
-                toret = vipol.get(obj).toString();
+        if (viPolGreedyActSel != null) {
+            if (viPolGreedyActSel.containsKey(obj)) {
+                toret = viPolGreedyActSel.get(obj).toString();
             }
         }
         return toret;
 
     }
+    public String getVIPolMostVisActSelInfo(Objectives obj) {
+        String toret = "";
+        if (viPolMostVisActSel != null) {
+            if (viPolMostVisActSel.containsKey(obj)) {
+                toret = viPolMostVisActSel.get(obj).toString();
+            }
+        }
+        return toret;
 
+    }
     public String getBoundsString(Objectives obj, String sep) {
         String toret = " " + sep + " ";
         if (initialStateValues != null) {
@@ -143,12 +162,12 @@ public class THTSRunInfo {
         this.initialStateValues = initialStateValues;
     }
 
-    public HashMap<Objectives, Double> getVipol() {
-        return vipol;
+    public HashMap<Objectives, Double> getViPolGreedyActSel() {
+        return viPolGreedyActSel;
     }
 
-    public void setVipol(HashMap<Objectives, Double> vipol) {
-        this.vipol = vipol;
+    public void setViPolGreedyActSel(HashMap<Objectives, Double> viPolGreedyActSel) {
+        this.viPolGreedyActSel = viPolGreedyActSel;
     }
 
     public boolean isStackoverflowerror() {

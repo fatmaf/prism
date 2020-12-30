@@ -72,8 +72,8 @@ public class RunConfiguration {
             tfi.setGoals(singleTest.goalsList);
             tfi.setRobots(singleTest.robotsList);
             config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
-            System.out.println("Setting max time to "+config.getTimeTimeLimitInMS()+"ms ("+ TimeUnit.MINUTES.convert(config.getTimeTimeLimitInMS(),
-                    TimeUnit.MILLISECONDS)+" min)");
+            System.out.println("Setting max time to " + config.getTimeTimeLimitInMS() + "ms (" + TimeUnit.MINUTES.convert(config.getTimeTimeLimitInMS(),
+                    TimeUnit.MILLISECONDS) + " min)");
 
             System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
             long startTime = System.currentTimeMillis();
@@ -170,10 +170,13 @@ public class RunConfiguration {
                 "ProbGoal\t" +
                 "NumRollouts\t" +
                 "SOError\t" +
-                "VI_TC\t" +
-                "VI_C\t" +
-                "VI_P\t"
-                + "TimeBound\t" +
+                "VI_TC_GAC\t" +
+                "VI_C_GAC\t" +
+                "VI_P_GAC\t" +
+                "VI_TC_MVAC\t" +
+                "VI_C_MVAC\t" +
+                "VI_P_MVAC\t" +
+                "TimeBound\t" +
                 "TimeLimit\t" +
                 "THTSTimeTaken\t" +
                 "MaxTLen\t" +
@@ -183,7 +186,7 @@ public class RunConfiguration {
                 "CNExp\t" +
                 "TotalTime\t" +
                 "VIPolAtIntervals\t" +
-                "TLens\t"+
+                "TLens\t" +
                 "PolVIEarlyTerm\t";
         if (out != null)
             out.println(header);
@@ -207,9 +210,13 @@ public class RunConfiguration {
                 rinfo.isGoalOnProbablePath() + "\t" +
                 rinfo.getNumRolloutsTillSolved() + "\t"
                 + rinfo.isStackoverflowerror() + "\t" +
-                rinfo.getviInfo(Objectives.TaskCompletion) + "\t"
-                + rinfo.getviInfo(Objectives.Cost) + "\t"
-                + rinfo.getviInfo(Objectives.Probability) + "\t"
+                rinfo.getVIPolGreedyActSelInfo(Objectives.TaskCompletion) + "\t"
+                + rinfo.getVIPolGreedyActSelInfo(Objectives.Cost) + "\t"
+                + rinfo.getVIPolGreedyActSelInfo(Objectives.Probability) + "\t"
+                +
+                rinfo.getVIPolMostVisActSelInfo(Objectives.TaskCompletion) + "\t"
+                + rinfo.getVIPolMostVisActSelInfo(Objectives.Cost) + "\t"
+                + rinfo.getVIPolMostVisActSelInfo(Objectives.Probability) + "\t"
                 + rinfo.isTimeLimited() + "\t"
                 + rinfo.getMaxTimeLimit() +
                 "\t" + rinfo.getDuration() +

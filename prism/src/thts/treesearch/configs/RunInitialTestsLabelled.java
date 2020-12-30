@@ -103,7 +103,7 @@ public class RunInitialTestsLabelled {
         boolean domaxcostdeadends = false;
         boolean dointervalvi = false;
         String resSuffix = "_epsilon50_";
-        int maxruns = 50;
+        int maxruns = 100;
         for (boolean doPolGActSel : boolvals) {
             for (boolean useActSelForBackup : boolvals) {
                 for (boolean useSASH : boolvals) {
