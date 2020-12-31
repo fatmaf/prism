@@ -15,7 +15,7 @@ import thts.treesearch.configs.plain.greedy.lugreedy.ConfigLUGreedyRandom;
 
 import java.util.ArrayList;
 
-//PRISM_MAINCLASS=thts.treesearch.configs.RunInitialTestsLabelled prism/bin/prism
+//PRISM_MAINCLASS=thts.treesearch.configs.InvestigatingTieBreaksEtc prism/bin/prism
 public class InvestigatingTieBreaksEtc {
 
     public static ArrayList<Configuration> getSelectedConfigsLUGreedy(boolean timeBound, boolean dointervalvi, long timeLimit) {
@@ -176,7 +176,7 @@ public class InvestigatingTieBreaksEtc {
         boolean timeBound = false;
         boolean dointervalvi = false;
         int maxRuns = 100;
-        boolean debug = false;
+        boolean debug = true;
         String resSuffix = "_investigatingshit_";
 
         ArrayList<Configuration> configs = getSelectedConfigsLUGreedy(timeBound, dointervalvi, 0);

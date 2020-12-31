@@ -520,8 +520,7 @@ public class TrialBasedTreeSearch {
         if (doForwardBackup) {
             // forward backups don't depend on anything else
             // so far
-            if (trialLen > 100)
-                mainLog.println("error");
+
             backup.forwardbackupDecisionNode(n0);
             mainLog.println("ForwardBackupStep:" + trialLen + "DN:" + n0.getState() + "," + n0.numVisits + ",B:"
                     + n0.getBoundsString());

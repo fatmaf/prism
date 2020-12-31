@@ -31,7 +31,7 @@ public class TestSet {
             //get the time and pick the one with the max
             int tindex=tests.indexOf(t);
             tests.get(tindex).timeInMS = Math.max(tests.get(tindex).timeInMS,t.timeInMS);
-            System.out.println("Multiple tests, just changing the max time on them.");
+            //System.out.println("Multiple tests, just changing the max time on them.");
         }
     }
     public void setTestSetID(String id)
