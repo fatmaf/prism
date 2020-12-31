@@ -22,7 +22,7 @@ public class RunConfiguration {
     BufferedWriter bw;
     PrintWriter out;
 
-    final String delim = ",";
+    final String delim = "|";
 
     public void runTestSuite(TestSuite ts, Configuration config, boolean debug, String fnSuffix) throws Exception {
         int i = 0;
@@ -189,7 +189,7 @@ public class RunConfiguration {
                 "TotalTime"+delim +
                 "VIPolAtIntervals"+delim +
                 "TLens"+delim +
-                "PolVIEarlyTerm"+delim;
+                "PolVIEarlyTerm";
         if (out != null)
             out.println(header);
 
