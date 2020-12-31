@@ -232,8 +232,7 @@ public class RunConfiguration {
                 + rinfo.getChanceNodesExp() + "" + delim
                 + totalTime + "" + delim
                 + rinfo.getVIPolIntervalString() +
-                "" + delim + rinfo.gettLensString()
-                + "" + delim + rinfo.isViPolGreedyActSelTerminatedEarly();
+                "" + delim + rinfo.gettLensString();
         if (out != null)
             out.println(resLine);
     }
