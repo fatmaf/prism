@@ -685,7 +685,7 @@ public class TrialBasedTreeSearch {
             fileLog.println(HelperClass.getTString() + "Nodes Explored: " + seen.size() + " Time Elapsed: " + viduration + "ms ("
                     + TimeUnit.MINUTES.convert(viduration, TimeUnit.MILLISECONDS) + "min)");
             fileLog.println(HelperClass.getTString() + "Nodes In Queue: " + q.size());
-            if (terminateearly) {
+            if (timeBound && terminateearly) {
                 if (viduration > this.getTimeLimitInMilliSeconds()) {
                     fileLog.println(HelperClass.getTString() +
                             String.format("Quitting VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
