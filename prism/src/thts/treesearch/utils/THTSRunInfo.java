@@ -28,7 +28,16 @@ public class THTSRunInfo {
     int numGoals;
     int fsp;
     int numDoors = 0;
-    boolean viTerminatedEarly = false;
+    boolean viPolGreedyActSelTerminatedEarly = false;
+    boolean viPolMostVisActSelTerminatedEarly = false;
+
+    public boolean isViPolMostVisActSelTerminatedEarly() {
+        return viPolMostVisActSelTerminatedEarly;
+    }
+
+    public void setViPolMostVisActSelTerminatedEarly(boolean viPolMostVisActSelTerminatedEarly) {
+        this.viPolMostVisActSelTerminatedEarly = viPolMostVisActSelTerminatedEarly;
+    }
 
     public HashMap<Objectives, Double> getViPolMostVisActSel() {
         return viPolMostVisActSel;
@@ -38,12 +47,12 @@ public class THTSRunInfo {
         this.viPolMostVisActSel = viPolMostVisActSel;
     }
 
-    public boolean isViTerminatedEarly() {
-        return viTerminatedEarly;
+    public boolean isViPolGreedyActSelTerminatedEarly() {
+        return viPolGreedyActSelTerminatedEarly;
     }
 
-    public void setViTerminatedEarly(boolean viTerminatedEarly) {
-        this.viTerminatedEarly = viTerminatedEarly;
+    public void setViPolGreedyActSelTerminatedEarly(boolean viPolGreedyActSelTerminatedEarly) {
+        this.viPolGreedyActSelTerminatedEarly = viPolGreedyActSelTerminatedEarly;
     }
 
     public int getNumDoors() {
@@ -65,7 +74,7 @@ public class THTSRunInfo {
             for (Objectives obj : initialStateValues.keySet())
                 toret += "\t" + obj + ":" + getBoundsString(obj, "\t");
         }
-        if (isViTerminatedEarly())
+        if (isViPolGreedyActSelTerminatedEarly())
             toret += "VI Terminated early";
         return toret;
     }

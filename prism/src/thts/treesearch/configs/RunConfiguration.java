@@ -155,41 +155,43 @@ public class RunConfiguration {
     }
 
     void printResultsHeader() {
-        String header = "\nConfiguration"+delim +
-                "UseSASH"+delim +
-                "UseActSelForBU"+delim +
-                "FSP"+delim +
-                "Robots"+delim +
-                "Goals"+delim +
-                "FN"+delim +
-                "Epsilon"+delim +
-                "TC_U"+delim +
-                "TC_L"+delim +
-                "C_U"+delim +
-                "C_L"+delim
-                + "Solved"+delim +
-                "Goal"+delim +
-                "ProbGoal"+delim +
-                "NumRollouts"+delim +
-                "SOError"+delim +
-                "VI_TC_GAC"+delim +
-                "VI_C_GAC"+delim +
-                "VI_P_GAC"+delim +
-                "VI_TC_MVAC"+delim +
-                "VI_C_MVAC"+delim +
-                "VI_P_MVAC"+delim +
-                "TimeBound"+delim +
-                "TimeLimit"+delim +
-                "THTSTimeTaken"+delim +
-                "MaxTLen"+delim +
-                "MinTLen"+delim +
-                "AvgTLen"+delim +
-                "DNExp"+delim +
-                "CNExp"+delim +
-                "TotalTime"+delim +
-                "VIPolAtIntervals"+delim +
-                "TLens"+delim +
-                "PolVIEarlyTerm";
+        String header = "\nConfiguration" + delim +
+                "UseSASH" + delim +
+                "UseActSelForBU" + delim +
+                "FSP" + delim +
+                "Robots" + delim +
+                "Goals" + delim +
+                "FN" + delim +
+                "Epsilon" + delim +
+                "TC_U" + delim +
+                "TC_L" + delim +
+                "C_U" + delim +
+                "C_L" + delim
+                + "Solved" + delim +
+                "Goal" + delim +
+                "ProbGoal" + delim +
+                "NumRollouts" + delim +
+                "SOError" + delim +
+                "VI_TC_GAC" + delim +
+                "VI_C_GAC" + delim +
+                "VI_P_GAC" + delim +
+                "PolVI_GAC_EarlyTerm" + delim +
+                "VI_TC_MVAC" + delim +
+                "VI_C_MVAC" + delim +
+                "VI_P_MVAC" + delim +
+                "PolVI_MVAC_EarlyTerm" + delim +
+                "TimeBound" + delim +
+                "TimeLimit" + delim +
+                "THTSTimeTaken" + delim +
+                "MaxTLen" + delim +
+                "MinTLen" + delim +
+                "AvgTLen" + delim +
+                "DNExp" + delim +
+                "CNExp" + delim +
+                "TotalTime" + delim +
+                "VIPolAtIntervals" + delim +
+                "TLens";
+
         if (out != null)
             out.println(header);
 
@@ -197,40 +199,41 @@ public class RunConfiguration {
 
     void printResult(Configuration config, int run, THTSRunInfo rinfo,
                      long totalTime) {
-        String resLine = config.getConfigname() + ""+delim
-                + config.isUseSASH() + ""+delim
-                + config.isUseActSelForBackupUpdate() + ""+delim
-                + rinfo.getFsp() + ""+delim
-                + rinfo.getNumRobots() + ""+delim
-                + rinfo.getNumGoals() + ""+delim
-                + run + ""+delim
-                + config.getEgreedy() + ""+delim
-                + rinfo.getBoundsString(Objectives.TaskCompletion, ""+delim) + ""+delim
-                + rinfo.getBoundsString(Objectives.Cost, ""+delim) + ""+delim
-                + rinfo.isInitialStateSolved() + ""+delim
-                + rinfo.isGoalFound() + ""+delim +
-                rinfo.isGoalOnProbablePath() + ""+delim +
-                rinfo.getNumRolloutsTillSolved() + ""+delim
-                + rinfo.isStackoverflowerror() + ""+delim +
-                rinfo.getVIPolGreedyActSelInfo(Objectives.TaskCompletion) + ""+delim
-                + rinfo.getVIPolGreedyActSelInfo(Objectives.Cost) + ""+delim
-                + rinfo.getVIPolGreedyActSelInfo(Objectives.Probability) + ""+delim
-                +
-                rinfo.getVIPolMostVisActSelInfo(Objectives.TaskCompletion) + ""+delim
-                + rinfo.getVIPolMostVisActSelInfo(Objectives.Cost) + ""+delim
-                + rinfo.getVIPolMostVisActSelInfo(Objectives.Probability) + ""+delim
-                + rinfo.isTimeLimited() + ""+delim
+        String resLine = config.getConfigname() + "" + delim
+                + config.isUseSASH() + "" + delim
+                + config.isUseActSelForBackupUpdate() + "" + delim
+                + rinfo.getFsp() + "" + delim
+                + rinfo.getNumRobots() + "" + delim
+                + rinfo.getNumGoals() + "" + delim
+                + run + "" + delim
+                + config.getEgreedy() + "" + delim
+                + rinfo.getBoundsString(Objectives.TaskCompletion, "" + delim) + "" + delim
+                + rinfo.getBoundsString(Objectives.Cost, "" + delim) + "" + delim
+                + rinfo.isInitialStateSolved() + "" + delim
+                + rinfo.isGoalFound() + "" + delim +
+                rinfo.isGoalOnProbablePath() + "" + delim +
+                rinfo.getNumRolloutsTillSolved() + "" + delim
+                + rinfo.isStackoverflowerror() + "" + delim +
+                rinfo.getVIPolGreedyActSelInfo(Objectives.TaskCompletion) + "" + delim
+                + rinfo.getVIPolGreedyActSelInfo(Objectives.Cost) + "" + delim
+                + rinfo.getVIPolGreedyActSelInfo(Objectives.Probability) + "" + delim
+                + rinfo.isViPolGreedyActSelTerminatedEarly() + delim +
+                rinfo.getVIPolMostVisActSelInfo(Objectives.TaskCompletion) + "" + delim
+                + rinfo.getVIPolMostVisActSelInfo(Objectives.Cost) + "" + delim
+                + rinfo.getVIPolMostVisActSelInfo(Objectives.Probability) + "" + delim
+                + rinfo.isViPolMostVisActSelTerminatedEarly() + delim
+                + rinfo.isTimeLimited() + "" + delim
                 + rinfo.getMaxTimeLimit() +
-                ""+delim + rinfo.getDuration() +
-                ""+delim + rinfo.getMaxTrialLen()
-                + ""+delim + rinfo.getMinTrialLen() +
-                ""+delim + rinfo.getAverageTrialLen() +
-                ""+delim + rinfo.getDecisionNodesExp() + ""+delim
-                + rinfo.getChanceNodesExp() + ""+delim
-                + totalTime + ""+delim
+                "" + delim + rinfo.getDuration() +
+                "" + delim + rinfo.getMaxTrialLen()
+                + "" + delim + rinfo.getMinTrialLen() +
+                "" + delim + rinfo.getAverageTrialLen() +
+                "" + delim + rinfo.getDecisionNodesExp() + "" + delim
+                + rinfo.getChanceNodesExp() + "" + delim
+                + totalTime + "" + delim
                 + rinfo.getVIPolIntervalString() +
-                ""+delim + rinfo.gettLensString()
-                + ""+delim + rinfo.isViTerminatedEarly();
+                "" + delim + rinfo.gettLensString()
+                + "" + delim + rinfo.isViPolGreedyActSelTerminatedEarly();
         if (out != null)
             out.println(resLine);
     }

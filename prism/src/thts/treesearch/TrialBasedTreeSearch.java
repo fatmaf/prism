@@ -635,12 +635,12 @@ public class TrialBasedTreeSearch {
     }
 
 
-public HashMap<Objectives, Double> doVIOnPolicyMostVisitedActSel(String resultsLocation, int rnNum, Prism prism,boolean skipunexplorednodes,boolean terminateearly)
-        throws Exception {
-        return doVIOnPolicy(new ActionSelectorMostVisited(),resultsLocation,rnNum,prism,skipunexplorednodes,terminateearly);
-        }
+    public HashMap<Objectives, Double> doVIOnPolicyMostVisitedActSel(String resultsLocation, int rnNum, Prism prism, boolean skipunexplorednodes, boolean terminateearly)
+            throws Exception {
+        return doVIOnPolicy(new ActionSelectorMostVisited(), resultsLocation, rnNum, prism, skipunexplorednodes, terminateearly);
+    }
 
-    public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism,boolean skipunexplorednodes,boolean terminateearly)
+    public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism, boolean skipunexplorednodes, boolean terminateearly)
             throws Exception {
         fileLog.println(HelperClass.getTString() + "Extracting Policy");
         if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
@@ -685,7 +685,7 @@ public HashMap<Objectives, Double> doVIOnPolicyMostVisitedActSel(String resultsL
             fileLog.println(HelperClass.getTString() + "Nodes Explored: " + seen.size() + " Time Elapsed: " + viduration + "ms ("
                     + TimeUnit.MINUTES.convert(viduration, TimeUnit.MILLISECONDS) + "min)");
             fileLog.println(HelperClass.getTString() + "Nodes In Queue: " + q.size());
-            if(terminateearly) {
+            if (terminateearly) {
                 if (viduration > this.getTimeLimitInMilliSeconds()) {
                     fileLog.println(HelperClass.getTString() +
                             String.format("Quitting VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
@@ -702,12 +702,10 @@ public HashMap<Objectives, Double> doVIOnPolicyMostVisitedActSel(String resultsL
                         fileLog.println(HelperClass.getTString() + "unexplored node - exploring " + d.getState());
                         setNodeHeuristics(d);
                         generateChildrenDecisionNode(d);
+                    } else {
+                        fileLog.println(HelperClass.getTString() + "unexplored node - skipping " + d.getState());
+                        continue;
                     }
-		    else
-			{
-fileLog.println(HelperClass.getTString() + "unexplored node - skipping " + d.getState());
-			    continue; 
-			}
                 }
 
 //                if (d.getChildren().size() < 5)
@@ -801,7 +799,7 @@ fileLog.println(HelperClass.getTString() + "unexplored node - skipping " + d.get
     }
 
     public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, Prism prism) throws Exception {
-        return doVIOnPolicy(actSelrt, null, 0, prism,false,false);
+        return doVIOnPolicy(actSelrt, null, 0, prism, false, false);
 
     }
 

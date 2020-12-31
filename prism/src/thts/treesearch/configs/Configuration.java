@@ -307,20 +307,18 @@ public abstract class Configuration {
         //what is big say 30000
         boolean skipUnexploredNodes = false;
         boolean terminateearly = true;
-//        if (runInfo.getDecisionNodesExp() > 30000)
-        skipUnexploredNodes = true;
         HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
         mainLog.println(tempres);
         runInfo.setViPolGreedyActSel(tempres);
-
+        runInfo.setViPolGreedyActSelTerminatedEarly(thts.isVionpolterminatedearly());
         fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
         fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
-        tempres = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism, false, false);
+        tempres = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
         mainLog.println(tempres);
         runInfo.setViPolMostVisActSel(tempres);
-        
+        runInfo.setViPolMostVisActSelTerminatedEarly(thts.isVionpolterminatedearly());
 
-        runInfo.setViTerminatedEarly(thts.isVionpolterminatedearly());
+
 
         fileLog.println(HelperClass.getTString() + "Final Values: " + runInfo);
         mainLog.close();
