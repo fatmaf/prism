@@ -307,8 +307,8 @@ public abstract class Configuration {
         //what is big say 30000
         boolean skipUnexploredNodes = false;
         boolean terminateearly = true;
-        if (runInfo.getDecisionNodesExp() > 30000)
-            skipUnexploredNodes = true;
+//        if (runInfo.getDecisionNodesExp() > 30000)
+        skipUnexploredNodes = true;
         HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
         mainLog.println(tempres);
         runInfo.setViPolGreedyActSel(tempres);
