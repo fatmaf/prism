@@ -67,7 +67,7 @@ public class RunConfiguration {
             String configID = testSet.getConfigID(singleTest);
             if (!testSuiteID.contentEquals("Failstates")) {
                 if (fsp < 90) {
-                    System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
+                    System.out.print("Skipping Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
                     continue;
                 }
             }
