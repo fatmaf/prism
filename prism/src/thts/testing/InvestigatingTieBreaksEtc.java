@@ -168,6 +168,12 @@ public class InvestigatingTieBreaksEtc {
     }
 
 
+    public static void filterConfigs()
+    {
+        ArrayList<String> selConfigs = new ArrayList<>();
+        selConfigs.add("L_LUGreedyRandom_GAllActions_ASBU");
+        selConfigs.add("L_LUGreedy_GAllActions_ASBU");
+    }
     public static void runSmallExampleSelConfigs() {
 
         String resFolderExt = "tro_examples/";
@@ -175,7 +181,7 @@ public class InvestigatingTieBreaksEtc {
         boolean hasSharedState = true;
         boolean timeBound = false;
         boolean dointervalvi = false;
-        int maxRuns = 100;
+        int maxRuns = 10;
         boolean debug = true;
         String resSuffix = "_investigatingshit_";
 
