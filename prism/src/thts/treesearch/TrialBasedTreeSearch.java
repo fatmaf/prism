@@ -26,6 +26,7 @@ import thts.treesearch.actionselector.ActionSelectorMultiGreedySimpleLowerBound;
 import thts.treesearch.backup.BackupHelper;
 import thts.treesearch.heuristic.Heuristic;
 import thts.treesearch.utils.*;
+import thts.utils.PolicyCreator;
 import thts.vi.MDPValIter;
 import thts.vi.MDPValIter.ModelCheckerMultipleResult;
 import thts.treesearch.outcomeselector.OutcomeSelector;
@@ -65,15 +66,6 @@ public class TrialBasedTreeSearch {
     int maxPolEvals = 0;
     boolean polEvals[];
     int currentPolEval = 0;
-    private boolean vionpolterminatedearly;
-
-    public boolean isVionpolterminatedearly() {
-        return vionpolterminatedearly;
-    }
-
-    public void setVionpolterminatedearly(boolean vionpolterminatedearly) {
-        this.vionpolterminatedearly = vionpolterminatedearly;
-    }
 
     public void setTimeBound(boolean t) {
         timeBound = t;
@@ -134,7 +126,7 @@ public class TrialBasedTreeSearch {
     public boolean hasReachedTimeLimit() {
         calculateDuration();
         if (doPolicyCheckAtIntervals) {
-            fileLog.println(HelperClass.getTString() + "Doing VI At Interval:");
+            fileLog.println(HelperClass.getTString() + "Begin VI At Interval:");
             long timePassedSincePrevCheck = duration - timeAtPrevPolCheck;
             long timeInterval = timePassedSincePrevCheck - polCheckIntervalInMS;
 
@@ -144,9 +136,10 @@ public class TrialBasedTreeSearch {
                     if (timeValues == null)
                         timeValues = new HashMap<>();
 
-                    HashMap<Objectives, Double> res = doVIOnPolicy(actSel, polPrism);
-                    timeValues.put(duration, res);
+                    SolutionResults sr = doVIOnPolicy(actSel, polPrism);
+                    timeValues.put(duration, sr.getValuesForInitialState());
                     timeAtPrevPolCheck = duration;
+                    fileLog.println(HelperClass.getTString() + "End VI At Interval:");
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -634,13 +627,16 @@ public class TrialBasedTreeSearch {
     }
 
 
-    public HashMap<Objectives, Double> doVIOnPolicyMostVisitedActSel(String resultsLocation, int rnNum, Prism prism, boolean skipunexplorednodes, boolean terminateearly)
+    public SolutionResults doVIOnPolicyMostVisitedActSel(String resultsLocation, int rnNum, Prism prism, boolean skipunexplorednodes, boolean terminateearly)
             throws Exception {
         return doVIOnPolicy(new ActionSelectorMostVisited(), resultsLocation, rnNum, prism, skipunexplorednodes, terminateearly);
     }
 
-    public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism, boolean skipunexplorednodes, boolean terminateearly)
+    public SolutionResults doVIOnPolicy(ActionSelector actSelrt, String resultsLocation, int rnNum, Prism prism, boolean skipunexplorednodes, boolean terminateearly)
             throws Exception {
+        SolutionResults sr = new SolutionResults();
+        sr.setActSelMethod(actSelrt.name());
+
         fileLog.println(HelperClass.getTString() + "Extracting Policy");
         if (actSelrt instanceof ActionSelectorMultiGreedySimpleLowerBound) {
             fileLog.println(HelperClass.getTString() + "Selecting multiple actions");
@@ -648,7 +644,6 @@ public class TrialBasedTreeSearch {
         fileLog.flush();
         long viStartTime = System.currentTimeMillis();
         long viduration;
-        boolean viterminatedearly = false;
 
         // need a rewards structure
         // need a costs structure
@@ -656,10 +651,11 @@ public class TrialBasedTreeSearch {
         BitSet accStates = new BitSet();
         BitSet avoidStates = new BitSet();
         if (resultsLocation != null)
-            vl = new VisualiserLog(resultsLocation + name + "pol.vl", this.tieBreakingOrder, true, !debug);
+            vl = new VisualiserLog(resultsLocation + name +actSelrt.name()+ "pol.vl", this.tieBreakingOrder, true, !debug);
         vl.beginPolRun();
 
         Node n0 = getRootNode(rnNum);
+        sr.setInitialState(n0.getShortName());
         mainLog.println(HelperClass.getTString() + "Root node solved: " + n0.isSolved());
         MDPCreator tempMDP = new MDPCreator();
         mainLog.println(HelperClass.getTString() + "Running through");
@@ -685,10 +681,10 @@ public class TrialBasedTreeSearch {
                     + TimeUnit.MINUTES.convert(viduration, TimeUnit.MILLISECONDS) + "min)");
             fileLog.println(HelperClass.getTString() + "Nodes In Queue: " + q.size());
             if (timeBound && terminateearly) {
-                if (viduration > this.getTimeLimitInMilliSeconds()) {
+                if (viduration > sr.getTimeLimit()) {
                     fileLog.println(HelperClass.getTString() +
                             String.format("Quitting VI Pol extraction due to too much time, %d goals found", accStates.cardinality()));
-                    viterminatedearly = true;
+                   sr.setEarlyTerm(true);
                     break;
                 }
             }
@@ -758,7 +754,7 @@ public class TrialBasedTreeSearch {
         tempMDP.setInitialState(n0.getState());
         if (debug) {
             if (resultsLocation != null)
-                tempMDP.saveMDP(resultsLocation, getName() + "_runthru.dot");
+                tempMDP.saveMDP(resultsLocation, getName() +"_"+actSelrt.name()+ "_runthru.dot");
         }
         vl.endRollout();
         vl.closeLog();
@@ -777,6 +773,15 @@ public class TrialBasedTreeSearch {
         fileLog.println(HelperClass.getTString() + "Beginning VI on Policy");
         ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
                 /* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog);
+        if(debug)
+        {
+            if (resultsLocation != null)
+            {
+                PolicyCreator pc = new PolicyCreator();
+                pc.createPolicy(tempMDP.getMDP(),result.strat);
+                pc.savePolicy(resultsLocation, getName() +"_"+actSelrt.name()+ "_vipol.dot");
+            }
+        }
         viduration = System.currentTimeMillis() - viStartTime;
         fileLog.println(HelperClass.getTString() + "VI on Policy took + extracting policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
@@ -785,8 +790,10 @@ public class TrialBasedTreeSearch {
         resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
 
         fileLog.println(HelperClass.getTString() + "VI Results: " + resvals);
-        this.vionpolterminatedearly = viterminatedearly;
-        return resvals;
+        sr.addResults(resvals);
+        sr.setTimeTaken(viduration);
+
+        return sr;
 
     }
 
@@ -797,7 +804,7 @@ public class TrialBasedTreeSearch {
             return rewH.getReward(obj, cn);
     }
 
-    public HashMap<Objectives, Double> doVIOnPolicy(ActionSelector actSelrt, Prism prism) throws Exception {
+    public SolutionResults doVIOnPolicy(ActionSelector actSelrt, Prism prism) throws Exception {
         return doVIOnPolicy(actSelrt, null, 0, prism, false, false);
 
     }

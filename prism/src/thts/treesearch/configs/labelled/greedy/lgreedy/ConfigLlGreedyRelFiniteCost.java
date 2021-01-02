@@ -60,6 +60,6 @@ public class ConfigLlGreedyRelFiniteCost extends Configuration {
         setPolActSel(new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));
         if (isPolicyActSelGreedy())
             setPolActSel(greedyActSel);
-
+        setBaseActSel(greedyActSel);
     }
 }

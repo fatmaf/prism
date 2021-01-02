@@ -5,6 +5,7 @@ import thts.testing.testsuitehelper.TestSet;
 import thts.testing.testsuitehelper.TestSuite;
 import thts.testing.testsuitehelper.TestSuiteReadWrite;
 import thts.treesearch.utils.Objectives;
+import thts.treesearch.utils.SolutionTypes;
 import thts.treesearch.utils.THTSRunInfo;
 
 import java.io.*;
@@ -24,6 +25,7 @@ public class RunConfiguration {
 
     final String delim = "|";
 
+
     public void runTestSuite(TestSuite ts, Configuration config, boolean debug, String fnSuffix) throws Exception {
         int i = 0;
         for (String testSetID : ts.testSets.keySet()) {
@@ -39,6 +41,7 @@ public class RunConfiguration {
 
         }
     }
+
 
     void runTestSet(TestSet testSet, Configuration config, boolean debug, String reslogSuffix, String testSuiteID) throws Exception {
 
@@ -172,14 +175,6 @@ public class RunConfiguration {
                 "ProbGoal" + delim +
                 "NumRollouts" + delim +
                 "SOError" + delim +
-                "VI_TC_GAC" + delim +
-                "VI_C_GAC" + delim +
-                "VI_P_GAC" + delim +
-                "PolVI_GAC_EarlyTerm" + delim +
-                "VI_TC_MVAC" + delim +
-                "VI_C_MVAC" + delim +
-                "VI_P_MVAC" + delim +
-                "PolVI_MVAC_EarlyTerm" + delim +
                 "TimeBound" + delim +
                 "TimeLimit" + delim +
                 "THTSTimeTaken" + delim +
@@ -190,10 +185,37 @@ public class RunConfiguration {
                 "CNExp" + delim +
                 "TotalTime" + delim +
                 "VIPolAtIntervals" + delim +
-                "TLens";
+                "TLens" + delim +
+                createSRHeader(SolutionTypes.BaseAC)
+                + delim + createSRHeader(SolutionTypes.PolAC)
+                + delim + createSRHeader(SolutionTypes.MostVisitedAC);
+
 
         if (out != null)
             out.println(header);
+
+    }
+
+    String createSRHeader(SolutionTypes st) {
+        return "Name_" + st + delim +
+                "TC_" + st
+                + delim + "C_" + st
+                + delim + "P_" + st
+                + delim + "EarlyTerm_" + st
+                + delim + "TimeTaken_" + st
+                + delim + "TimeLimit_" + st;
+    }
+
+    String getSRResult(SolutionTypes st, THTSRunInfo runinfo) {
+
+        return runinfo.getSolutionResultsActSetName(st) + delim
+                + runinfo.getSolutionResultsObjSol(st, Objectives.TaskCompletion) + delim
+                + runinfo.getSolutionResultsObjSol(st, Objectives.Cost) + delim
+                + runinfo.getSolutionResultsObjSol(st, Objectives.Probability) + delim
+                + runinfo.getSolutionResultsEarlyTerm(st) + delim
+                + runinfo.getSolutionResultsTimeTaken(st) + delim
+                + runinfo.getSolutionResultsTimeLimit(st);
+
 
     }
 
@@ -213,15 +235,7 @@ public class RunConfiguration {
                 + rinfo.isGoalFound() + "" + delim +
                 rinfo.isGoalOnProbablePath() + "" + delim +
                 rinfo.getNumRolloutsTillSolved() + "" + delim
-                + rinfo.isStackoverflowerror() + "" + delim +
-                rinfo.getVIPolGreedyActSelInfo(Objectives.TaskCompletion) + "" + delim
-                + rinfo.getVIPolGreedyActSelInfo(Objectives.Cost) + "" + delim
-                + rinfo.getVIPolGreedyActSelInfo(Objectives.Probability) + "" + delim
-                + rinfo.isViPolGreedyActSelTerminatedEarly() + delim +
-                rinfo.getVIPolMostVisActSelInfo(Objectives.TaskCompletion) + "" + delim
-                + rinfo.getVIPolMostVisActSelInfo(Objectives.Cost) + "" + delim
-                + rinfo.getVIPolMostVisActSelInfo(Objectives.Probability) + "" + delim
-                + rinfo.isViPolMostVisActSelTerminatedEarly() + delim
+                + rinfo.isStackoverflowerror() + "" + delim
                 + rinfo.isTimeLimited() + "" + delim
                 + rinfo.getMaxTimeLimit() +
                 "" + delim + rinfo.getDuration() +
@@ -232,7 +246,10 @@ public class RunConfiguration {
                 + rinfo.getChanceNodesExp() + "" + delim
                 + totalTime + "" + delim
                 + rinfo.getVIPolIntervalString() +
-                "" + delim + rinfo.gettLensString();
+                "" + delim + rinfo.gettLensString() + delim
+                + getSRResult(SolutionTypes.BaseAC, rinfo)
+                + delim + getSRResult(SolutionTypes.PolAC, rinfo)
+                + delim + getSRResult( SolutionTypes.MostVisitedAC, rinfo);
         if (out != null)
             out.println(resLine);
     }
@@ -262,21 +279,9 @@ public class RunConfiguration {
 
     }
 
-    public String getCurrentDir() {
-        return currentDir;
-    }
 
-    public void setCurrentDir(String currentDir) {
-        this.currentDir = currentDir;
-    }
 
-    public String getTestsLocation() {
-        return testsLocation;
-    }
 
-    public void setTestsLocation(String testsLocation) {
-        this.testsLocation = testsLocation;
-    }
 
     public String getResultsLocation() {
         return resultsLocation;
@@ -290,9 +295,6 @@ public class RunConfiguration {
         return logFilesLocation;
     }
 
-    public void setLogFilesLocation(String logFilesLocation) {
-        this.logFilesLocation = logFilesLocation;
-    }
 
     public FileWriter getFw() {
         return fw;
@@ -302,13 +304,9 @@ public class RunConfiguration {
         this.fw = fw;
     }
 
-    public BufferedWriter getBw() {
-        return bw;
-    }
 
-    public void setBw(BufferedWriter bw) {
-        this.bw = bw;
-    }
+
+
 
     public PrintWriter getOut() {
         return out;

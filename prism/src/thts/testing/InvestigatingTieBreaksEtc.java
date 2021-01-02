@@ -1,8 +1,10 @@
-package thts.treesearch.configs;
+package thts.testing;
 
 
 
 
+import thts.treesearch.configs.Configuration;
+import thts.treesearch.configs.RunConfiguration;
 import thts.treesearch.configs.labelled.egreedy.elugreedy.ConfigLeLUGreedy;
 import thts.treesearch.configs.labelled.egreedy.elugreedy.ConfigLeLUGreedyRandom;
 import thts.treesearch.configs.labelled.greedy.lugreedy.ConfigLluGreedy;
@@ -15,7 +17,7 @@ import thts.treesearch.configs.plain.greedy.lugreedy.ConfigLUGreedyRandom;
 
 import java.util.ArrayList;
 
-//PRISM_MAINCLASS=thts.treesearch.configs.InvestigatingTieBreaksEtc prism/bin/prism
+//PRISM_MAINCLASS=thts.testing.InvestigatingTieBreaksEtc prism/bin/prism
 public class InvestigatingTieBreaksEtc {
 
     public static ArrayList<Configuration> getSelectedConfigsLUGreedy(boolean timeBound, boolean dointervalvi, long timeLimit) {

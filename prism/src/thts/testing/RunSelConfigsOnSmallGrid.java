@@ -1,6 +1,8 @@
-package thts.treesearch.configs;
+package thts.testing;
 
 
+import thts.treesearch.configs.Configuration;
+import thts.treesearch.configs.RunConfiguration;
 import thts.treesearch.configs.labelled.egreedy.elgreedy.ConfigLeLGreedy;
 import thts.treesearch.configs.labelled.egreedy.elgreedy.ConfigLeLGreedyRandom;
 import thts.treesearch.configs.labelled.egreedy.elgreedy.ConfigLeLGreedyRandomRelFiniteCost;
@@ -34,7 +36,7 @@ import thts.treesearch.configs.plain.uct.uctlu.ConfigUCTLURelFiniteCost;
 
 import java.util.ArrayList;
 
-//PRISM_MAINCLASS=thts.treesearch.configs.RunSelConfigsOnSmallGrid prism/bin/prism
+//PRISM_MAINCLASS=thts.testing.RunSelConfigsOnSmallGrid prism/bin/prism
 public class RunSelConfigsOnSmallGrid {
     public static ArrayList<Configuration> getAllLabelledConfigs(boolean timeBound, long timeLimit)
     {

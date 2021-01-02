@@ -38,13 +38,13 @@ import thts.modelgens.NestedProductModelGenerator;
 import thts.vi.SingleAgentSolverMaxExpTask;
 
 //just test whatever I want here 
-public class TestThings {
+public class TestBasics {
 	private String testsLocation;
 	private String resultsLocation;
 
 	public static void main(String[] args) {
 		try {
-			new TestThings().run();
+			new TestBasics().run();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

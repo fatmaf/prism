@@ -68,6 +68,6 @@ public class ConfigLlGreedyRandom extends Configuration {
         setPolActSel( new ActionSelectorMultiGreedySimpleLowerBound(getTieBreakingOrder()));//greedyActSel;
         if (isPolicyActSelGreedy())
             setPolActSel(greedyActSel);
-
+        setBaseActSel(greedyActSel);
     }
 }

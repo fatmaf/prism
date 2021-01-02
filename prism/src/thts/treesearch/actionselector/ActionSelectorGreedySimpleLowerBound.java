@@ -159,4 +159,9 @@ public class ActionSelectorGreedySimpleLowerBound implements ActionSelector {
 		}
 		return toret;
 	}
+    @Override
+    public String name()
+    {
+        return "GreedySimpleLowerBoundActSel";
+    }
 }

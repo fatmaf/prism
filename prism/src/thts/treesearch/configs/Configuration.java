@@ -21,9 +21,7 @@ import thts.treesearch.outcomeselector.OutcomeSelector;
 import thts.treesearch.rewardhelper.RewardCalculation;
 import thts.treesearch.rewardhelper.RewardHelper;
 import thts.treesearch.rewardhelper.RewardHelperMultiAgent;
-import thts.treesearch.utils.HelperClass;
-import thts.treesearch.utils.Objectives;
-import thts.treesearch.utils.THTSRunInfo;
+import thts.treesearch.utils.*;
 import thts.vi.SingleAgentSolverMaxExpTask;
 
 import java.io.*;
@@ -56,6 +54,16 @@ public abstract class Configuration {
     private boolean maxcostdeadends;
     private boolean policyActSelGreedy;
     private boolean justLogs = false;
+
+    private ActionSelector baseActSel;
+
+    protected ActionSelector getBaseActSel() {
+        return baseActSel;
+    }
+
+    protected void setBaseActSel(ActionSelector baseActSel) {
+        this.baseActSel = baseActSel;
+    }
 
     ArrayList<ConfigCategory> categories;
     boolean timeBound;
@@ -203,20 +211,20 @@ public abstract class Configuration {
 
     THTSRunInfo run(TestFileInfo tfi, String logFilesLocation, boolean debug, int run, String runPrefix) throws Exception {
         THTSRunInfo runInfo = new THTSRunInfo();
-
+        String runName = configname + "_" + tfi.getFilename() + "_" + runPrefix + "_" + run;
         PrismLog mainLog;
         if (debug)
-            mainLog = new PrismFileLog("stdout");
+            mainLog = new PrismFileLog(logFilesLocation + "debuglog_" + runName +  ".txt");
         else
             mainLog = new PrismDevNullLog();
 
-        String runName = configname + "_" + tfi.getFilename() + "_" + runPrefix + "_" + run;
+
         Prism prism = new Prism(mainLog);
         PrismLog fileLog;
         if (isJustLogs())
             fileLog = new PrismDevNullLog();
         else
-            fileLog = new PrismFileLog(logFilesLocation + "log_" + runName + "_justmdp" + ".txt");
+            fileLog = new PrismFileLog(logFilesLocation + "log_" + runName +  ".txt");
 
         prism.initialise();
         prism.setEngine(Prism.EXPLICIT);
@@ -276,7 +284,7 @@ public abstract class Configuration {
             thts.setTimeLimitInMilliSeconds(getTimeTimeLimitInMS());
             runInfo.setTimeLimited(true);
             runInfo.setMaxTimeLimit(getTimeTimeLimitInMS());
-
+            SolutionResults.timeLimit = Math.max(getTimeTimeLimitInMS()/4,5*60*1000);
         }
 
         try {
@@ -307,16 +315,29 @@ public abstract class Configuration {
         //what is big say 30000
         boolean skipUnexploredNodes = false;
         boolean terminateearly = true;
-        HashMap<Objectives, Double> tempres = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
-        mainLog.println(tempres);
-        runInfo.setViPolGreedyActSel(tempres);
-        runInfo.setViPolGreedyActSelTerminatedEarly(thts.isVionpolterminatedearly());
+        HashMap<Objectives, Double> tempres;
+        if(getBaseActSel()!=polActSel)
+        {
+
+            fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+            fileLog.println(HelperClass.getTString() + "Using base act sel");
+            SolutionResults baseSR =  thts.doVIOnPolicy(getBaseActSel(), logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
+
+            mainLog.println(baseSR.getValuesForInitialState());
+            runInfo.addSolutionResults(SolutionTypes.BaseAC,baseSR);
+
+        }
+
+
+        SolutionResults polActSR = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
+
+        runInfo.addSolutionResults(SolutionTypes.PolAC,polActSR);
+
         fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
         fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
-        tempres = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
-        mainLog.println(tempres);
-        runInfo.setViPolMostVisActSel(tempres);
-        runInfo.setViPolMostVisActSelTerminatedEarly(thts.isVionpolterminatedearly());
+        SolutionResults mvSR = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
+
+        runInfo.addSolutionResults(SolutionTypes.MostVisitedAC,mvSR);
 
 
 

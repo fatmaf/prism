@@ -1,6 +1,8 @@
-package thts.treesearch.configs;
+package thts.testing;
 
 
+import thts.treesearch.configs.Configuration;
+import thts.treesearch.configs.RunConfiguration;
 import thts.treesearch.configs.plain.egreedy.elgreedy.*;
 import thts.treesearch.configs.plain.egreedy.elugreedy.*;
 import thts.treesearch.configs.plain.uct.ConfigUCTRelFiniteCostJustCost;
@@ -15,7 +17,7 @@ import thts.treesearch.configs.plain.uct.uctlu.ConfigUCTLURelFiniteCost;
 
 import java.util.ArrayList;
 
-//PRISM_MAINCLASS=thts.treesearch.configs.RunInitialTestsPlain prism/bin/prism
+//PRISM_MAINCLASS=thts.testing.RunInitialTestsPlain prism/bin/prism
 public class RunInitialTestsPlain {
 
     public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {

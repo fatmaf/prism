@@ -81,6 +81,15 @@ public class GetTestInfo {
 				String[] vals = line.split(",");
 
 				String testSuiteID = vals[0];
+				//cuz goals and robots are switched for some reason
+                if(testSuiteID.contentEquals("Robots"))
+                {
+                    testSuiteID = "Goals";
+                }
+                else if (testSuiteID.contentEquals("Goals"))
+                {
+                    testSuiteID ="Robots";
+                }
 				if (!testSuites.containsKey(testSuiteID))
 					testSuites.put(testSuiteID, new TestSuite(testSuiteID));
 				TestSuite currentTestSuite = testSuites.get(testSuiteID);

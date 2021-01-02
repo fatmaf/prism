@@ -5,13 +5,72 @@ import java.util.Collections;
 import java.util.HashMap;
 
 public class THTSRunInfo {
+
+    HashMap<SolutionTypes, SolutionResults> solutionResults;
+
+
+    public void addSolutionResults(SolutionTypes st, SolutionResults sr) {
+        if (solutionResults == null) {
+            solutionResults = new HashMap<>();
+        }
+        solutionResults.put(st, sr);
+    }
+
+    public long getSolutionResultsTimeTaken(SolutionTypes st) {
+        long toret = 0;
+        if (solutionResults != null) {
+            if (solutionResults.containsKey(st)) {
+                toret = solutionResults.get(st).getTimeTaken();
+            }
+        }
+        return toret;
+    }
+
+    public long getSolutionResultsTimeLimit(SolutionTypes st) {
+        long toret = 0;
+        if (solutionResults != null) {
+            if (solutionResults.containsKey(st)) {
+                toret = solutionResults.get(st).getTimeLimit();
+            }
+        }
+        return toret;
+    }
+
+    public boolean getSolutionResultsEarlyTerm(SolutionTypes st) {
+        boolean toret = false;
+        if (solutionResults != null) {
+            if (solutionResults.containsKey(st)) {
+                toret = solutionResults.get(st).isEarlyTerm();
+            }
+        }
+        return toret;
+    }
+
+    public String getSolutionResultsObjSol(SolutionTypes st, Objectives obj) {
+        String toret = "";
+        if (solutionResults != null) {
+            if (solutionResults.containsKey(st)) {
+                toret = solutionResults.get(st).getObjVal(obj);
+            }
+        }
+        return toret;
+    }
+    public String getSolutionResultsActSetName(SolutionTypes st) {
+        String toret = "";
+        if (solutionResults != null) {
+            if (solutionResults.containsKey(st)) {
+              toret = solutionResults.get(st).getActSelMethod();
+            }
+        }
+        return toret;
+    }
+
     boolean goalFound = false;
     boolean initialStateSolved = false;
     int numRolloutsTillSolved = -1;
     boolean goalOnProbablePath = false;
     HashMap<Objectives, Bounds> initialStateValues = null;
-    HashMap<Objectives, Double> viPolGreedyActSel = null;
-    HashMap<Objectives, Double> viPolMostVisActSel = null;
+
 
     boolean stackoverflowerror = false;
     boolean timeLimited = false;
@@ -28,32 +87,7 @@ public class THTSRunInfo {
     int numGoals;
     int fsp;
     int numDoors = 0;
-    boolean viPolGreedyActSelTerminatedEarly = false;
-    boolean viPolMostVisActSelTerminatedEarly = false;
 
-    public boolean isViPolMostVisActSelTerminatedEarly() {
-        return viPolMostVisActSelTerminatedEarly;
-    }
-
-    public void setViPolMostVisActSelTerminatedEarly(boolean viPolMostVisActSelTerminatedEarly) {
-        this.viPolMostVisActSelTerminatedEarly = viPolMostVisActSelTerminatedEarly;
-    }
-
-    public HashMap<Objectives, Double> getViPolMostVisActSel() {
-        return viPolMostVisActSel;
-    }
-
-    public void setViPolMostVisActSel(HashMap<Objectives, Double> viPolMostVisActSel) {
-        this.viPolMostVisActSel = viPolMostVisActSel;
-    }
-
-    public boolean isViPolGreedyActSelTerminatedEarly() {
-        return viPolGreedyActSelTerminatedEarly;
-    }
-
-    public void setViPolGreedyActSelTerminatedEarly(boolean viPolGreedyActSelTerminatedEarly) {
-        this.viPolGreedyActSelTerminatedEarly = viPolGreedyActSelTerminatedEarly;
-    }
 
     public int getNumDoors() {
         return numDoors;
@@ -67,6 +101,7 @@ public class THTSRunInfo {
         return (goalFound & initialStateSolved);
     }
 
+    @Override
     public String toString() {
         String toret = "\nNum of Rollouts\t" + numRolloutsTillSolved + "\nGoalFound\t" + goalFound
                 + "\nInitialStateSolved\t" + initialStateSolved + "\nGoalOnProbablePath\t" + goalOnProbablePath;
@@ -74,31 +109,17 @@ public class THTSRunInfo {
             for (Objectives obj : initialStateValues.keySet())
                 toret += "\t" + obj + ":" + getBoundsString(obj, "\t");
         }
-        if (isViPolGreedyActSelTerminatedEarly())
-            toret += "VI Terminated early";
-        return toret;
-    }
-
-    public String getVIPolGreedyActSelInfo(Objectives obj) {
-        String toret = "";
-        if (viPolGreedyActSel != null) {
-            if (viPolGreedyActSel.containsKey(obj)) {
-                toret = viPolGreedyActSel.get(obj).toString();
+        if(solutionResults!=null)
+        {
+            for(SolutionTypes st:solutionResults.keySet())
+            {
+                toret += "\n"+solutionResults.get(st);
             }
         }
         return toret;
-
     }
-    public String getVIPolMostVisActSelInfo(Objectives obj) {
-        String toret = "";
-        if (viPolMostVisActSel != null) {
-            if (viPolMostVisActSel.containsKey(obj)) {
-                toret = viPolMostVisActSel.get(obj).toString();
-            }
-        }
-        return toret;
 
-    }
+
     public String getBoundsString(Objectives obj, String sep) {
         String toret = " " + sep + " ";
         if (initialStateValues != null) {
@@ -171,13 +192,6 @@ public class THTSRunInfo {
         this.initialStateValues = initialStateValues;
     }
 
-    public HashMap<Objectives, Double> getViPolGreedyActSel() {
-        return viPolGreedyActSel;
-    }
-
-    public void setViPolGreedyActSel(HashMap<Objectives, Double> viPolGreedyActSel) {
-        this.viPolGreedyActSel = viPolGreedyActSel;
-    }
 
     public boolean isStackoverflowerror() {
         return stackoverflowerror;

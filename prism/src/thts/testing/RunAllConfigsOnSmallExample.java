@@ -1,6 +1,8 @@
-package thts.treesearch.configs;
+package thts.testing;
 
 
+import thts.treesearch.configs.Configuration;
+import thts.treesearch.configs.RunConfiguration;
 import thts.treesearch.configs.labelled.egreedy.elgreedy.*;
 import thts.treesearch.configs.labelled.egreedy.elugreedy.*;
 import thts.treesearch.configs.labelled.greedy.lgreedy.ConfigLlGreedy;
@@ -37,7 +39,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//PRISM_MAINCLASS=thts.treesearch.configs.RunAllConfigsOnSmallExample prism/bin/prism
+//PRISM_MAINCLASS=thts.testing.RunAllConfigsOnSmallExample prism/bin/prism
 public class RunAllConfigsOnSmallExample {
     public static ArrayList<Configuration> getAllLabelledConfigs() {
         //generating all possible configurations

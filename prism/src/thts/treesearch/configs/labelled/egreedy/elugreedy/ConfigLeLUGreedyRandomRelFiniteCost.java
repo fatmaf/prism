@@ -69,6 +69,6 @@ public class ConfigLeLUGreedyRandomRelFiniteCost extends Configuration {
         if (isPolicyActSelGreedy())
             setPolActSel(  new ActionSelectorGreedySimpleLowerBound(getTieBreakingOrder(), false));
 
-
+        setBaseActSel(greedyActSel);
     }
 }

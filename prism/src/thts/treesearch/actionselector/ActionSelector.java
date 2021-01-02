@@ -15,4 +15,8 @@ public interface ActionSelector {
 	{
 		return selectAction(nd,doMin);
 	}
+	public default String name()
+    {
+        return "ActionSelector";
+    }
 }

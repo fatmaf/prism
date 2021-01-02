@@ -46,4 +46,10 @@ public class ActionSelectorMostVisited implements ActionSelector {
 
 	}
 
+	@Override
+    public String name()
+    {
+        return "MostVisitedActSel";
+    }
+
 }
