@@ -318,8 +318,8 @@ public class RunAllConfigsOnSmallExample {
 
     public static void main(String[] args) {
 
-       // runSmallExample();
-        runSmallExampleSelectedConfig();
+        runSmallExample();
+       // runSmallExampleSelectedConfig();
     }
 
 
