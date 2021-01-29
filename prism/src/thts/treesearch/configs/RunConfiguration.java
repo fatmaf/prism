@@ -26,7 +26,7 @@ public class RunConfiguration {
     final String delim = "|";
 
 
-    public void runTestSuite(TestSuite ts, Configuration config, boolean debug, String fnSuffix) throws Exception {
+    public void runTestSuite(TestSuite ts, Configuration config, boolean debug, String fnSuffix, long fixedTimeLimit) throws Exception {
         int i = 0;
         for (String testSetID : ts.testSets.keySet()) {
             TestSet testSet = ts.getTestSet(testSetID);
@@ -37,13 +37,13 @@ public class RunConfiguration {
 
             System.out.println("\nRunning Test Set " + testSetID + " (" + i + "/" + ts.testSets.size() + ")");
             i++;
-            runTestSet(testSet, config, debug, fnSuffix, ts.suitID);
+            runTestSet(testSet, config, debug, fnSuffix, ts.suitID, fixedTimeLimit);
 
         }
     }
 
 
-    void runTestSet(TestSet testSet, Configuration config, boolean debug, String reslogSuffix, String testSuiteID) throws Exception {
+    void runTestSet(TestSet testSet, Configuration config, boolean debug, String reslogSuffix, String testSuiteID, long fixedTimeLimit) throws Exception {
 
         String propsuffix = "mult";
         String testLoc = testSet.location;
@@ -76,7 +76,10 @@ public class RunConfiguration {
                     fsp, numDoors);
             tfi.setGoals(singleTest.goalsList);
             tfi.setRobots(singleTest.robotsList);
-            config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
+            if (fixedTimeLimit > 0)
+                config.setTimeTimeLimitInMS(fixedTimeLimit);
+            else
+                config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
             System.out.println("Setting max time to " + config.getTimeTimeLimitInMS() + "ms (" + TimeUnit.MINUTES.convert(config.getTimeTimeLimitInMS(),
                     TimeUnit.MILLISECONDS) + " min)");
 
@@ -249,7 +252,7 @@ public class RunConfiguration {
                 "" + delim + rinfo.gettLensString() + delim
                 + getSRResult(SolutionTypes.BaseAC, rinfo)
                 + delim + getSRResult(SolutionTypes.PolAC, rinfo)
-                + delim + getSRResult( SolutionTypes.MostVisitedAC, rinfo);
+                + delim + getSRResult(SolutionTypes.MostVisitedAC, rinfo);
         if (out != null)
             out.println(resLine);
     }
@@ -280,9 +283,6 @@ public class RunConfiguration {
     }
 
 
-
-
-
     public String getResultsLocation() {
         return resultsLocation;
     }
@@ -303,9 +303,6 @@ public class RunConfiguration {
     public void setFw(FileWriter fw) {
         this.fw = fw;
     }
-
-
-
 
 
     public PrintWriter getOut() {

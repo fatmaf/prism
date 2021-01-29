@@ -321,6 +321,8 @@ public abstract class Configuration {
 
             fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
             fileLog.println(HelperClass.getTString() + "Using base act sel");
+            mainLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+            mainLog.println(HelperClass.getTString() + "Using base act sel");
             SolutionResults baseSR =  thts.doVIOnPolicy(getBaseActSel(), logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
 
             mainLog.println(baseSR.getValuesForInitialState());
@@ -328,17 +330,22 @@ public abstract class Configuration {
 
         }
 
-
+        fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+        fileLog.println(HelperClass.getTString() + "Using pol act sel");
+        mainLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+        mainLog.println(HelperClass.getTString() + "Using pol act sel");
         SolutionResults polActSR = thts.doVIOnPolicy(polActSel, logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
 
         runInfo.addSolutionResults(SolutionTypes.PolAC,polActSR);
-
+        mainLog.println(polActSR.getValuesForInitialState());
         fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
         fileLog.println(HelperClass.getTString() + "Using most visited for policy instead");
+        mainLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
+        mainLog.println(HelperClass.getTString() + "Using most visited for policy instead");
         SolutionResults mvSR = thts.doVIOnPolicyMostVisitedActSel(logFilesLocation, run, prism, skipUnexploredNodes, terminateearly);
 
         runInfo.addSolutionResults(SolutionTypes.MostVisitedAC,mvSR);
-
+        mainLog.println(mvSR.getValuesForInitialState());
 
 
         fileLog.println(HelperClass.getTString() + "Final Values: " + runInfo);

@@ -258,8 +258,8 @@ public class RunAllConfigsOnSmallExample {
         boolean domaxcostdeadends = false;
         boolean dointervalvi = false;
 
-        int maxruns = 10;
-        String resSuffix = "gocrazy_" + maxruns;
+        int maxruns = 100;
+        String resSuffix = "small_example_runs" + maxruns;
 
         ArrayList<Configuration> configs = getAllConfigs();
         int maxTests = configs.size()*maxruns;

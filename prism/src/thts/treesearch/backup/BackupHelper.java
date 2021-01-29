@@ -2,7 +2,9 @@ package thts.treesearch.backup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import thts.modelgens.MultiAgentNestedProductModelGenerator;
 import thts.treesearch.actionselector.ActionSelector;
 import thts.treesearch.utils.Bounds;
 import thts.treesearch.utils.Objectives;
@@ -10,7 +12,17 @@ import thts.treesearch.utils.ChanceNode;
 import thts.treesearch.utils.DecisionNode;
 
 public class BackupHelper {
+    public static double getCostPenalty(DecisionNode dn, HashMap<Objectives, Map.Entry<Double, Double>> minMaxVals) {
+        Objectives obj = Objectives.Cost;
+        return minMaxVals.get(obj).getValue();
+    }
 
+    public static double getRelativeCostPenalty(DecisionNode dn, HashMap<Objectives,
+            Map.Entry<Double, Double>> minMaxVals,
+                                                MultiAgentNestedProductModelGenerator mapmg) {
+        Objectives obj = Objectives.Cost;
+        return minMaxVals.get(obj).getValue() * mapmg.getRemainingTasksFraction(dn.getState());
+    }
 
     public static boolean isBetter(double b1, double b2, Objectives obj) {
         boolean isBetter = false;

@@ -191,6 +191,8 @@ public class MDPValIter {
 		double epsilon = mc.getTermCritParam();
 
 		boolean doBigDecimal = false;
+		mainLog.println("Starting VI");
+
 		while (!done && iters < mc.getMaxIters()) {
 
 			iters++;
@@ -224,6 +226,9 @@ public class MDPValIter {
 								currentCostVal.add(currentCost);
 						}
 
+						mainLog.println(String.format("%s,%s - %d,%d -> p %f tc %f c %f",mdp.getStatesList().get(i).toString(),
+                                mdp.getAction(i,j)==null?"null":mdp.getAction(i,j).toString()
+                                ,i,j,currentProbVal,currentCostVal.get(0),currentCostVal.get(1)));
 						boolean updateVals = false;
 						for (int rew = 0; rew < numRewards; rew++) {
 							int comparedVals = compareDoubles(currentCostVal.get(rew), solnReward.get(rew)[i],
@@ -258,7 +263,7 @@ public class MDPValIter {
 							strat[i] = j;
 							done = false;
 
-							if (iters > 2000) {
+							//if (iters > 2000) {
 								prevVals += "->" + strat[i] + "[" + solnProb[i];
 								for (int rews = 0; rews < numRewards; rews++) {
 									prevVals += ", " + solnReward.get(rews)[i];
@@ -266,7 +271,7 @@ public class MDPValIter {
 								}
 								prevVals += "]";
 								mainLog.println(prevVals);
-							}
+							//}
 						}
 
 					}

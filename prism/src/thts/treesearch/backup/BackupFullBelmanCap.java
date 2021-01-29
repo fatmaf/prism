@@ -141,8 +141,8 @@ public class BackupFullBelmanCap implements Backup {
                 }
                 if (dn.isDeadend && obj == Objectives.Cost) {
 
-                    double lb = minMaxVals.get(obj).getValue();//this.maxCost;
-                    double ub = minMaxVals.get(obj).getValue();//this.maxCost;
+                    double lb = getCostPenalty(dn);
+                    double ub = getCostPenalty(dn);
                     b = new Bounds(ub, lb);
 
                 }
@@ -165,6 +165,10 @@ public class BackupFullBelmanCap implements Backup {
         }
     }
 
+    double getCostPenalty(DecisionNode dn)
+    {
+        return BackupHelper.getCostPenalty(dn,minMaxVals);
+    }
     public void updateDecisionNodeNoActSel(DecisionNode dn) {
         if (dn.isDeadend || dn.isGoal) {
             Bounds b = null;

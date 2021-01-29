@@ -8,7 +8,6 @@ import thts.testing.testsuitehelper.TestSuiteReadWrite;
 import thts.treesearch.configs.Configuration;
 import thts.treesearch.configs.RunConfiguration;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +49,32 @@ public class RunBenchmarkTests {
         }
         return filteredConfigs;
     }
+    public void runFailstatesWithNoTimeBound() throws Exception {
+        boolean timeBound = true;
+        boolean dointervalvi = false;
+        long timeLimit = 30 * 60 * 1000;
+        boolean debug = false;
+        ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
+        String[] testSuites = {"Failstates"};
+        long fixedTimeLimit = 30 * 60 * 1000;
+        for (int i = 0; i < configs.size(); i++) {
+            for (int j = 0; j<testSuites.length; j++) {
 
+                String fts = testSuites[j];
+                String fnSuffix = fts+"_not_time_bound";
+
+                Configuration config = configs.get(i);
+                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
+                RunConfiguration runconfig = new RunConfiguration();
+
+                try {
+                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix,fixedTimeLimit);
+                } catch (Exception e) {
+                    throw e;// e.printStackTrace();
+                }
+            }
+        }
+    }
     public void runTestSuite() throws Exception {
         boolean timeBound = true;
         boolean dointervalvi = false;
@@ -58,6 +82,7 @@ public class RunBenchmarkTests {
         boolean debug = false;
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
         String[] testSuites = {"Failstates","Goals","Robots"};
+        long fixedTimeLimit = 0;
         for (int i = 0; i < configs.size(); i++) {
             for (int j = 0; j<testSuites.length; j++) {
 
@@ -69,7 +94,7 @@ public class RunBenchmarkTests {
                 RunConfiguration runconfig = new RunConfiguration();
 
                 try {
-                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix);
+                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix,fixedTimeLimit);
                 } catch (Exception e) {
                     throw e;// e.printStackTrace();
                 }
@@ -132,7 +157,8 @@ public class RunBenchmarkTests {
     public static void main(String[] args) {
         RunBenchmarkTests rbt = new RunBenchmarkTests();
         try {
-            rbt.runTestSuite();
+            rbt.runFailstatesWithNoTimeBound();
+           // rbt.runTestSuite();
           //  rbt.getAllTestSuiteHours();
         } catch (Exception e) {
             e.printStackTrace();

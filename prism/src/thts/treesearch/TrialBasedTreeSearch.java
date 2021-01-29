@@ -771,6 +771,9 @@ public class TrialBasedTreeSearch {
         fileLog.println(HelperClass.getTString() + "Extracting Policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
         fileLog.println(HelperClass.getTString() + "Beginning VI on Policy");
+        mainLog.println(HelperClass.getTString() + "Extracting Policy: " + viduration + " ms ("
+                + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
+        mainLog.println(HelperClass.getTString() + "Beginning VI on Policy");
         ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, tempMDP.getMDP(), accStates,
                 /* avoidStates */null, rews, null, minRewards, null, 1, null, mainLog);
         if(debug)
@@ -785,11 +788,14 @@ public class TrialBasedTreeSearch {
         viduration = System.currentTimeMillis() - viStartTime;
         fileLog.println(HelperClass.getTString() + "VI on Policy took + extracting policy: " + viduration + " ms ("
                 + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
+        mainLog.println(HelperClass.getTString() + "VI on Policy took + extracting policy: " + viduration + " ms ("
+                + TimeUnit.SECONDS.convert(viduration, TimeUnit.MILLISECONDS) + " s)");
         resvals.put(Objectives.Probability, result.solns.get(0)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.TaskCompletion, result.solns.get(1)[tempMDP.getMDP().getFirstInitialState()]);
         resvals.put(Objectives.Cost, result.solns.get(2)[tempMDP.getMDP().getFirstInitialState()]);
 
         fileLog.println(HelperClass.getTString() + "VI Results: " + resvals);
+        mainLog.println(HelperClass.getTString() + "VI Results: " + resvals);
         sr.addResults(resvals);
         sr.setTimeTaken(viduration);
 
