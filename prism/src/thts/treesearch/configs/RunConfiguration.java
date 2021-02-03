@@ -145,7 +145,7 @@ public class RunConfiguration {
                 //i tests took allTime, remaining tests will take allTime/i * (maxRuns - i)
                 long predictedTimeRem = (allTime/i)*(maxRuns-i);
                 String remTime = getTimeInString(predictedTimeRem);
-                outputString += String.format("%4s/%4s",timeElapsed,predictedTimeRem);
+                outputString += String.format("%4s/%4s ",timeElapsed,remTime);
             }
 
             numCharsSoFar += outputString.length();
