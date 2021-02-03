@@ -97,6 +97,27 @@ public class RunConfiguration {
         }
     }
 
+    String getTimeInString(long timeHere)
+    {
+        String timeFormat = "ms";
+        long timeElapsed = timeHere;
+        if (timeElapsed >= 1000 * 60 * 60) //more than an hour
+        {
+            timeElapsed = TimeUnit.HOURS.convert(timeElapsed, TimeUnit.MILLISECONDS);
+            timeFormat = "h";
+        } else if (timeElapsed >= 1000 * 60) //more than a minute
+        {
+            timeElapsed = TimeUnit.MINUTES.convert(timeElapsed, TimeUnit.MILLISECONDS);
+            timeFormat = "m";
+        } else if (timeElapsed >= 1000) //more than a second
+        {
+
+
+            timeElapsed = TimeUnit.SECONDS.convert(timeElapsed, TimeUnit.MILLISECONDS);
+            timeFormat = "s";
+        }
+        return String.format("%d(%s)",timeElapsed,timeFormat);
+    }
     public void run(String resFolderExt, Configuration config, int numRobots, int numGoals,
                     String filename, boolean debug,
                     String fnSuffix, String propsuffix,
@@ -104,7 +125,8 @@ public class RunConfiguration {
         //formaking things pretty
         int numConsoleChars = 80;
         int numCharsSoFar = 0;
-
+        //for doing some timing prediction
+        long allTime = 0;
         String logFilesExt = "results/configs/" + config.getConfigname() + "/";
         String resFileName = filename + "_" + config.getConfigname() + fnSuffix;
         initialiseResultsLocations(resFolderExt, logFilesExt);
@@ -117,6 +139,15 @@ public class RunConfiguration {
 
         for (int i = 0; i < maxRuns; i++) {
             String outputString = String.format("Running Test %4d/%4d%4s", i, maxRuns, "");
+            if(allTime > 0) {
+                String timeElapsed = getTimeInString(allTime);
+                //predicting the time for the remaining ones
+                //i tests took allTime, remaining tests will take allTime/i * (maxRuns - i)
+                long predictedTimeRem = (allTime/i)*(maxRuns-i);
+                String remTime = getTimeInString(predictedTimeRem);
+                outputString = String.format("%4s/%4s",timeElapsed,predictedTimeRem);
+            }
+
             numCharsSoFar += outputString.length();
             if (numCharsSoFar > numConsoleChars) {
                 numCharsSoFar = 0;
@@ -131,6 +162,7 @@ public class RunConfiguration {
             rinfo.setFsp(fsp);
             long endTime = System.currentTimeMillis();
             openResultsFile(resFileName);
+            allTime+=endTime-startTime;
             printResult(config, i, rinfo, endTime - startTime);
             closeResultsFile();
         }
