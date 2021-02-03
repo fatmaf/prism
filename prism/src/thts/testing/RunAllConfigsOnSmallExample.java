@@ -196,8 +196,29 @@ public class RunAllConfigsOnSmallExample {
     }
 
     public static ArrayList<Configuration> getAllConfigs() {
-        ArrayList<Configuration> allconfigs = getAllPlainConfigs();
-        allconfigs.addAll(getAllLabelledConfigs());
+	ArrayList<Configuration> plainConfigs = getAllPlainConfigs();
+	ArrayList<Configuration> labelledConfigs = getAllLabelledConfigs(); 
+	ArrayList<String> configNames = new ArrayList<>(); 
+
+        ArrayList<Configuration> allconfigs = new ArrayList<>();//getAllPlainConfigs();
+        //allconfigs.addAll(getAllLabelledConfigs());
+	for(int i = 0; i<plainConfigs.size(); i++)
+	    {
+		if(!configNames.contains(plainConfigs.get(i).getConfigname()))
+		    {
+			allconfigs.add(plainConfigs.get(i));
+			configNames.add(plainConfigs.get(i).getConfigname());
+		    }
+	    }
+	for (int i = 0; i<labelledConfigs.size(); i++)
+	    {
+		if(!configNames.contains(labelledConfigs.get(i).getConfigname()))
+		    {
+			allconfigs.add(labelledConfigs.get(i));
+			configNames.add(labelledConfigs.get(i).getConfigname());
+		    }
+
+	    }
         return allconfigs;
     }
 
@@ -261,23 +282,38 @@ public class RunAllConfigsOnSmallExample {
         int maxruns = 100;
         String resSuffix = "small_example_runs" + maxruns;
 
+	ArrayList<String> configNames = new ArrayList<>();
         ArrayList<Configuration> configs = getAllConfigs();
         int maxTests = configs.size()*maxruns;
         int testsSofar = 0;
         System.out.println(String.format("Running %d configurations with %d tests each for a total of %d tests",configs.size(),maxruns,maxTests));
-
+	int startI = 0; 
+	int stopI = 1490; 
+	int repeatConfigNum = 0; 
+	boolean dryrun = true; 
         for (int i = 0; i<configs.size(); i++) {
+	    
             Configuration config = configs.get(i);
+	    config.setJustLogs(true);
+	    if(!configNames.contains(config.getConfigname()))
+		{configNames.add(config.getConfigname());}
+	    else
+		{repeatConfigNum++;
+		    System.out.println(String.format("Skipping repeated config %s, %d repeats",config.getConfigname(),repeatConfigNum));
+ continue;}
+	    if( i >= startI && i<=stopI){
             RunConfiguration runconfig = new RunConfiguration();
+	    
             try {
                 System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
+		if (!dryrun)
                 runconfig.run(resFolderExt, config,
                         2, 2, filename, false, resSuffix, "_mult", maxruns, 0, 1);
                 testsSofar += maxruns;
                 System.out.println(String.format("Finished Configuration. %d / %d tests run.",testsSofar,maxTests));
             } catch (Exception e) {
                 e.printStackTrace();
-            }
+            }}
         }
 
     }
