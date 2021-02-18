@@ -264,7 +264,7 @@ public class RunSelConfigsOnSmallGrid {
         boolean[] boolvals = new boolean[]{true, false};
         int numRobots = 3;
         int numGoals = 3;
-        int maxRuns = 5;
+        int maxRuns = 10;
         boolean debug = false;
 
         boolean timeBound = true;
