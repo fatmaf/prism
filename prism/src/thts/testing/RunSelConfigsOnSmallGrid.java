@@ -294,6 +294,7 @@ public class RunSelConfigsOnSmallGrid {
             System.out.println(String.format("\t %5d/%5d of total", testsSofar, maxTests));
             for (int i = 0; i < configs.size(); i++) {
                 Configuration config = configs.get(i);
+                config.setJustLogs(true);
                 System.out.println("\n\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + "\n");
                 System.out.println(String.format("\t %5d/%5d of total", testsSofar, maxTests));
                 RunConfiguration runconfig = new RunConfiguration();
