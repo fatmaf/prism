@@ -40,7 +40,7 @@ import java.util.ArrayList;
 public class RunSelConfigsOnSmallGrid {
     public static ArrayList<Configuration> getAllLabelledConfigs(boolean timeBound, long timeLimit)
     {
-        return getAllLabelledConfigs(timeBound,timeLimit);
+        return getAllLabelledConfigs(timeBound,timeLimit,false);
     }
     public static ArrayList<Configuration> getAllLabelledConfigs(boolean timeBound, long timeLimit,boolean dointervalvi) {
         //generating all possible configurations
@@ -121,7 +121,7 @@ public class RunSelConfigsOnSmallGrid {
     }
     public static ArrayList<Configuration> getAllPlainConfigs(boolean timeBound, long timeLimit)
     {
-        return getAllPlainConfigs(timeBound,timeLimit);
+        return getAllPlainConfigs(timeBound,timeLimit,false);
     }
     public static ArrayList<Configuration> getAllPlainConfigs(boolean timeBound, long timeLimit,boolean dointervalvi) {
         //generating all possible configurations
