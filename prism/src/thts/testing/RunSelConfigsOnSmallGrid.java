@@ -215,26 +215,30 @@ public class RunSelConfigsOnSmallGrid {
     }
     public static ArrayList<Configuration> getSelectedConfigsFromFiltered(ArrayList<Configuration> allconfigs) {
         String[] configNames = {
-                "L_eLUGreedyRandomRelFC_GP_SASH"
-                , "L_eLUGreedyRandomRelFC_MCD_GP"
-                , "L_eLUGreedyRandomRelFC_MCD_GAllActions"
-                , "L_eLUGreedyRandomRelFC_GP"
-                , "L_eLUGreedyRandomRelFC_GAllActions_SASH"
-                , "L_eLUGreedyRandomRelFC_MCD_GAllActions_SASH"
-                , "L_eLUGreedyRandomRelFC_GAllActions"
-                , "L_eLUGreedyRandomRelFC_MCD_GP_SASH"
-                , "L_Cost_eLUGreedyRandomRelFC_GP_SASH_ASBU"
-                , "L_Cost_eLUGreedyRandomRelFC_MCD_GP_ASBU"
-                , "L_Cost_eLUGreedyRandomRelFC_GP_ASBU"
-                , "L_Cost_LUGreedyRandomRelFC_GP_SASH_ASBU"
-                , "L_Cost_LUGreedyRandomRelFC_GP_ASBU"
-                , "L_Cost_LUGreedyRandomRelFC_MCD_GP_ASBU"
-                , "L_Cost_LUGreedyRandomRelFC_MCD_GP_SASH_ASBU"
-                , "L_Cost_eLUGreedyRandomRelFC_MCD_GP_SASH_ASBU"
-                , "L_eLUGreedyFC_MCD_GP"
-                , "L_eLUGreedyRandomFC_MCD_GP"
-                , "L_eLUGreedyRandomFC_GP_SASH"
-                , "L_eLUGreedyFC_MCD_GP_SASH"};
+                "L_Cost_LUGreedyRandomRelFC_GP_ASBU",
+                "L_Cost_LUGreedyRandomRelFC_MCD_GP_ASBU",
+                "L_Cost_eLUGreedyRandomRelFC_GP_ASBU",
+                "L_Cost_eLUGreedyRandomRelFC_MCD_GP_ASBU",
+                "L_Cost_LUGreedyRandomRelFC_GP_SASH_ASBU",
+                "L_Cost_eLUGreedyRandomRelFC_GP_SASH_ASBU",
+                "L_Cost_LUGreedyRandomRelFC_MCD_GP_SASH_ASBU",
+                "L_Cost_eLUGreedyRandomRelFC_MCD_GP_SASH_ASBU",
+                "L_eLUGreedyRandom_MCD_GAllActions_ASBU",
+                "L_eLUGreedyRandom_GAllActions_ASBU",
+                "L_eLUGreedy_GAllActions_ASBU",
+                "L_eLUGreedy_MCD_GAllActions_ASBU",
+                "L_UCTLU_GAllActions_ASBU",
+                "L_UCTLU_MCD_GAllActions_ASBU",
+                "P_eLUGreedy_GAllActions_ASBU",
+                "P_LUGreedy_GAllActions_ASBU",
+                "P_LUGreedyRandom_GAllActions_ASBU",
+                "P_LUGreedy_MCD_GAllActions_ASBU",
+                "P_eLUGreedyRandom_GAllActions_ASBU",
+                "P_LUGreedyRandom_MCD_GAllActions_ASBU",
+                "P_eLUGreedy_MCD_GAllActions_ASBU",
+                "P_UCTLU_MCD_GAllActions_ASBU",
+                "P_UCTLU_GAllActions_ASBU",
+                "P_eLUGreedyRandom_MCD_GAllActions_ASBU",};
 
         ArrayList<String> selectedConfigNames = new ArrayList<>();
         for (String cname : configNames)
@@ -256,7 +260,7 @@ public class RunSelConfigsOnSmallGrid {
 
     public static void runGridExamples() {
         int fsp = 0;
-        int fsps[] = {30, 60, 90};
+        int fsps[] = {0,30, 60, 90};
         boolean[] boolvals = new boolean[]{true, false};
         int numRobots = 3;
         int numGoals = 3;

@@ -313,7 +313,7 @@ public abstract class Configuration {
         fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
         //for a big model skip nodes
         //what is big say 30000
-        boolean skipUnexploredNodes = false;
+        boolean skipUnexploredNodes = true;
         boolean terminateearly = true;
         HashMap<Objectives, Double> tempres;
         if(getBaseActSel()!=polActSel)
