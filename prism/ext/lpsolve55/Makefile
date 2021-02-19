@@ -18,7 +18,7 @@ ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
 	  LPSOLVE55_BUILD=ccc.osx64
 	else
-	ifeq ($(ARCH),mac64)
+	ifeq ($(ARCH),arm64)
 	  LPSOLVE55_BUILD=ccc.osx64
 	else
 	  LPSOLVE55_BUILD=ccc.osx
