@@ -28,8 +28,15 @@ public class RunBenchmarkTests {
 
     public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
         String[] configNames = {
-                "L_Cost_LUGreedyRandomRelFC_GP_ASBU"
-                , "L_Cost_eLUGreedyRandomRelFC_GP_ASBU"
+                "L_Cost_LUGreedyRandomRelFC_MCD_GP_ASBU",
+                "L_Cost_eLUGreedyRandomRelFC_MCD_GP_ASBU",
+                "L_Cost_LUGreedyRandomRelFC_GP_ASBU",
+                "L_Cost_LUGreedyRandomRelFC_GP_SASH_ASBU",
+                "L_Cost_LUGreedyRandomRelFC_MCD_GP_SASH_ASBU",
+
+                //"L_Cost_eLUGreedyRandomRelFC_MCD_GP_SASH_ASBU",
+                //"L_Cost_eLUGreedyRandomRelFC_GP_SASH_ASBU",
+                //"L_Cost_eLUGreedyRandomRelFC_GP_ASBU",
         };
 
         ArrayList<Configuration> allconfigs = RunSelConfigsOnSmallGrid.getAllConfigs(timeBound, timeLimit, dointervalvi);
@@ -90,6 +97,7 @@ public class RunBenchmarkTests {
                 String fnSuffix = fts;
 
                 Configuration config = configs.get(i);
+                //config.setJustLogs(true);
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
                 RunConfiguration runconfig = new RunConfiguration();
 
@@ -157,8 +165,8 @@ public class RunBenchmarkTests {
     public static void main(String[] args) {
         RunBenchmarkTests rbt = new RunBenchmarkTests();
         try {
-            rbt.runFailstatesWithNoTimeBound();
-           // rbt.runTestSuite();
+           // rbt.runFailstatesWithNoTimeBound();
+            rbt.runTestSuite();
           //  rbt.getAllTestSuiteHours();
         } catch (Exception e) {
             e.printStackTrace();
