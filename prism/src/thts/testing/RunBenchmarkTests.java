@@ -97,7 +97,7 @@ public class RunBenchmarkTests {
                 String fnSuffix = fts;
 
                 Configuration config = configs.get(i);
-                //config.setJustLogs(true);
+                config.setJustLogs(true);
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
                 RunConfiguration runconfig = new RunConfiguration();
 
