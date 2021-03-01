@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 //PRISM_MAINCLASS=thts.testing.RunBenchmarkTests prism/bin/prism
 public class RunBenchmarkTests {
 
+    HashMap<String, TestSuite> filteredTestSuitesFSP90R8G8;
     HashMap<String, TestSuite> filteredTestSuites;
     HashMap<String, TestSuite> filteredTestSuitesFSP90R4G4;
 
@@ -22,9 +23,11 @@ public class RunBenchmarkTests {
 
         GetTestInfo testInfo = new GetTestInfo();
         String tnid = "Warehouse Shelf to Depot";
+        String doorstnid = "Warehouse With Doors Shelf to Depot";
         HashMap<String, TestSuite> testSuites = testInfo.readTestSuitesFromCSV();
-        filteredTestSuites = testInfo.filterTestSuitesForTest(tnid, testSuites);
+        filteredTestSuites = testInfo.filterTestSuitesFSP90ExceptFailstates(tnid,doorstnid, testSuites);
         filteredTestSuitesFSP90R4G4 = testInfo.filterTestSuitesFSP90R4G4(tnid, testSuites);
+        filteredTestSuitesFSP90R8G8 = testInfo.filterTestSuitesFSP90R8G8(tnid, testSuites);
 
     }
 
@@ -123,7 +126,7 @@ public class RunBenchmarkTests {
         long timeLimit = 30 * 60 * 1000;
         boolean debug = false;
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
-        String[] testSuites = {"Goals", "Robots"};//{"Failstates", "Goals", "Robots"};
+        String[] testSuites = {"Failstates", "Goals", "Robots"};
         long fixedTimeLimit = 0;
         for (int j = 0; j < testSuites.length; j++) {
             for (int i = 0; i < configs.size(); i++) {
@@ -133,18 +136,76 @@ public class RunBenchmarkTests {
                 String fnSuffix = fts;
 
                 Configuration config = configs.get(i);
-                if (fts.contentEquals("Robots"))
-                    config.setJustLogs(false);
-                else {
-                    config.setJustLogs(true);
-                    continue;
-                }
+                config.setJustLogs(true);
 
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
                 RunConfiguration runconfig = new RunConfiguration();
 
                 try {
                     runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix, fixedTimeLimit);
+                } catch (Exception e) {
+                    throw e;// e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    public void runTestSuiteDoors() throws Exception {
+        boolean timeBound = true;
+        boolean dointervalvi = false;
+        long timeLimit = 30 * 60 * 1000;
+        boolean debug = false;
+        ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
+        String[] testSuites = {"Doors"};
+        long fixedTimeLimit = 0;
+        for (int j = 0; j < testSuites.length; j++) {
+            for (int i = 0; i < configs.size(); i++) {
+
+
+                String fts = testSuites[j];
+                String fnSuffix = fts;
+
+                Configuration config = configs.get(i);
+                config.setJustLogs(true);
+
+                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
+                RunConfiguration runconfig = new RunConfiguration();
+
+                try {
+                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix, fixedTimeLimit);
+                } catch (Exception e) {
+                    throw e;// e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void findProblemWithRobots() throws Exception {
+        boolean timeBound = true;
+        boolean dointervalvi = false;
+        long timeLimit = 30 * 60 * 1000;
+        boolean debug = false;
+        ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
+        String[] testSuites = {"Goals", "Robots"};//{"Failstates", "Goals", "Robots"};
+        long fixedTimeLimit = 0;
+        for (int j = 0; j < testSuites.length; j++) {
+            for (int i = 0; i < configs.size(); i++) {
+
+
+                String fts = testSuites[j];
+                String fnSuffix = fts + "_r8g8problems";
+
+                Configuration config = configs.get(i);
+
+                config.setJustLogs(false);
+
+
+                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
+                RunConfiguration runconfig = new RunConfiguration();
+
+                try {
+                    runconfig.runTestSuite(filteredTestSuitesFSP90R8G8.get(fts), config, debug, fnSuffix, fixedTimeLimit);
                 } catch (Exception e) {
                     throw e;// e.printStackTrace();
                 }
@@ -207,10 +268,26 @@ public class RunBenchmarkTests {
     public static void main(String[] args) {
         RunBenchmarkTests rbt = new RunBenchmarkTests();
         try {
-            // rbt.runFailstatesWithNoTimeBound();
-//            rbt.runTestSuite();
-            rbt.runTest2hLimit();
-            //  rbt.getAllTestSuiteHours();
+            if(args.length>0) {
+                if (args[0].contentEquals("d") || args[1].contentEquals("d"))
+                    rbt.runTestSuiteDoors();
+                else if (args[0].contentEquals("a") || args[1].contentEquals("a"))
+                    rbt.runTestSuite();
+                else if ((args[0].contentEquals("l") || args[1].contentEquals("l")))
+                    rbt.runTest2hLimit();
+                else
+                {
+                    System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours"));
+                }
+            }
+            else
+            {
+                System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours"));
+                System.out.println("Running all as default");
+
+                rbt.runTestSuite();
+            }
+        //    rbt.runTest2hLimit();
         } catch (Exception e) {
             e.printStackTrace();
         }

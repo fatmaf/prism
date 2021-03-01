@@ -232,6 +232,7 @@ public class TestSuiteReadWrite {
                                 modelFiles.add(f.getName());
                             } else {
 
+                                newPropertiesFile(location);
                                 propertiesFiles.add(f.getName());
                             }
                         }

@@ -65,19 +65,7 @@ public class RunConfiguration {
             int fsp = singleTest.fsp;
             int numDoors = singleTest.numdoors;
             String configID = testSet.getConfigID(singleTest);
-            if (!testSuiteID.contentEquals("Failstates")) {
-                if (fsp < 90) {
-                    System.out.print("Skipping Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
-                    continue;
-                }
-/*                //problem Running Test 32/120 r4g8f90d0 : shelfDepot_r10_g10_fs111_fsp_90.0_5_
-                if(!filename.contentEquals("shelfDepot_r10_g10_fs111_fsp_90.0_5_"))
-                    continue;
-                if(numGoals!=8) {
-                    if (numRobots != 8)
-                        continue;
-                }*/
-            }
+
 
             TestFileInfo tfi = new TestFileInfo(testLoc, filename, propsuffix, testLoc, singleTest.numModels,
                     fsp, numDoors);
