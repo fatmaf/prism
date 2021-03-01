@@ -195,7 +195,36 @@ public class GetTestInfo {
 		}
 		return testSuites;
 	}
+    public HashMap<String, TestSuite> filterTestSuitesFSP90R4G4(String tid, HashMap<String, TestSuite> testSuites) {
+        HashMap<String, TestSuite> filteredTestSuites = new HashMap<String, TestSuite>();
+        for (String testSuiteID : testSuites.keySet()) {
+            TestSuite testSuite = testSuites.get(testSuiteID);
+            for (String testSetID : testSuite.testSets.keySet()) {
+                if (testSetID.contentEquals(tid)) {
 
+                    if (!filteredTestSuites.containsKey(testSuiteID))
+                        filteredTestSuites.put(testSuiteID, new TestSuite(testSuiteID));
+                    TestSuite filteredTestSuite = filteredTestSuites.get(testSuiteID);
+                    if (!filteredTestSuite.hasTestSet(tid)) {
+                        TestSet ts = testSuite.getTestSet(tid);
+                        TestSet fts = new TestSet();
+                        fts.testSetID = ts.testSetID;
+                        fts.subtestconfigs = ts.subtestconfigs;
+                        fts.location = ts.location;
+
+                        for(TestSuiteReadWrite test : ts.tests)
+                        {
+                            if(test.numRobots == 4 && test.numGoals == 4 && test.fsp == 90)
+                                fts.addTest(test);
+                        }
+                        filteredTestSuite.addTestSet(tid, fts);
+                    }
+
+                }
+            }
+        }
+        return filteredTestSuites;
+    }
 	public HashMap<String, TestSuite> filterTestSuitesForTest(String tid, HashMap<String, TestSuite> testSuites) {
 		HashMap<String, TestSuite> filteredTestSuites = new HashMap<String, TestSuite>();
 		for (String testSuiteID : testSuites.keySet()) {

@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class RunBenchmarkTests {
 
     HashMap<String, TestSuite> filteredTestSuites;
+    HashMap<String, TestSuite> filteredTestSuitesFSP90R4G4;
 
     public RunBenchmarkTests() {
 
@@ -23,6 +24,7 @@ public class RunBenchmarkTests {
         String tnid = "Warehouse Shelf to Depot";
         HashMap<String, TestSuite> testSuites = testInfo.readTestSuitesFromCSV();
         filteredTestSuites = testInfo.filterTestSuitesForTest(tnid, testSuites);
+        filteredTestSuitesFSP90R4G4 = testInfo.filterTestSuitesFSP90R4G4(tnid, testSuites);
 
     }
 
@@ -56,78 +58,118 @@ public class RunBenchmarkTests {
         }
         return filteredConfigs;
     }
+
     public void runFailstatesWithNoTimeBound() throws Exception {
-        boolean timeBound = true;
+        boolean timeBound = false;
         boolean dointervalvi = false;
         long timeLimit = 30 * 60 * 1000;
         boolean debug = false;
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
         String[] testSuites = {"Failstates"};
-        long fixedTimeLimit = 30 * 60 * 1000;
+        long fixedTimeLimit = 180 * 60 * 1000;
         for (int i = 0; i < configs.size(); i++) {
-            for (int j = 0; j<testSuites.length; j++) {
+            for (int j = 0; j < testSuites.length; j++) {
 
                 String fts = testSuites[j];
-                String fnSuffix = fts+"_not_time_bound";
+                String fnSuffix = fts + "_not_time_bound";
 
                 Configuration config = configs.get(i);
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
                 RunConfiguration runconfig = new RunConfiguration();
 
                 try {
-                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix,fixedTimeLimit);
+                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix, fixedTimeLimit);
                 } catch (Exception e) {
                     throw e;// e.printStackTrace();
                 }
             }
         }
     }
+
+    public void runTest2hLimit() throws Exception {
+        boolean timeBound = true;
+        boolean dointervalvi = true;
+        long timeLimit = 120 * 60 * 1000;
+        boolean debug = false;
+        ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
+        String[] testSuites = {"Failstates"};
+        long fixedTimeLimit = timeLimit;
+        for (int j = 0; j < testSuites.length; j++) {
+            for (int i = 0; i < configs.size(); i++) {
+
+
+                String fts = testSuites[j];
+                String fnSuffix = fts + "_tl2h";
+
+                Configuration config = configs.get(i);
+
+                config.setJustLogs(false);
+
+                System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
+                RunConfiguration runconfig = new RunConfiguration();
+
+                try {
+                    runconfig.runTestSuite(filteredTestSuitesFSP90R4G4.get(fts), config, debug, fnSuffix, fixedTimeLimit);
+                } catch (Exception e) {
+                    throw e;// e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public void runTestSuite() throws Exception {
         boolean timeBound = true;
         boolean dointervalvi = false;
         long timeLimit = 30 * 60 * 1000;
         boolean debug = false;
         ArrayList<Configuration> configs = getSelectedConfigs(timeBound, dointervalvi, timeLimit);
-        String[] testSuites = {"Failstates","Goals","Robots"};
+        String[] testSuites = {"Goals", "Robots"};//{"Failstates", "Goals", "Robots"};
         long fixedTimeLimit = 0;
-        for (int i = 0; i < configs.size(); i++) {
-            for (int j = 0; j<testSuites.length; j++) {
+        for (int j = 0; j < testSuites.length; j++) {
+            for (int i = 0; i < configs.size(); i++) {
+
 
                 String fts = testSuites[j];
                 String fnSuffix = fts;
 
                 Configuration config = configs.get(i);
-                config.setJustLogs(true);
+                if (fts.contentEquals("Robots"))
+                    config.setJustLogs(false);
+                else {
+                    config.setJustLogs(true);
+                    continue;
+                }
+
                 System.out.println("\nRunning configuration " + config.getConfigname() + " - " + i + "/" + configs.size() + " on test suite " + fts + "\n");
                 RunConfiguration runconfig = new RunConfiguration();
 
                 try {
-                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix,fixedTimeLimit);
+                    runconfig.runTestSuite(filteredTestSuites.get(fts), config, debug, fnSuffix, fixedTimeLimit);
                 } catch (Exception e) {
                     throw e;// e.printStackTrace();
                 }
             }
         }
     }
-    public void getAllTestSuiteHours()
-    {
+
+    public void getAllTestSuiteHours() {
         long totalTime = 0;
-        String[] testSuites = {"Failstates","Goals","Robots"};
-        for (int j = 0; j<testSuites.length; j++) {
+        String[] testSuites = {"Failstates", "Goals", "Robots"};
+        for (int j = 0; j < testSuites.length; j++) {
 
             String fts = testSuites[j];
             long ftstime = getTestSuiteHours(filteredTestSuites.get(fts));
-            totalTime+=ftstime;
-            String x = String.format("%s: ms %d s %d min %d hours %d",fts,ftstime, TimeUnit.SECONDS.convert(ftstime,TimeUnit.MILLISECONDS)
-            ,TimeUnit.MINUTES.convert(ftstime, TimeUnit.MILLISECONDS),TimeUnit.HOURS.convert(ftstime,TimeUnit.MILLISECONDS));
+            totalTime += ftstime;
+            String x = String.format("%s: ms %d s %d min %d hours %d", fts, ftstime, TimeUnit.SECONDS.convert(ftstime, TimeUnit.MILLISECONDS)
+                    , TimeUnit.MINUTES.convert(ftstime, TimeUnit.MILLISECONDS), TimeUnit.HOURS.convert(ftstime, TimeUnit.MILLISECONDS));
             System.out.println(x);
         }
-        String x = String.format("Total: ms %d s %d min %d hours %d",totalTime, TimeUnit.SECONDS.convert(totalTime,TimeUnit.MILLISECONDS)
-                ,TimeUnit.MINUTES.convert(totalTime, TimeUnit.MILLISECONDS),TimeUnit.HOURS.convert(totalTime,TimeUnit.MILLISECONDS));
+        String x = String.format("Total: ms %d s %d min %d hours %d", totalTime, TimeUnit.SECONDS.convert(totalTime, TimeUnit.MILLISECONDS)
+                , TimeUnit.MINUTES.convert(totalTime, TimeUnit.MILLISECONDS), TimeUnit.HOURS.convert(totalTime, TimeUnit.MILLISECONDS));
         System.out.println(x);
     }
-    public long getTestSuiteHours(TestSuite ts)
-    {
+
+    public long getTestSuiteHours(TestSuite ts) {
         int i = 0;
         long testSuiteHours = 0;
         for (String testSetID : ts.testSets.keySet()) {
@@ -136,13 +178,13 @@ public class RunBenchmarkTests {
                 testSet.generateSubTestConfigs();
             }
             System.out.println(ts.suitID);
-            testSuiteHours+=getTestSetHours(testSet,ts.suitID);
+            testSuiteHours += getTestSetHours(testSet, ts.suitID);
             i++;
         }
         return testSuiteHours;
     }
-    long getTestSetHours(TestSet testSet,String testSuiteID)
-    {
+
+    long getTestSetHours(TestSet testSet, String testSuiteID) {
         ArrayList<TestSuiteReadWrite> subtestset = testSet.tests;
         int numTests = subtestset.size();
         long testSetTime = 0;
@@ -152,12 +194,12 @@ public class RunBenchmarkTests {
             String configID = testSet.getConfigID(singleTest);
             if (!testSuiteID.contentEquals("Failstates")) {
                 if (singleTest.fsp < 90) {
-                  //  System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
+                    //  System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
                     continue;
                 }
             }
             System.out.println(configID);
-            testSetTime+=testSet.getMeanSubConfigTime(singleTest);
+            testSetTime += testSet.getMeanSubConfigTime(singleTest);
         }
         return testSetTime;
     }
@@ -165,9 +207,10 @@ public class RunBenchmarkTests {
     public static void main(String[] args) {
         RunBenchmarkTests rbt = new RunBenchmarkTests();
         try {
-           // rbt.runFailstatesWithNoTimeBound();
-            rbt.runTestSuite();
-          //  rbt.getAllTestSuiteHours();
+            // rbt.runFailstatesWithNoTimeBound();
+//            rbt.runTestSuite();
+            rbt.runTest2hLimit();
+            //  rbt.getAllTestSuiteHours();
         } catch (Exception e) {
             e.printStackTrace();
         }

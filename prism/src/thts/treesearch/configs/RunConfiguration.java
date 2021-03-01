@@ -70,6 +70,13 @@ public class RunConfiguration {
                     System.out.print("Skipping Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
                     continue;
                 }
+/*                //problem Running Test 32/120 r4g8f90d0 : shelfDepot_r10_g10_fs111_fsp_90.0_5_
+                if(!filename.contentEquals("shelfDepot_r10_g10_fs111_fsp_90.0_5_"))
+                    continue;
+                if(numGoals!=8) {
+                    if (numRobots != 8)
+                        continue;
+                }*/
             }
 
             TestFileInfo tfi = new TestFileInfo(testLoc, filename, propsuffix, testLoc, singleTest.numModels,
@@ -80,8 +87,7 @@ public class RunConfiguration {
                 config.setTimeTimeLimitInMS(fixedTimeLimit);
             else
                 config.setTimeTimeLimitInMS(testSet.getMeanSubConfigTime(singleTest));
-            System.out.println("Setting max time to " + config.getTimeTimeLimitInMS() + "ms (" + TimeUnit.MINUTES.convert(config.getTimeTimeLimitInMS(),
-                    TimeUnit.MILLISECONDS) + " min)");
+            System.out.println("Setting max time to " + config.getTimeTimeLimitInMS() + "ms (" + getTimeInString(config.getTimeTimeLimitInMS()) + ")");
 
             System.out.print("Running Test " + i + "/" + numTests + " " + configID + " : " + filename + "\n");
             long startTime = System.currentTimeMillis();
@@ -97,8 +103,7 @@ public class RunConfiguration {
         }
     }
 
-    String getTimeInString(long timeHere)
-    {
+    String getTimeInString(long timeHere) {
         String timeFormat = "ms";
         long timeElapsed = timeHere;
         if (timeElapsed >= 1000 * 60 * 60) //more than an hour
@@ -111,13 +116,12 @@ public class RunConfiguration {
             timeFormat = "m";
         } else if (timeElapsed >= 1000) //more than a second
         {
-
-
             timeElapsed = TimeUnit.SECONDS.convert(timeElapsed, TimeUnit.MILLISECONDS);
             timeFormat = "s";
         }
-        return String.format("%d(%s)",timeElapsed,timeFormat);
+        return String.format("%d%s", timeElapsed, timeFormat);
     }
+
     public void run(String resFolderExt, Configuration config, int numRobots, int numGoals,
                     String filename, boolean debug,
                     String fnSuffix, String propsuffix,
@@ -139,13 +143,13 @@ public class RunConfiguration {
 
         for (int i = 0; i < maxRuns; i++) {
             String outputString = String.format("Running Test %4d/%4d%4s", i, maxRuns, "");
-            if(allTime > 0) {
+            if (allTime > 0) {
                 String timeElapsed = getTimeInString(allTime);
                 //predicting the time for the remaining ones
                 //i tests took allTime, remaining tests will take allTime/i * (maxRuns - i)
-                long predictedTimeRem = (allTime/i)*(maxRuns-i);
+                long predictedTimeRem = (allTime / i) * (maxRuns - i);
                 String remTime = getTimeInString(predictedTimeRem);
-                outputString += String.format("%4s/%4s ",timeElapsed,remTime);
+                outputString += String.format("%4s/%4s ", timeElapsed, remTime);
             }
 
             numCharsSoFar += outputString.length();
@@ -162,7 +166,7 @@ public class RunConfiguration {
             rinfo.setFsp(fsp);
             long endTime = System.currentTimeMillis();
             openResultsFile(resFileName);
-            allTime+=endTime-startTime;
+            allTime += endTime - startTime;
             printResult(config, i, rinfo, endTime - startTime);
             closeResultsFile();
         }
@@ -176,8 +180,6 @@ public class RunConfiguration {
 
         String propsuffix = "_mult";
         run(resFolderExt, config, numRobots, numGoals, filename, debug, fnSuffix, propsuffix, maxRuns, 0, 0);
-
-
     }
 
     void initialiseResultsLocations(String resFolderext, String logFilesExt) {
@@ -224,7 +226,6 @@ public class RunConfiguration {
                 createSRHeader(SolutionTypes.BaseAC)
                 + delim + createSRHeader(SolutionTypes.PolAC)
                 + delim + createSRHeader(SolutionTypes.MostVisitedAC);
-
 
         if (out != null)
             out.println(header);
