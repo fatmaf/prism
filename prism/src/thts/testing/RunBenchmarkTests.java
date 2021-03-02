@@ -269,21 +269,24 @@ public class RunBenchmarkTests {
         RunBenchmarkTests rbt = new RunBenchmarkTests();
         try {
             if(args.length>0) {
-                if (args[0].contentEquals("d") || args[1].contentEquals("d"))
+                if (args[0].contentEquals("d"))
                     rbt.runTestSuiteDoors();
-                else if (args[0].contentEquals("a") || args[1].contentEquals("a"))
+                else if (args[0].contentEquals("a"))
                     rbt.runTestSuite();
-                else if ((args[0].contentEquals("l") || args[1].contentEquals("l")))
+                else if ((args[0].contentEquals("l") ))
                     rbt.runTest2hLimit();
+		else if(args[0].contentEquals("p"))
+		    rbt.findProblemWithRobots();
                 else
                 {
-                    System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours"));
+                    System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours","p","Run the thing with problems"));
                 }
             }
             else
             {
-                System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours"));
-                System.out.println("Running all as default");
+		//                System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours"));
+                System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours","p","Run the thing with problems"));
+System.out.println("Running all as default");
 
                 rbt.runTestSuite();
             }
