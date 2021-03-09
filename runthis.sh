@@ -1,1 +1,5 @@
-PRISM_MAINCLASS=thts.treesearch.configs.RunBenchmarkTests prism/bin/prism -javamaxmem 14g -Xss50m
+PRISM_JAVAMAXMEM=14g
+export PRISM_JAVAMAXMEM
+PRISM_JAVASTACKSIZE=1g
+export PRISM_JAVASTACKSIZE
+PRISM_MAINCLASS=thts.testing.RunBenchmarkTests prism/bin/prism l
