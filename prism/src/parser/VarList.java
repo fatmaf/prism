@@ -213,7 +213,26 @@ public class VarList
 	{
 		return vars.get(i).declType;
 	}
+///**
+//	 * Get the declaration of the ith variable in this list.
+//	 */
+//	public Declaration getDeclaration(int i)
+//	{
+//		return vars.get(i).decl;
+//	}
 
+//	/**
+//	 * Get the index in this VarList for a given declaration.
+//	 */
+//	public int getIndexFromDeclaration(Declaration d)
+//	{
+//		for (int i=0;i<vars.size();i++) {
+//			if (vars.get(i).decl == d) {
+//				return i;
+//			}
+//		}
+//		return -1;
+//	}
 	/**
 	 * Get the name of the ith variable in this list.
 	 */
@@ -494,6 +513,7 @@ public class VarList
 	 */
 	class Var
 	{
+		
 		// Name
 		public String name;
 		// Type

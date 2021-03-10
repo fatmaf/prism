@@ -116,6 +116,17 @@ public class State implements Comparable<State>
 			varValues[i] = v.getValue(i);
 		}
 	}
+	/**
+	 * Create a new State object defined as a subset of this one, taking the values from indices {@code begin} to {@code end - 1}.
+	 */
+	public State substate(int begin, int end)
+	{
+		State substate = new State(end - begin);
+		for (int i = begin; i < end; i++) {
+			substate.setValue(i - begin, varValues[i]);
+		}
+		return substate;
+	}
 
 	/**
 	 * Clear: set all values to null
@@ -190,6 +201,7 @@ public class State implements Comparable<State>
 	{
 		int i, c, n;
 		Object svv[];
+		Object o1, o2;
 		
 		// Can't compare to null
 		if (s == null)
@@ -206,21 +218,54 @@ public class State implements Comparable<State>
 		
 		// Go through variables j...n-1
 		for (i = j; i < n; i++) {
-			c = compareObjects(varValues[i], svv[i]);
+			//c = compareObjects(varValues[i], svv[i]);
+			o1 = varValues[i];
+			o2 = svv[i];
+			if (o1 instanceof Integer && o2 instanceof Integer) {
+				c = ((Integer) o1).compareTo((Integer) o2);
+
 			if (c != 0)
 				return c;
 			else
 				continue;
+			} else if (o1 instanceof Boolean && o2 instanceof Boolean) {
+				c = ((Boolean) o1).compareTo((Boolean) o2);
+				if (c != 0)
+					return c;
+				else
+					continue;
+			} else if (o1 instanceof State && o1 instanceof State) {
+				c = ((State) o1).compareTo(((State) o2));
+				if (c != 0)
+					return c;
+				else
+					continue;
+			}else {
+				throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
+			}
 		}
 		
 		// Go through variables 0...j
 		for (i = 0; i < j; i++) {
-			c = compareObjects(varValues[i], svv[i]);
+		//	c = compareObjects(varValues[i], svv[i]);
+		o1 = varValues[i];
+		o2 = svv[i];
+		if (o1 instanceof Integer && o2 instanceof Integer) {
+			c = ((Integer) o1).compareTo((Integer) o2);
 			if (c != 0)
 				return c;
 			else
 				continue;
+		} else if (o1 instanceof Boolean && o2 instanceof Boolean) {
+			c = ((Boolean) o1).compareTo((Boolean) o2);
+			if (c != 0)
+				return c;
+			else
+				continue;
+		} else {
+			throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
 		}
+	}
 		
 		return 0;
 	}
