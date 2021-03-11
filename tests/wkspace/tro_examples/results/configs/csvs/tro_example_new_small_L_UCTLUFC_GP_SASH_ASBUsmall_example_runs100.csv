@@ -1,0 +1,2 @@
+
+Configuration|UseSASH|UseActSelForBU|FSP|Robots|Goals|FN|Epsilon|TC_U|TC_L|C_U|C_L|Solved|Goal|ProbGoal|NumRollouts|SOError|TimeBound|TimeLimit|THTSTimeTaken|MaxTLen|MinTLen|AvgTLen|DNExp|CNExp|TotalTime|VIPolAtIntervals|TLens|Name_BaseAC|TC_BaseAC|C_BaseAC|P_BaseAC|EarlyTerm_BaseAC|TimeTaken_BaseAC|TimeLimit_BaseAC|Name_PolAC|TC_PolAC|C_PolAC|P_PolAC|EarlyTerm_PolAC|TimeTaken_PolAC|TimeLimit_PolAC|Name_MostVisitedAC|TC_MostVisitedAC|C_MostVisitedAC|P_MostVisitedAC|EarlyTerm_MostVisitedAC|TimeTaken_MostVisitedAC|TimeLimit_MostVisitedAC

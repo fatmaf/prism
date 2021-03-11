@@ -1,0 +1,58 @@
+//the example from the gssp paper
+//modified with costs instead of rewards 
+
+mdp
+
+       const int failstate = -1;
+       const double p = 0.8;
+       const double ps = 1.0;
+       const int unknown = -1;
+       const int open = 1;
+       const int closed = 0;
+       const double action_cost = 1.0;
+       const double cost_mult = 2;
+       const int maxstate = 5;
+
+module world
+
+       s:[0..maxstate] init 0;
+
+       [v0_v1] (s=0) -> (s'=1);
+       [v0_v3] (s=0) -> (s'=3);
+       [v1_v2] (s=1) -> (s'=2);
+       [v2_v1] (s=2) -> (s'=1);
+       [v3_v4] (s=3) -> (s'=4);
+       [v4_v3] (s=4) -> (s'=3);
+       [v4_v5] (s=4) -> (s'=5); 
+
+       
+       
+
+endmodule 
+
+label "v0" = s=0; 
+label "v1" = s=1; 
+label "v2" = s=2; 
+label "v3" = s=3; 
+label "v4" = s=4;
+label "v5" = s=5; 
+
+
+rewards "time"
+//for future use to replace with regexp m-x replace-regexp <ret> ->.+ <ret>  :1.0;
+
+
+
+       [v0_v1] (s=0)  :1.0;
+       [v0_v3] (s=0)  :1.0;
+       [v1_v2] (s=1)  :1.0;
+       [v2_v1] (s=2)  :1.0;
+       [v3_v4] (s=3)  :1.0;
+       [v4_v3] (s=4)  :1.0;
+       [v4_v5] (s=4)  :1.0;
+
+       
+ 
+endrewards
+
+
