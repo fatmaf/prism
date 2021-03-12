@@ -351,7 +351,7 @@ public class RunAllConfigsOnSmallExample {
         boolean dointervalvi = false;
 
         int maxruns = 100;
-        String resSuffix = "small_example_runs" + maxruns;
+        String resSuffix = "small_example_runs_unexplored" + maxruns;
 
         ArrayList<String> configNames = new ArrayList<>();
         ArrayList<Configuration> configs = getridofdoneconfigs(getAllConfigs());
@@ -365,7 +365,8 @@ public class RunAllConfigsOnSmallExample {
         for (int i = 0; i < configs.size(); i++) {
 
             Configuration config = configs.get(i);
-            config.setJustLogs(true);
+            config.setJustLogs(false);
+            config.skipUnexploredNodesInPolEval();
             if (!configNames.contains(config.getConfigname())) {
                 configNames.add(config.getConfigname());
             } else {

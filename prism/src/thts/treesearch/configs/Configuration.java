@@ -55,6 +55,16 @@ public abstract class Configuration {
     private boolean policyActSelGreedy;
     private boolean justLogs = false;
 
+    private boolean skipUnexploredNodes = true;
+    
+    public void skipUnexploredNodesInPolEval()
+    {
+    	skipUnexploredNodes = true;
+    }
+    public void exploreUnexploredNodesInPolEval()
+    {
+    	skipUnexploredNodes = false;
+    }
     private ActionSelector baseActSel;
 
     protected ActionSelector getBaseActSel() {
@@ -313,7 +323,7 @@ public abstract class Configuration {
         fileLog.println(HelperClass.getTString() + "Attempting Value Iteration on Policy");
         //for a big model skip nodes
         //what is big say 30000
-        boolean skipUnexploredNodes = true;
+
         boolean terminateearly = true;
         HashMap<Objectives, Double> tempres;
         if(getBaseActSel()!=polActSel)
