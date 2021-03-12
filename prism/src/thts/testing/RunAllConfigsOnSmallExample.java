@@ -354,7 +354,7 @@ public class RunAllConfigsOnSmallExample {
         String resSuffix = "small_example_runs_unexplored" + maxruns;
 
         ArrayList<String> configNames = new ArrayList<>();
-        ArrayList<Configuration> configs = getridofdoneconfigs(getAllConfigs());
+        ArrayList<Configuration> configs = getAllConfigs();//getridofdoneconfigs(getAllConfigs());
         int maxTests = configs.size() * maxruns;
         int testsSofar = 0;
         System.out.println(String.format("Running %d configurations with %d tests each for a total of %d tests", configs.size(), maxruns, maxTests));
