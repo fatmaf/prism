@@ -10,6 +10,7 @@ import explicit.ProbModelChecker;
 import explicit.rewards.ConstructRewards;
 import explicit.rewards.MDPRewardsSimple;
 import parser.State;
+import parser.VarList;
 import parser.ast.Expression;
 import parser.ast.ExpressionQuant;
 import parser.ast.ModulesFile;
@@ -72,9 +73,80 @@ public class VIOnSmallExample {
 
     public static void main(String[] args)
     {
-        new VIOnSmallExample().runSmallExampleSelConfigs();
+        VIOnSmallExample vionsmallexample = new VIOnSmallExample();//.runSmallExample();
+        vionsmallexample.runPaperSmallExampleVar1();
+        vionsmallexample.runPaperSmallExampleVar2();
     }
-    public  void runSmallExampleSelConfigs() {
+    public  void runPaperSmallExampleVar1() {
+
+        String resFolderExt = "tro_examples/";
+        String filename = "tro_example_paper_var1_";
+
+        String resSuffix = "_investigatingshit_";
+
+        boolean debug = true;
+
+
+        try {
+
+
+            run(resFolderExt,
+                    2, 4, filename, debug, resSuffix, "_mult", 0, 1);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+    public  void runPaperSmallExampleVar2() {
+
+        String resFolderExt = "tro_examples/";
+        String filename = "tro_example_paper_var2_";
+
+        String resSuffix = "_investigatingshit_";
+
+        boolean debug = true;
+
+
+        try {
+
+
+            run(resFolderExt,
+                    2, 4, filename, debug, resSuffix, "_mult", 0, 1);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+
+    public  void runPaperSmallExample() {
+
+        String resFolderExt = "tro_examples/";
+        String filename = "tro_example_paper";
+
+        String resSuffix = "_investigatingshit_";
+
+        boolean debug = true;
+
+
+        try {
+
+
+            run(resFolderExt,
+                    3, 4, filename, debug, resSuffix, "_mult", 0, 1);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public  void runSmallExample() {
 
         String resFolderExt = "tro_examples/";
         String filename = "tro_example_new_small";
@@ -114,7 +186,7 @@ public class VIOnSmallExample {
 
         PrismLog mainLog;
         if (debug)
-            mainLog = new PrismFileLog(logFilesLocation + "debuglog_vi" + ".txt");
+            mainLog = new PrismFileLog(logFilesLocation + filename+"_debuglog_vi" + ".txt");
         else
             mainLog = new PrismDevNullLog();
 
@@ -122,7 +194,7 @@ public class VIOnSmallExample {
         Prism prism = new Prism(mainLog);
         PrismLog fileLog;
 
-        fileLog = new PrismFileLog(logFilesLocation + "log_vi" + ".txt");
+        fileLog = new PrismFileLog(logFilesLocation +filename+ "_log_vi" + ".txt");
 
         prism.initialise();
         prism.setEngine(Prism.EXPLICIT);
@@ -134,6 +206,13 @@ public class VIOnSmallExample {
         prism.loadModelGenerator(maModelGen);
         prism.buildModel();
         MDP mdp = (MDP) prism.getBuiltModelExplicit();
+        mdp.exportToDotFile(resultsLocation+"/"+filename+"mdp.dot");
+        fileLog.println("MDP initial state "+mdp.getFirstInitialState()+" "+mdp.getStatesList().get(mdp.getFirstInitialState()));
+        //VarList vl = maModelGen.createVarList();
+        mdp.exportStates(0,       mdp.getVarList(),fileLog);
+
+        mdp.exportToPrismExplicitTra(fileLog);
+
         System.out.println(mdp.infoStringTable());
         List<State> statesList = mdp.getStatesList();
         BitSet accStates = new BitSet();
@@ -174,8 +253,12 @@ public class VIOnSmallExample {
         minRewards.add(true);
         BitSet remain = (BitSet) avoidStates.clone();
         remain.flip(0, mdp.getNumStates());
+        BitSet statesToIgnoreForVI = (BitSet) avoidStates.clone();
+        statesToIgnoreForVI.or(accStates);
+
+        vi.debug=true;
         MDPValIter.ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, mdp, accStates, remain,
-                rewardsList, null, minRewards, null, 1, null, mainLog);
+                rewardsList, null, minRewards, statesToIgnoreForVI, 1, null, mainLog);
 
         System.out.println("Probability: " + result.solns.get(0)[mdp.getFirstInitialState()]);
         System.out.println("Task Completition: " + result.solns.get(1)[mdp.getFirstInitialState()]);
@@ -184,7 +267,7 @@ public class VIOnSmallExample {
         PolicyCreator pc = new PolicyCreator();
 //		pc.createPolicy(mdp, result.strat);
         ArrayList<Double> resVals = pc.createPolicyPrintValues(mdp, result, fileLog);
-        pc.savePolicy(resultsLocation, "vires");
+        pc.savePolicy(resultsLocation, filename+"vires");
 
         mainLog.close();
         fileLog.close();

@@ -13,7 +13,7 @@ public class HelperClass<T> {
 	{
 		int numcombs = 1; 
 		for(int r = 0; r<numElements.size(); r++)
-			numcombs*=numElements.get(r); 
+			numcombs*=(numElements.get(r)==0?1:numElements.get(r));
 		return numcombs; 
 	}
 	public int getNumCombs(ArrayList<List<T>> robotStates)
@@ -47,14 +47,21 @@ public class HelperClass<T> {
 			// its a lot of while loops
 			ArrayList<T> currcomb = new ArrayList<>();
 			for (int r = 0; r < robotStates.size(); r++) {
-				T rs = robotStates.get(r).get(currStateNum[r]);
-				currcomb.add(rs);
+				if(robotStates.get(r).size()>currStateNum[r]) {
+					T rs = robotStates.get(r).get(currStateNum[r]);
+					currcomb.add(rs);
+				}
+				else
+				{
+					currcomb.add(null);
+				}
+
 			}
 			combs.add(currcomb);
 
 			boolean doInc = true;
 			for (int lr = lastrobotnum; lr >= 0; lr--) {
-				if (currStateNum[lr] + 1 == numStates[lr]) {
+				if (currStateNum[lr] + 1 == numStates[lr] || numStates[lr]==0) {
 					currStateNum[lr] = 0;
 				} else {
 					currStateNum[lr]++;

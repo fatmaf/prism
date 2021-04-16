@@ -13,10 +13,7 @@ import acceptance.AcceptanceOmega;
 import automata.DA;
 import parser.State;
 import parser.VarList;
-import parser.ast.Declaration;
-import parser.ast.DeclarationInt;
-import parser.ast.Expression;
-import parser.ast.RewardStruct;
+import parser.ast.*;
 import parser.type.Type;
 import parser.type.TypeInt;
 import prism.DefaultModelGenerator;
@@ -310,8 +307,8 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
                     String varname = modelVarList.getName(vnum);
                     if (!sharedVarsList.contains(varname)) {
                         //Declaration decl = modelVarList.getDeclaration(vnum);
-
-                        varList.addVar(varname,modelVarList.getDeclarationType(vnum), 1, null);
+                       DeclarationType decltype = modelVarList.getDeclarationType(vnum);
+                        varList.addVar(varname,decltype, 0, modelGen.getConstantValues());
                     }
                 }
             }
@@ -321,7 +318,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
                 String varname = sharedVarsList.get(ss);
                 int ssvarnum = sharedVarIndices.get(ss).get(0);
                // Declaration decl = modelVarList.getDeclaration(ssvarnum);
-                varList.addVar(varname,modelVarList.getDeclarationType(ssvarnum), 1, null);
+                varList.addVar(varname,modelVarList.getDeclarationType(ssvarnum), 0, modelGen.getConstantValues());
             }
 
             // NB: if DA only has one state, we add an extra dummy state
@@ -330,7 +327,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
                 Declaration decl = new Declaration(daVar,
                         new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(das.get(i).size() - 1, 1))));
 
-                varList.addVar(decl, 1, null);
+                varList.addVar(decl, 0, modelGen.getConstantValues());
 
             }
         } catch (PrismLangException e) {
@@ -491,6 +488,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
         BitSet daAccs = new BitSet(das.size());
         for (int d = 0; d < das.size(); d++) {
             int daState = getDAState(d, state);
+            //System.out.println(das.get(d).getAccStates());
             if (das.get(d).getAccStates().get(daState))
                 daAccs.set(d);
         }
@@ -815,8 +813,17 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
         if (exploreStateChoiceCombs == null) {
             // go through all the model gens and get the choices
             ArrayList<Integer> numchoices = new ArrayList<>();
+            //fixing bug for when not all are 0
+            int sumChoices = 0;
             for (int r = 0; r < modelGens.size(); r++) {
                 numchoices.add(modelGens.get(r).getNumChoices());
+                sumChoices += numchoices.get(r);
+            }
+            if(sumChoices != 0) {
+                for (int r = 0; r < modelGens.size(); r++) {
+                    if (numchoices.get(r) == 0)
+                        numchoices.set(r,1);
+                }
             }
             HelperClass<Integer> hc = new HelperClass<>();
             // but surely this is not enough
@@ -872,7 +879,9 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
         ArrayList<Integer> transNums = new ArrayList<>();
 
         for (int r = 0; r < modelGens.size(); r++) {
-            int numTrans = modelGens.get(r).getNumTransitions(robotTrans.get(r));
+            int numTrans = 0;
+            if(robotTrans.get(r)!=null)
+              numTrans = modelGens.get(r).getNumTransitions(robotTrans.get(r));
             transNums.add(numTrans);
         }
         HelperClass<Integer> hc = new HelperClass<>();
@@ -898,21 +907,35 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
         ArrayList<List<Entry<State, Double>>> allTransitionOptions = new ArrayList<>();
         for (int r = 0; r < modelGens.size(); r++) {
             ModulesFileModelGenerator modelGen = modelGens.get(r);
-            int currChoice = robotChoices.get(r);
-            int numTransitions = modelGen.getNumTransitions(currChoice);
             ArrayList<Entry<State, Double>> choiceTransitionTargets = new ArrayList<>();
-            for (int t = 0; t < numTransitions; t++) {
-                State target = modelGen.computeTransitionTarget(currChoice, t);
-                double prob = modelGen.getTransitionProbability(currChoice, t);
-                choiceTransitionTargets.add(new AbstractMap.SimpleEntry<State, Double>(target, prob));
+
+            if(robotChoices.get(r)!=null) {
+                int currChoice = robotChoices.get(r);
+                int numTransitions = modelGen.getNumTransitions(currChoice);
+                for (int t = 0; t < numTransitions; t++) {
+                    State target = modelGen.computeTransitionTarget(currChoice, t);
+                    double prob = modelGen.getTransitionProbability(currChoice, t);
+                    choiceTransitionTargets.add(new AbstractMap.SimpleEntry<State, Double>(target, prob));
+                }
+            }
+            else
+            {
+                if(setToExploreState)
+                {
+                    State target = getModelStates(this.exploreState).get(r);
+                    double prob = 1.0;
+                    choiceTransitionTargets.add(new AbstractMap.SimpleEntry<State, Double>(target, prob));
+
+                }
             }
 
             allTransitionOptions.add(choiceTransitionTargets);
         }
         HelperClass<Entry<State, Double>> hc = new HelperClass<>();
         ArrayList<ArrayList<Entry<State, Double>>> combs = hc.generateCombinations(allTransitionOptions);
-        if (setToExploreState)
+        if (setToExploreState) {
             exploreStateChoiceTransitionCombs = combs;
+        }
         return combs;
 
     }
@@ -978,13 +1001,17 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
         BitSet parentStateAccs = getDAAccsForState(exploreState);
         double taskrew = 0;
 
+        if(exploreState.toString().contentEquals("(4,-1,-1,1,1,0,2,0)"))
+            System.out.println("Stop");
         for (int t = 0; t < combs.size(); t++) {
-
+            int numtasks=0;
             Entry<State, Double> e = computeTransitionTargetAndProbability(choice, t);
             State ns = e.getKey();
             Double np = e.getValue();
-            BitSet stateAccs = getDAAccsForState(ns);
-            int numtasks = getTasksCompletedFromAccBitSets(parentStateAccs, stateAccs);
+            if(!isAvoidState(ns)) {
+                BitSet stateAccs = getDAAccsForState(ns);
+                numtasks = getTasksCompletedFromAccBitSets(parentStateAccs, stateAccs);
+            }
             taskrew += (double) numtasks * np;
 
 
@@ -1003,6 +1030,8 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
                     if (isSacc)
                         numtasks++;
                 }
+
+
             }
 
         }
@@ -1051,6 +1080,7 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
         }
         ArrayList<Entry<State, Double>> stateCombs = exploreStateChoiceTransitionCombs.get(offset);
         ArrayList<State> robotStates = new ArrayList<>();
+
         for (Entry<State, Double> e : stateCombs) {
             robotStates.add(e.getKey());
         }
@@ -1139,10 +1169,19 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
 
         String sep = jointActionSep;
         for (int r = 0; r < robotChoices.size(); r++) {
-            ModulesFileModelGenerator modelGen = modelGens.get(r);
-            Object ca = modelGen.getChoiceAction(robotChoices.get(r));
-            String cas = ca.toString();
+            String cas;
+            if(robotChoices.get(r)!=null) {
+                ModulesFileModelGenerator modelGen = modelGens.get(r);
+                Object ca = modelGen.getChoiceAction(robotChoices.get(r));
+                 cas = ca.toString();
+            }
+            else
+            {
+                cas = "*";
+            }
+
             toret += cas + sep;
+
         }
         return toret;
     }

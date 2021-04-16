@@ -37,6 +37,7 @@ public class MDPValIter {
 		// Strategy
 		public MDStrategyArray strat = null;
 
+
 		/**
 		 * Clear all stored data, including setting of array pointers to null (which may
 		 * be helpful for garbage collection purposes).
@@ -48,6 +49,8 @@ public class MDPValIter {
 		}
 
 	}
+
+	public boolean debug = false;
 
 	/**
 	 * Compute reachability probabilities using value iteration - arrays Optionally,
@@ -245,7 +248,7 @@ public class MDPValIter {
 
 						if (updateVals) {
 							String prevVals = null;
-							if (iters > 2000) {
+							if (iters > 2000| debug) {
 								prevVals = iters + "-" + i + ":" + strat[i] + "[" + solnProb[i];
 								for (int rews = 0; rews < numRewards; rews++) {
 									prevVals += ", " + solnReward.get(rews)[i];
