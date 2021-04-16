@@ -24,7 +24,8 @@ public class ActionSelectorSASRolloutPol implements ActionSelector {
 	@Override
 	public ChanceNode selectAction(DecisionNode nd, boolean doMin) throws Exception {
 		//so for a node 
-		//we split it into its single agent states 
+		//we split it into its single agent states
+		boolean setsatowait=false;
 		State s = nd.getState(); 
 		ArrayList<State> robotStates = mapmg.getModelAndDAStates(s, true);
 		//then for that agent we get the best action 
@@ -34,8 +35,32 @@ public class ActionSelectorSASRolloutPol implements ActionSelector {
 		    if(!stateActions.get(i).containsKey(robotStates.get(i)))
 		        System.out.println(String.format("No state in Action selector sas rollout pol for robot %d, state %s",i,robotStates.get(i).toString()));
 			String sa = stateActions.get(i).get(robotStates.get(i)).toString();
-			if(sa.contentEquals("?"))
-				sa = "failed";
+			if(sa.contentEquals("?")) {
+				//does it have a failed or wait
+				boolean waitfound = false;
+				ArrayList<Object> thisRobotsActions = mapmg.getAvailableRobotActionsInState(s, i);
+				for(Object o: thisRobotsActions)
+				{
+					if(o!=null)
+					{
+						if(o.toString().contentEquals("wait")) {
+							sa = o.toString();
+							//waitfound=true;
+							break;
+						}
+
+							if(o.toString().contentEquals("failed"))
+							{
+								sa=o.toString();
+
+							}
+
+					}
+				}
+				//sa = "wait";
+				//sa = "failed";
+				setsatowait=true;
+			}
 			robotActions.add(sa); 
 		}
 		//then we create a joint action using that 
@@ -46,6 +71,7 @@ public class ActionSelectorSASRolloutPol implements ActionSelector {
 		{
 			return nd.getChild(ja);
 		}
+
 
 		String msg="Unable to find action "+ja + " for state "+s.toString();
 		System.out.println(msg); 

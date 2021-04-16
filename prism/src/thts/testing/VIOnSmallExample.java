@@ -84,7 +84,7 @@ public class VIOnSmallExample {
 
         String resSuffix = "_investigatingshit_";
 
-        boolean debug = true;
+        boolean debug = false;
 
 
         try {
@@ -256,7 +256,7 @@ public class VIOnSmallExample {
         BitSet statesToIgnoreForVI = (BitSet) avoidStates.clone();
         statesToIgnoreForVI.or(accStates);
 
-        vi.debug=true;
+        vi.debug=false;
         MDPValIter.ModelCheckerMultipleResult result = vi.computeNestedValIterArray(mdpmc, mdp, accStates, remain,
                 rewardsList, null, minRewards, statesToIgnoreForVI, 1, null, mainLog);
 

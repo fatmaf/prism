@@ -534,6 +534,38 @@ public class MultiAgentNestedProductModelGenerator extends DefaultModelGenerator
         return toret;
     }
 
+    public ArrayList<Object> getAvailableRobotActionsInState(State state, int r) throws PrismException
+    {
+        boolean resetState = false;
+
+        State currentES = getExploreState();
+        if (currentES == null) {
+            exploreState(state);
+        } else {
+            if (state.compareTo(currentES) != 0) {
+                exploreState(state);
+                resetState = true;
+            }
+        }
+        // for each robot we just want to get all the actions
+       // for (int r = 0; r < modelGens.size(); r++) {
+            ArrayList<Object> robotActions = new ArrayList<>();
+            ModulesFileModelGenerator modelGen = modelGens.get(r);
+            int numChoices = modelGen.getNumChoices();
+            for (int c = 0; c < numChoices; c++) {
+                Object action = modelGen.getChoiceAction(c);
+                robotActions.add(action);
+
+         //   }
+           // availableRobotActionsInState.add(robotActions);
+
+        }
+        if (resetState)
+            exploreState(currentES);
+
+        return robotActions;//availableRobotActionsInState;
+
+    }
     public ArrayList<ArrayList<Object>> getAvailableRobotsActionsInState(State state) throws PrismException {
         ArrayList<ArrayList<Object>> availableRobotActionsInState = new ArrayList<>();
         boolean resetState = false;
