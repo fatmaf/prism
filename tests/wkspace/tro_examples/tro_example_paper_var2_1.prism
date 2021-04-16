@@ -37,9 +37,12 @@ module world
 
        [m_26] (s=2) -> p: (s'=6) + (1-p):(s'=failstate);
        [m_27] (s=2) -> (s'=7);
+       [wait] (s=2) -> (s'=2);
 
        [m_62] (s=6) -> p: (s'=2) + (1-p):(s'=failstate);
        [m_67] (s=6) -> (s'=7);
+       [wait] (s=6) -> (s'=6);
+
 
 	[m_76] (s=7) -> (s'=6); 
 	[m_75] (s=7) -> (s'=5); 
@@ -83,9 +86,12 @@ rewards "time"
 
        [m_26] (s=2) :action_cost;
        [m_27] (s=2) :action_cost;
+       [wait] (s=2) :action_cost;
 
        [m_62] (s=6) :action_cost;
        [m_67] (s=6) :action_cost;
+       [wait] (s=6) :action_cost;
+
 
 	[m_76] (s=7) :action_cost;
 	[m_75] (s=7) :action_cost;
