@@ -1,0 +1,96 @@
+mdp
+
+
+       const int failstate = -1;
+       const double p = 0.8;
+       const double ps = 1.0;
+       const int unknown = -1;
+       const int open = 1;
+       const int closed = 0;
+       const double action_cost = 1.0;
+       const int maxstate = 7;
+
+module world
+
+       s:[failstate..maxstate] init 2;
+       door0:[unknown .. open] init unknown;
+
+
+       [cd_0] (s=0) & (door0=unknown) -> p: (door0'=open) + (1-p):(door0'=closed);
+       [m_04] (s=0) -> (s'=4);
+       [m_03] (s=0) & (door0=open) -> (0.9): (s'=3) + (0.1): (s'=failstate);
+
+       [m_30] (s=3) & (door0=open) -> (s'=0);
+       [m_34] (s=3)  -> p:(s'=4) + (1-p):(s'=failstate);
+
+       [m_40] (s=4) -> p:(s'=0) + (1-p):(s'=failstate);
+       [m_43] (s=4) & (door0=open)  -> 0.9:(s'=3) + (0.1):(s'=failstate);
+       [cd_4] (s=4) & (door0=unknown) -> p: (door0'=open) + (1-p):(door0'=closed);
+       [m_45] (s=4) -> p: (s'=5) + (1-p):(s'=failstate);
+       //[m_47] (s=4) -> (s'=7);
+
+       [m_57] (s=5) -> (s'=7);
+       [m_51] (s=5) -> p: (s'=1) + (1-p):(s'=failstate);
+       [m_54] (s=5) -> p: (s'=4) + (1-p):(s'=failstate);
+
+       [m_15] (s=1) -> p: (s'=5) + (1-p):(s'=failstate);
+
+       [m_26] (s=2) -> p: (s'=6) + (1-p):(s'=failstate);
+       [m_27] (s=2) -> (s'=7);
+
+       [m_62] (s=6) -> p: (s'=2) + (1-p):(s'=failstate);
+       [m_67] (s=6) -> (s'=7);
+
+	[m_76] (s=7) -> (s'=6); 
+	[m_75] (s=7) -> (s'=5); 
+	[m_72] (s=7) -> (s'=2); 
+[failed] (s=failstate) -> (s'=failstate);
+
+ endmodule
+
+
+
+label "v0" = s=0; 
+label "v1" = s=1; 
+label "v2" = s=2; 
+label "v3" = s=3; 
+label "v4" = s=4;
+label "v5" = s=5; 
+label "v6" = s=6;
+label "v7" = s=7;
+
+
+rewards "time"
+
+
+       [cd_0] (s=0) & (door0=unknown) :action_cost;
+       [m_04] (s=0) :action_cost;
+       [m_03] (s=0) & (door0=open) :action_cost;
+
+       [m_30] (s=3) & (door0=open) :action_cost;
+       [m_34] (s=3)  :action_cost;
+
+       [m_40] (s=4)  :action_cost;
+       [m_43] (s=4)& (door0=open) :action_cost;
+       [cd_4] (s=4) & (door0=unknown) :action_cost;
+       [m_45] (s=4) :action_cost;
+
+       [m_57] (s=5) :action_cost;
+       [m_51] (s=5) :action_cost;
+       [m_54] (s=5) :action_cost;
+
+       [m_15] (s=1) :action_cost;
+
+       [m_26] (s=2) :action_cost;
+       [m_27] (s=2) :action_cost;
+
+       [m_62] (s=6) :action_cost;
+       [m_67] (s=6) :action_cost;
+
+	[m_76] (s=7) :action_cost;
+	[m_75] (s=7) :action_cost;
+	[m_72] (s=7) :action_cost;
+
+[failed] (s=failstate) : action_cost;
+
+endrewards
