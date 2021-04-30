@@ -74,8 +74,10 @@ public class VIOnSmallExample {
     public static void main(String[] args)
     {
         VIOnSmallExample vionsmallexample = new VIOnSmallExample();//.runSmallExample();
-        vionsmallexample.runPaperSmallExampleVar1();
-        vionsmallexample.runPaperSmallExampleVar2();
+    //    vionsmallexample.runPaperSmallExampleVar1();
+    //    vionsmallexample.runPaperSmallExampleVar2();
+   //     vionsmallexample.runSmallExample();
+        vionsmallexample.runGrid();
     }
     public  void runPaperSmallExampleVar1() {
 
@@ -168,11 +170,75 @@ public class VIOnSmallExample {
 
 
     }
+    public  void runGrid() {
 
-    public void run(String resFolderExt, int numRobots, int numGoals,
+        String[] examples= {"r10_g10_a1_grid_5_fsp_0_0_", "r10_g10_a1_grid_5_fsp_10_1_"
+                ,"r10_g10_a1_grid_5_fsp_20_2_","r10_g10_a1_grid_5_fsp_30_3_","r10_g10_a1_grid_5_fsp_40_4_"
+                ,"r10_g10_a1_grid_5_fsp_50_5_","r10_g10_a1_grid_5_fsp_60_6_","r10_g10_a1_grid_5_fsp_70_7_"
+                ,"r10_g10_a1_grid_5_fsp_80_8_","r10_g10_a1_grid_5_fsp_90_9_","r10_g10_a1_grid_5_fsp_100_0_"};
+
+       // int fsp = 100;
+       // int numRobots = 1;
+        //int numGoals = 1;
+        ArrayList<String> logList = new ArrayList<>();
+        String logString = "\nFN\tR\tG\tFSP\tStates\tTransitions\tChoices\tTime(ms)";
+        logList.add(logString);
+        int[] fsps = {0,30,60,90};
+        int[] numRobots_choices= {1,2,3,4};
+        int[] numGoals_choices = {1,2,3,4};
+        for(int fsp: fsps) {
+            for (int numRobots : numRobots_choices) {
+                for (int numGoals : numGoals_choices) {
+
+                    String resFolderExt = "grid5/" + fsp + "/";
+                    // String filename = "tro_example_new_small";
+
+                    String resSuffix = "_doingVI_";
+
+                    boolean debug = false;
+
+
+                    String filename = examples[fsp / 10];//r10_g10_a1_grid_5_fsp_0_0_9//"tro_example_new_small";
+                    logString = String.format("\n%s\t%d\t%d\t%d",filename,numRobots,numGoals,fsp);
+
+                    try {
+
+
+                        logString+=run(resFolderExt,
+                                numRobots, numGoals, filename, debug, resSuffix, "mult", fsp, 0);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println(String.format("Failed: R %d G %d FSP %d", numGoals, numGoals, fsp));
+                        logString+=" FAILED ";
+                    }
+                    logList.add(logString);
+                    for(String l: logList)
+                        System.out.print(l);
+                    saveLogList(logList);
+
+                }
+            }
+        }
+        for(String l: logList)
+            System.out.print(l);
+
+    }
+
+    public void saveLogList(ArrayList<String> logList)
+    {
+        PrismFileLog out = new PrismFileLog(resultsLocation+"vi.csv");
+        for(String l: logList)
+            out.print(l);
+        out.close();
+    }
+
+
+    public String run(String resFolderExt, int numRobots, int numGoals,
                     String filename, boolean debug,
                     String fnSuffix, String propsuffix,
                     int fsp, int numdoors) throws Exception {
+        String logString = "";
         //formaking things pretty
         int numConsoleChars = 80;
         int numCharsSoFar = 0;
@@ -183,7 +249,14 @@ public class VIOnSmallExample {
 
         TestFileInfo tfi = new TestFileInfo(testsLocation, filename, propsuffix, testsLocation,
                 numRobots, fsp, numdoors);
-
+        ArrayList<Integer> robotArr = new ArrayList<>();
+        for(int r = 0; r<numRobots; r++)
+            robotArr.add(r);
+        ArrayList<Integer> goalArr = new ArrayList<>();
+        for(int g = 0; g<numGoals; g++)
+            goalArr.add(g);
+        tfi.setRobots(robotArr);
+        tfi.setGoals(goalArr);
         PrismLog mainLog;
         if (debug)
             mainLog = new PrismFileLog(logFilesLocation + filename+"_debuglog_vi" + ".txt");
@@ -214,6 +287,7 @@ public class VIOnSmallExample {
         mdp.exportToPrismExplicitTra(fileLog);
 
         System.out.println(mdp.infoStringTable());
+        logString+=String.format("\t%d\t%d\t%d",mdp.getNumStates(),mdp.getNumTransitions(),mdp.getNumChoices());
         List<State> statesList = mdp.getStatesList();
         BitSet accStates = new BitSet();
         BitSet avoidStates = new BitSet();
@@ -273,7 +347,8 @@ public class VIOnSmallExample {
         fileLog.close();
         prism.closeDown();
         long endTime = System.currentTimeMillis();
-
+        logString+=String.format("\t%d",endTime-startTime);
+        return logString;
 
     }
 
@@ -318,6 +393,7 @@ public class VIOnSmallExample {
                 goalsList.add(propertiesFile.getNumProperties() - 1);
             }
         }
+
         for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
             if (goalsList != null) {
                 if (!goalsList.contains(i))
@@ -342,8 +418,9 @@ public class VIOnSmallExample {
 
             }
 
-            if (!isSafeExpr)
+            if (!isSafeExpr) {
                 processedExprs.add(daExpr);
+            }
         }
 
         // we've got the safety stuff left

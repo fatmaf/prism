@@ -330,8 +330,8 @@ public class TrialBasedTreeSearch {
         boolean doBackup = true;
         if (!n.isSolved() & notTimedOutTrial()) {
 
-            if (n.getState().toString().contentEquals("(2,0,3,-1,0,1,0)"))
-                mainLog.println();
+          //  if (n.getState().toString().contentEquals("(2,0,3,-1,0,1,0)"))
+           //     mainLog.println();
             doBackup = true;
             trialLen++;
             prevTrialLen = trialLen;

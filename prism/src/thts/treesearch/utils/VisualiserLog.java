@@ -72,6 +72,8 @@ public class VisualiserLog {
     public void newRollout(int rNum) {
         if (!donull) {
             currentRollout = "[beginRollout]{" + createKeyValueString("rollout", rNum) + "\n";
+            mainLog.println(currentRollout);
+            currentRollout = "";
         }
     }
 
@@ -86,6 +88,9 @@ public class VisualiserLog {
     public void newStep(int trialNum) {
         if (!donull) {
             currentStep = "\n\t[beginStep]{\n" + createKeyValueString("step", trialNum);
+            mainLog.println(currentStep);
+            currentStep = "";
+
         }
     }
 
@@ -93,6 +98,7 @@ public class VisualiserLog {
         if (!donull) {
             currentStep += "}[endStep]\n";
             currentRollout += currentStep;
+            mainLog.println(currentStep);
             currentStep = "";
         }
     }
@@ -100,12 +106,16 @@ public class VisualiserLog {
     public void addStateBit(DecisionNode d) {
         if (!donull) {
             currentStep += "\t\tstate:{" + decisionNodeString(d) + "}\n";
+            mainLog.println(currentStep);
+            currentStep = "";
         }
     }
 
     private void begin(THTSStep t) {
         if (!donull)
             currentStep += "\n\t\t[begin" + t.toString() + "]{";
+        mainLog.println(currentStep);
+        currentStep = "";
     }
 
     public void beginPolRun() {
@@ -137,6 +147,8 @@ public class VisualiserLog {
     private void end(THTSStep t) {
         if (!donull) {
             currentStep += "}[end" + t.toString() + "]\n";
+            mainLog.println(currentStep);
+            currentStep = "";
         }
     }
 
@@ -166,18 +178,24 @@ public class VisualiserLog {
     private void writeAssignedHeuristic(ChanceNode d) {
         if (!donull) {
             currentStep += "\n\t\t" + chanceNodeString(d);
+            mainLog.println(currentStep);
+            currentStep = "";
         }
     }
 
     private void writeAssignedHeuristic(DecisionNode d) {
         if (!donull) {
             currentStep += "\n\t\t" + decisionNodeString(d);
+            mainLog.println(currentStep);
+            currentStep = "";
         }
     }
 
     public void writeSelectedAction(ChanceNode d) {
         if (!donull) {
             currentStep += "\n\t\tselected:{" + chanceNodeString(d) + "}";
+            mainLog.println(currentStep);
+            currentStep = "";
         }
     }
 
@@ -194,6 +212,8 @@ public class VisualiserLog {
                 }
             }
             currentStep += "}";
+            mainLog.println(currentStep);
+            currentStep = "";
         }
     }
 
@@ -214,6 +234,8 @@ public class VisualiserLog {
                 }
             }
             currentStep += "}\n";
+            mainLog.println(currentStep);
+            currentStep = "";
         }
     }
 
@@ -234,6 +256,8 @@ public class VisualiserLog {
                 }
             }
             currentStep += "}\n";
+            mainLog.println(currentStep);
+            currentStep = "";
         }
 
     }
