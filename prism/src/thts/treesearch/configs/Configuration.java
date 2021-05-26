@@ -248,12 +248,12 @@ public abstract class Configuration {
         mainLog.println(HelperClass.getTString() + "Beginning solutions for single agents");
         long startTime = System.currentTimeMillis();
         //append the location here
-        String floc = tfi.getFilelocation();
-        for(int i = 0; i<tfi.getFilenames().size();i++)
-        {
-           String fn = tfi.getFilenames().get(i);
-           tfi.getFilenames().set(i,floc+fn);
-        }
+//        String floc = tfi.getFilelocation();
+//        for(int i = 0; i<tfi.getFilenames().size();i++)
+//        {
+//           String fn = tfi.getFilenames().get(i);
+//           tfi.getFilenames().set(i,floc+fn);
+//        }
         if (tfi.getRobots() != null && tfi.getGoals() != null) {
             singleAgentStateValues = solveMaxTaskForAllSingleAgents(prism, fileLog, logFilesLocation, tfi.getFilenames(),
                     tfi.getPropertiesfile(), tfi.getRobots(), tfi.getGoals(), stateActions);

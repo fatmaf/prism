@@ -51,7 +51,7 @@ public class RunConfiguration {
         String logFilesExt = "results/configs/" + config.getConfigname() + "/";
         String resFileName = testSet.testSetID + "_" + config.getConfigname() + reslogSuffix;
         initialiseResultsLocations(resFolderExt, logFilesExt);
-
+        testLoc = currentDir+ (testLoc.startsWith(".") ? testLoc.substring(1) : testLoc);
         ArrayList<TestSuiteReadWrite> subtestset = testSet.tests;
         if (!openResultsFile(resFileName))
             printResultsHeader();
