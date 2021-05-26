@@ -280,15 +280,18 @@ public class RunBenchmarkTests {
                 else
                 {
                     System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours","p","Run the thing with problems"));
+System.out.println("Running limit tests");
+rbt.runTest2hLimit();
                 }
             }
             else
             {
 		//                System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours"));
                 System.out.println(String.format("Options are\n\t%s:%s\t%s:%s\t%s:%s\t%s:%s", "d","Doors","a","All Tests with fsp 90 except failstates, excludes doors","l","Limit each test to 2hours","p","Run the thing with problems"));
-System.out.println("Running all as default");
+System.out.println("Running limit tests");
 
-                rbt.runTestSuite();
+rbt.runTest2hLimit();
+// rbt.runTestSuite();
             }
         //    rbt.runTest2hLimit();
         } catch (Exception e) {
