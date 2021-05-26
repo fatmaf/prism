@@ -82,7 +82,8 @@ public class THTSRunInfo {
     int chanceNodesExp = -1;
     int decisionNodesExp = -1;
     String tLensString = "[]";
-    HashMap<Long, HashMap<Objectives, Double>> vipolAtIntervals;
+    public ArrayList<String> actSelNames;
+    ArrayList<HashMap<Long, HashMap<Objectives, Double>>> vipolAtIntervals;
     int numRobots;
     int numGoals;
     int fsp;
@@ -144,8 +145,12 @@ public class THTSRunInfo {
         String toret = "{}";
         if (this.vipolAtIntervals != null) {
             toret = "{";
-            for (long ts : vipolAtIntervals.keySet()) {
-                toret += ts + ":" + vipolAtIntervals.get(ts).toString() + ",";
+            for (int i = 0; i < this.vipolAtIntervals.size(); i++) {
+                toret += this.actSelNames.get(i) + ":{";
+                for (long ts : vipolAtIntervals.get(i).keySet()) {
+                    toret += ts + ":" + vipolAtIntervals.get(i).get(ts).toString() + ",";
+                }
+                toret += "},";
             }
             toret += "}";
         }
@@ -273,11 +278,11 @@ public class THTSRunInfo {
         this.tLensString = tLensString;
     }
 
-    public HashMap<Long, HashMap<Objectives, Double>> getVipolAtIntervals() {
+    public ArrayList<HashMap<Long, HashMap<Objectives, Double>>> getVipolAtIntervals() {
         return vipolAtIntervals;
     }
 
-    public void setVipolAtIntervals(HashMap<Long, HashMap<Objectives, Double>> vipolAtIntervals) {
+    public void setVipolAtIntervals(ArrayList<HashMap<Long, HashMap<Objectives, Double>>> vipolAtIntervals) {
         this.vipolAtIntervals = vipolAtIntervals;
     }
 

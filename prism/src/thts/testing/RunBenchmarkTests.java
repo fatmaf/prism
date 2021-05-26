@@ -33,10 +33,10 @@ public class RunBenchmarkTests {
 
     public static ArrayList<Configuration> getSelectedConfigs(boolean timeBound, boolean dointervalvi, long timeLimit) {
         String[] configNames = {
-                "L_Cost_LUGreedyRandomRelFC_MCD_GP_ASBU",
-                "L_Cost_eLUGreedyRandomRelFC_MCD_GP_ASBU",
-                "L_Cost_LUGreedyRandomRelFC_GP_ASBU",
-                "L_Cost_LUGreedyRandomRelFC_GP_SASH_ASBU",
+                //"L_Cost_LUGreedyRandomRelFC_MCD_GP_ASBU",
+                //"L_Cost_eLUGreedyRandomRelFC_MCD_GP_ASBU",
+                //"L_Cost_LUGreedyRandomRelFC_GP_ASBU",
+                //"L_Cost_LUGreedyRandomRelFC_GP_SASH_ASBU",
                 "L_Cost_LUGreedyRandomRelFC_MCD_GP_SASH_ASBU",
 
                 //"L_Cost_eLUGreedyRandomRelFC_MCD_GP_SASH_ASBU",

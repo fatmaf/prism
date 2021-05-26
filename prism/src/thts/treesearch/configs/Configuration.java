@@ -286,6 +286,14 @@ public abstract class Configuration {
                 fileLog);
         if (dovipolcheckonintervals) {
             thts.enablePolCheckAtIntervals(getViOnPolIntervalInMS(), prism);
+            ArrayList<ActionSelector> actSels = new ArrayList<>();
+            ArrayList<String> actSelNames = new ArrayList<>();
+            actSels.add(getBaseActSel());
+            actSels.add(getPolActSel());
+            thts.setViActSels(actSels);
+            actSelNames.add(getBaseActSel().name());
+            actSelNames.add(getPolActSel().name());
+            actSelNames.add("mv");
         }
         mainLog.println(HelperClass.getTString() + "Beginning THTS");
         fileLog.println(HelperClass.getTString() + "Beginning THTS");

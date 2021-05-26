@@ -40,6 +40,8 @@ public class TrialBasedTreeSearch {
     Heuristic hf;
     ActionSelector actSel;
     OutcomeSelector outSel;
+
+    public ArrayList<HashMap<Long, HashMap<Objectives, Double>>> timeValues;
     RewardHelper rewH;
     Backup backup;
     protected PrismLog mainLog;
@@ -47,8 +49,7 @@ public class TrialBasedTreeSearch {
 
     protected HashMap<String, Node> nodesAddedSoFar;
     public ArrayList<Integer> trialLenArray = new ArrayList<Integer>();
-
-    public HashMap<Long, HashMap<Objectives, Double>> timeValues;
+    ArrayList<ActionSelector> viActSels = new ArrayList<>();
     public int decisionNodesExplored;
     public int chanceNodesExplored;
     public int numRollouts;
@@ -119,6 +120,10 @@ public class TrialBasedTreeSearch {
 
     }
 
+    public void setViActSels(ArrayList<ActionSelector> actSels) {
+        this.viActSels = actSels;
+    }
+
     public long getDuration() {
         return duration;
     }
@@ -133,11 +138,20 @@ public class TrialBasedTreeSearch {
             if (timePassedSincePrevCheck > polCheckIntervalInMS) {
 
                 try {
-                    if (timeValues == null)
-                        timeValues = new HashMap<>();
-
-                    SolutionResults sr = doVIOnPolicy(actSel, polPrism);
-                    timeValues.put(duration, sr.getValuesForInitialState());
+                    if (timeValues == null) {
+                        timeValues = new ArrayList<>();
+                        for (int i = 0; i < viActSels.size() + 1; i++) {
+                            timeValues.add(new HashMap<>());
+                        }
+                    }
+                    for (int i = 0; i < viActSels.size(); i++) {
+                        SolutionResults sr = doVIOnPolicy(viActSels.get(i), polPrism);
+                        timeValues.get(i).put(duration, sr.getValuesForInitialState());
+                        timeAtPrevPolCheck = duration;
+                        fileLog.println(HelperClass.getTString() + "End VI At Interval:");
+                    }
+                    SolutionResults sr = doVIOnPolicyMostVisitedActSel(polPrism);
+                    timeValues.get(viActSels.size()).put(duration, sr.getValuesForInitialState());
                     timeAtPrevPolCheck = duration;
                     fileLog.println(HelperClass.getTString() + "End VI At Interval:");
                 } catch (Exception e) {
@@ -626,6 +640,12 @@ public class TrialBasedTreeSearch {
         }
     }
 
+    public SolutionResults doVIOnPolicyMostVisitedActSel(Prism prism)
+            throws Exception {
+        return doVIOnPolicy(new ActionSelectorMostVisited(), null, 0, prism, true, false);
+        //  return doVIOnPolicy(new ActionSelectorMostVisited(), resultsLocation, rnNum, prism, skipunexplorednodes, terminateearly);
+    }
+
 
     public SolutionResults doVIOnPolicyMostVisitedActSel(String resultsLocation, int rnNum, Prism prism, boolean skipunexplorednodes, boolean terminateearly)
             throws Exception {
@@ -811,7 +831,7 @@ public class TrialBasedTreeSearch {
     }
 
     public SolutionResults doVIOnPolicy(ActionSelector actSelrt, Prism prism) throws Exception {
-        return doVIOnPolicy(actSelrt, null, 0, prism, false, false);
+        return doVIOnPolicy(actSelrt, null, 0, prism, true, false);
 
     }
 
