@@ -301,6 +301,7 @@ public abstract class Configuration {
             actSelNames.add(getBaseActSel().name());
             actSelNames.add(getPolActSel().name());
             actSelNames.add("mv");
+            runInfo.actSelNames=actSelNames;
         }
         mainLog.println(HelperClass.getTString() + "Beginning THTS");
         fileLog.println(HelperClass.getTString() + "Beginning THTS");
