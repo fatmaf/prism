@@ -1,5 +1,5 @@
 R{"time"}min=? [F ("s1") ]
-//Pmax=? [F ("s6") ]
+Pmax=? [F ("s6") ]
 //Pmax=? [F ("s22") ]
 Pmax=? [F ("s24") ]
 //Pmax=? [F ("s12") ]
